@@ -26,6 +26,5 @@ public class AuthResponse {
     private UserRole role;
     private String userType;
 
-    // Role-specific data (can be extended)
     private Object roleSpecificData;
 }

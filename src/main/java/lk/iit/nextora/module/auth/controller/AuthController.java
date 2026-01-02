@@ -5,8 +5,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
+import lk.iit.nextora.module.auth.dto.request.LoginRequest;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
+import lk.iit.nextora.module.auth.usecase.LoginUseCase;
 import lk.iit.nextora.module.auth.usecase.RegisterUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final RegisterUseCase registerUseCase;
+    private final LoginUseCase loginUseCase;
 
     @PostMapping(ApiConstants.AUTH_REGISTER)
     @ResponseStatus(HttpStatus.CREATED)
@@ -29,5 +32,16 @@ public class AuthController {
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = registerUseCase.execute(request);
         return ApiResponse.success("Registration successful", response);
+    }
+
+    @PostMapping("/login")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Login for all roles",
+            description = "Authenticate user with email, password, and role"
+    )
+    public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = loginUseCase.execute(request);
+        return ApiResponse.success("Login successful", response);
     }
 }
