@@ -1,45 +1,202 @@
-//package lk.iit.campus.common.exception;
-//
-//import lk.iit.campus.common.dto.ApiResponse;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.ExceptionHandler;
-//import org.springframework.web.bind.annotation.RestControllerAdvice;
-//
-//@Slf4j
-//@RestControllerAdvice
-//public class GlobalExceptionHandler {
-//
-//    @ExceptionHandler(ResourceNotFoundException.class)
-//    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
-//        log.error("Resource not found: {}", ex.getMessage());
-//        return ResponseEntity
-//                .status(HttpStatus.NOT_FOUND)
-//                .body(ApiResponse.error(ex.getMessage()));
-//    }
-//
-//    @ExceptionHandler(BusinessException.class)
-//    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException ex) {
-//        log.error("Business exception: {}", ex.getMessage());
-//        return ResponseEntity
-//                .status(HttpStatus.BAD_REQUEST)
-//                .body(ApiResponse.error(ex.getMessage()));
-//    }
-//
-//    @ExceptionHandler(UnauthorizedException.class)
-//    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
-//        log.error("Unauthorized: {}", ex.getMessage());
-//        return ResponseEntity
-//                .status(HttpStatus.UNAUTHORIZED)
-//                .body(ApiResponse.error(ex.getMessage()));
-//    }
-//
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
-//        log.error("Unexpected error: ", ex);
-//        return ResponseEntity
-//                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(ApiResponse.error("An unexpected error occurred"));
-//    }
-//}
+package lk.iit.nextora.common.exception;
+
+import lk.iit.nextora.common.exception.custom.BadRequestException;
+import lk.iit.nextora.common.exception.custom.DuplicateResourceException;
+import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
+import lk.iit.nextora.common.exception.custom.UnauthorizedException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+
+    // Handle Resource Not Found exceptions
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
+
+        log.error("Resource not found: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("Not Found")
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle static resource not found (``NoResourceFoundException``)
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+            NoResourceFoundException ex, WebRequest request) {
+
+        log.debug("Static resource not found: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error("Not Found")
+                .message("Requested static resource not found")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    // Handle Bad Request exceptions
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequestException(
+            BadRequestException ex, WebRequest request) {
+
+        log.error("Bad request: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle Duplicate Resource exceptions
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
+            DuplicateResourceException ex, WebRequest request) {
+
+        log.error("Duplicate resource: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.CONFLICT.value())
+                .error("Conflict")
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // Handle Validation exceptions
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
+
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        log.error("Validation failed: {}", errors);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Validation Failed")
+                .message("Input validation failed")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .validationErrors(errors)
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle Authentication exceptions
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(
+            BadCredentialsException ex, WebRequest request) {
+
+        log.error("Authentication failed: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .message("Invalid email or password")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Handle Spring Security AccessDeniedException
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(
+            AccessDeniedException ex, WebRequest request) {
+
+        log.error("Access denied: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Forbidden")
+                .message("You don't have permission to access this resource")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    // Handle custom UnauthorizedException
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(
+            UnauthorizedException ex, WebRequest request) {
+
+        log.error("Unauthorized access: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Handle all other exceptions
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGlobalException(
+            Exception ex, WebRequest request) {
+
+        log.error("Internal server error: ", ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .error("Internal Server Error")
+                .message("Something went wrong!. Please try again later.")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}

@@ -1,1 +1,0 @@
-package lk.iit.nextora.config;

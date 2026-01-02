@@ -5,12 +5,17 @@ spring:
   profiles:
     active: dev
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   jpa:
     show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   jmx:
     enabled: false
@@ -22,11 +27,25 @@ spring:
 
 server:
   port: 8080
-  servlet:
-    context-path: /api
 
 application:
   version: 1.0.0
+  swagger:
+    title: "Library Management System API"
+    description: "RESTful API for Library Management System - Demo Spring Boot Project"
+    version: "1.0.0"
+    contact:
+      name: "Task Master"
+      url: "https://github.com/Haritha0705/taskmaster-devops-platform"
+    license:
+      name: "MIT License"
+      url: "https://opensource.org/licenses/MIT"
+    servers:
+      - url: "http://localhost:8080"
+        description: "Development Server"
+      - url: "https://api.taskmaster.com"
+        description: "Production Server"
+
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
@@ -38,11 +57,15 @@ logging:
   level:
     root: INFO
     lk.iit.campus: DEBUG
-    javax.management: OFF
-    sun.rmi: OFF
-    com.sun.jmx: OFF
+    io.lettuce.core: INFO
+    org.springframework.data.redis: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
     name: logs/application.log
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
