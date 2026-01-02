@@ -1,0 +1,78 @@
+package lk.iit.nextora.module.auth.usecase;
+
+import lk.iit.nextora.common.exception.custom.BadRequestException;
+import lk.iit.nextora.config.security.JwtTokenProvider;
+import lk.iit.nextora.module.auth.dto.request.LoginRequest;
+import lk.iit.nextora.module.auth.dto.response.AuthResponse;
+import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.service.AuthenticationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class LoginUseCase {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
+    private final AuthenticationService authenticationService;
+
+    public AuthResponse execute(LoginRequest request) {
+        log.info("Login attempt for: {} as role: {}", request.getEmail(), request.getRole());
+
+        try {
+            // Authenticate credentials
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            // Find user by email and role
+            BaseUser user = authenticationService
+                    .findUserByEmailAndRole(request.getEmail(), request.getRole())
+                    .orElseThrow(() -> new BadRequestException(
+                            "No account found with email " + request.getEmail() +
+                                    " for role " + request.getRole().getDisplayName()
+                    ));
+
+            // Verify user is active
+            if (!user.isActive()) {
+                throw new BadRequestException("Account is inactive");
+            }
+
+            // Generate tokens
+            String accessToken = tokenProvider.generateAccessToken(user);
+            String refreshToken = tokenProvider.generateRefreshToken(user);
+
+            log.info("User logged in successfully: {} - {}",
+                    user.getEmail(), user.getUserType());
+
+            return AuthResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .tokenType("Bearer")
+                    .expiresIn(tokenProvider.getAccessTokenExpiryDate())
+                    .userId(user.getId())
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .role(user.getRole())
+                    .userType(user.getUserType())
+                    .build();
+
+        } catch (AuthenticationException ex) {
+            log.error("Authentication failed: {}", request.getEmail());
+            throw new BadRequestException("Invalid email or password");
+        }
+    }
+}
