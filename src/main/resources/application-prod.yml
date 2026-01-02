@@ -1,0 +1,26 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://ep-delicate-water-ahwvsfhl-pooler.c-3.us-east-1.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require
+    username: neondb_owner
+    password: npg_3UeVGMk6lDEF
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: WARN
+    lk.iit.campus: INFO
