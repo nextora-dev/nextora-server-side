@@ -1,10 +1,12 @@
 package lk.iit.nextora.module.auth.usecase;
 
 import lk.iit.nextora.common.exception.custom.BadRequestException;
-import lk.iit.nextora.config.security.JwtTokenProvider;
+import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
 import lk.iit.nextora.module.auth.dto.request.LoginRequest;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.mapper.AuthMapper;
+import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,8 @@ public class LoginUseCase {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationService authenticationService;
+    private final AuthMapper authMapper;
+    private final UserResponseMapper userResponseMapper;
 
     public AuthResponse execute(LoginRequest request) {
         log.info("Login attempt for: {} as role: {}", request.getEmail(), request.getRole());
@@ -57,18 +61,14 @@ public class LoginUseCase {
             log.info("User logged in successfully: {} - {}",
                     user.getEmail(), user.getUserType());
 
-            return AuthResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .tokenType("Bearer")
-                    .expiresIn(tokenProvider.getAccessTokenExpiryDate())
-                    .userId(user.getId())
-                    .email(user.getEmail())
-                    .firstName(user.getFirstName())
-                    .lastName(user.getLastName())
-                    .role(user.getRole())
-                    .userType(user.getUserType())
-                    .build();
+            // Use mappers to build response
+            return authMapper.toAuthResponseWithRoleData(
+                    user,
+                    accessToken,
+                    refreshToken,
+                    tokenProvider.getAccessTokenExpiryDate(),
+                    userResponseMapper.extractRoleSpecificData(user)
+            );
 
         } catch (AuthenticationException ex) {
             log.error("Authentication failed: {}", request.getEmail());

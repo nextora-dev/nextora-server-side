@@ -5,6 +5,7 @@ import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.StudentRegisterRequest;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.Student;
+import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 public class StudentRegistrationStrategy implements RegistrationStrategy {
 
     private final StudentRepository studentRepository;
+    private final UserMapper userMapper;
 
     @Override
     public void validate(RegisterRequest request) {
@@ -44,21 +46,13 @@ public class StudentRegistrationStrategy implements RegistrationStrategy {
     public BaseUser mapToEntity(RegisterRequest request) {
         StudentRegisterRequest studentRequest = (StudentRegisterRequest) request;
 
-        Student student = Student.builder()
-                .studentId(studentRequest.getStudentId())
-                .batch(studentRequest.getBatch())
-                .program(studentRequest.getProgram())
-                .faculty(studentRequest.getFaculty())
-                .dateOfBirth(studentRequest.getDateOfBirth())
-                .address(studentRequest.getAddress())
-                .guardianName(studentRequest.getGuardianName())
-                .guardianPhone(studentRequest.getGuardianPhone())
-                .build();
+        // Use mapper to convert request to entity
+        Student student = userMapper.toStudent(studentRequest);
 
+        // Set common fields from base request
         student.setEmail(studentRequest.getEmail());
         student.setFirstName(studentRequest.getFirstName());
         student.setLastName(studentRequest.getLastName());
-        student.setPhoneNumber(studentRequest.getPhone());
 
         return student;
     }

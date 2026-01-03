@@ -5,6 +5,7 @@ import lk.iit.nextora.module.auth.dto.request.AcademicStaffRegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.entity.AcademicStaff;
 import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.repository.AcademicStaffRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 public class AcademicStaffRegistrationStrategy implements RegistrationStrategy {
 
     private final AcademicStaffRepository academicStaffRepository;
+    private final UserMapper userMapper;
 
     @Override
     public void validate(RegisterRequest request) {
@@ -43,19 +45,13 @@ public class AcademicStaffRegistrationStrategy implements RegistrationStrategy {
     public BaseUser mapToEntity(RegisterRequest request) {
         AcademicStaffRegisterRequest staffRequest = (AcademicStaffRegisterRequest) request;
 
-        AcademicStaff staff = AcademicStaff.builder()
-                .employeeId(staffRequest.getEmployeeId())
-                .department(staffRequest.getDepartment())
-                .position(staffRequest.getPosition())
-                .officeLocation(staffRequest.getOfficeLocation())
-                .joinDate(staffRequest.getJoinDate())
-                .responsibilities(staffRequest.getResponsibilities())
-                .build();
+        // Use mapper to convert request to entity
+        AcademicStaff staff = userMapper.toAcademicStaff(staffRequest);
 
+        // Set common fields from base request
         staff.setEmail(staffRequest.getEmail());
         staff.setFirstName(staffRequest.getFirstName());
         staff.setLastName(staffRequest.getLastName());
-        staff.setPhoneNumber(staffRequest.getPhone());
 
         return staff;
     }

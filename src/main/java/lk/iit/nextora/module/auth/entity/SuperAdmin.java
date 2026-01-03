@@ -3,11 +3,8 @@ package lk.iit.nextora.module.auth.entity;
 import jakarta.persistence.*;
 import lk.iit.nextora.common.enums.UserRole;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Table(name = "super_admins")
@@ -37,15 +34,5 @@ public class SuperAdmin extends BaseUser {
     @Override
     public String getUserType() {
         return "SUPER_ADMIN";
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public String getUsername() {
-        return getFirstName() + " " + getLastName();
     }
 }

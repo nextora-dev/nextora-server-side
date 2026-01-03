@@ -5,6 +5,7 @@ import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.SuperAdminRegisterRequest;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.SuperAdmin;
+import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.repository.SuperAdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 public class SuperAdminRegistrationStrategy implements RegistrationStrategy {
 
     private final SuperAdminRepository superAdminRepository;
+    private final UserMapper userMapper;
 
     @Override
     public void validate(RegisterRequest request) {
@@ -50,16 +52,13 @@ public class SuperAdminRegistrationStrategy implements RegistrationStrategy {
         SuperAdminRegisterRequest superAdminRequest =
                 (SuperAdminRegisterRequest) request;
 
-        SuperAdmin superAdmin = SuperAdmin.builder()
-                .superAdminId(superAdminRequest.getSuperAdminId())
-                .assignedDate(superAdminRequest.getAssignedDate())
-                .accessLevel(superAdminRequest.getAccessLevel())
-                .build();
+        // Use mapper to convert request to entity
+        SuperAdmin superAdmin = userMapper.toSuperAdmin(superAdminRequest);
 
+        // Set common fields from base request
         superAdmin.setEmail(superAdminRequest.getEmail());
         superAdmin.setFirstName(superAdminRequest.getFirstName());
         superAdmin.setLastName(superAdminRequest.getLastName());
-        superAdmin.setPhoneNumber(superAdminRequest.getPhone());
 
         return superAdmin;
     }

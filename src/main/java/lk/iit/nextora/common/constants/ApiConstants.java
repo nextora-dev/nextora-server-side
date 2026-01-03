@@ -25,6 +25,8 @@ public final class ApiConstants {
     public static final String USERS = API_V1 + "/users";
     public static final String USER_ME = "/me";
     public static final String USER_ACTIVE = "/active";
+    public static final String CHANGE_PASSWORD = "/password";
+    public static final String USER_CHANGE_PASSWORD = USER_ME + CHANGE_PASSWORD;
     public static final String USER_BY_ID = "/{id}";
     public static final String USER_SEARCH = "/search";
     public static final String USER_ME_SEARCH = USER_ME + USER_SEARCH;

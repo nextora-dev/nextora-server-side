@@ -5,6 +5,7 @@ import lk.iit.nextora.module.auth.dto.request.AdminRegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.entity.Admin;
 import lk.iit.nextora.module.auth.entity.BaseUser;
+import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 public class AdminRegistrationStrategy implements RegistrationStrategy {
 
     private final AdminRepository adminRepository;
+    private final UserMapper userMapper;
 
     @Override
     public void validate(RegisterRequest request) {
@@ -43,18 +45,13 @@ public class AdminRegistrationStrategy implements RegistrationStrategy {
     public BaseUser mapToEntity(RegisterRequest request) {
         AdminRegisterRequest adminRequest = (AdminRegisterRequest) request;
 
-        Admin admin = Admin.builder()
-                .adminId(adminRequest.getAdminId())
-                .department(adminRequest.getDepartment())
-                .permissions(adminRequest.getPermissions())
-                .assignedDate(adminRequest.getAssignedDate())
-                .build();
+        // Use mapper to convert request to entity
+        Admin admin = userMapper.toAdmin(adminRequest);
 
-        // Set common fields from RegisterRequest
+        // Set common fields from base request
         admin.setEmail(adminRequest.getEmail());
         admin.setFirstName(adminRequest.getFirstName());
         admin.setLastName(adminRequest.getLastName());
-        admin.setPhoneNumber(adminRequest.getPhone());
 
         return admin;
     }

@@ -1,4 +1,4 @@
-package lk.iit.nextora.config.security;
+package lk.iit.nextora.config.security.jwt;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

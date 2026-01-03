@@ -7,7 +7,12 @@ import lk.iit.nextora.common.enums.UserStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -73,6 +78,24 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * Returns the user's role as Spring Security GrantedAuthority.
+     * This enables role-based authorization (@PreAuthorize, hasRole, etc.)
+     */
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    /**
+     * Returns the email as the username for Spring Security.
+     * This ensures JWT tokens use email as the subject.
+     */
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     public String getFullName() {

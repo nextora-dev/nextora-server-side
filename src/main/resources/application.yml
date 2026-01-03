@@ -9,6 +9,22 @@ spring:
     redis:
       host: localhost
       port: 6379
+      password: ""
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000  # 10 minutes default TTL
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "nextora:"
 
   jpa:
     show-sql: true
@@ -58,11 +74,58 @@ logging:
     root: INFO
     lk.iit.campus: DEBUG
     io.lettuce.core: INFO
+    javax.management.remote.rmi: WARN
+    sun.rmi: WARN
     org.springframework.data.redis: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
   file:
     name: logs/application.log
+
+# Rate Limiting Configuration
+app:
+  rate-limit:
+    enabled: true
+    algorithm: SLIDING_WINDOW  # Options: FIXED_WINDOW, SLIDING_WINDOW, TOKEN_BUCKET
+    include-headers: true
+
+    # Default limits for anonymous users
+    anonymous:
+      max-requests: 60
+      window: 1m
+
+    # Default limits for authenticated users
+    authenticated:
+      max-requests: 200
+      window: 1m
+
+    # Limits for authentication endpoints (login, register)
+    auth:
+      max-requests: 10
+      window: 1m
+
+    # Limits for sensitive endpoints (password reset, etc.)
+    sensitive:
+      max-requests: 5
+      window: 5m
+
+    # Paths to exclude from rate limiting
+    exclude-paths:
+      - /actuator/health
+      - /swagger-ui/**
+      - /v3/api-docs/**
+
+    # Endpoint-specific overrides (use quotes for paths with slashes)
+    endpoints:
+      "[/api/v1/auth/login]":
+        max-requests: 5
+        window: 1m
+      "[/api/v1/auth/register]":
+        max-requests: 3
+        window: 1m
+      "[/api/v1/users/**]":
+        max-requests: 2
+        window: 1m
 
 management:
   endpoints:

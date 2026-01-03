@@ -1,14 +1,10 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
-import lk.iit.nextora.common.enums.UserRole;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -39,6 +35,7 @@ public class Lecturer extends BaseUser {
     @CollectionTable(name = "lecturer_qualifications",
             joinColumns = @JoinColumn(name = "lecturer_id"))
     @Column(name = "qualification")
+    @Builder.Default
     private Set<String> qualifications = new HashSet<>();
 
     private LocalDate joinDate;
@@ -49,21 +46,11 @@ public class Lecturer extends BaseUser {
     @Column(length = 500)
     private String bio;
 
+    @Builder.Default
     private Boolean availableForMeetings = true;
-
 
     @Override
     public String getUserType() {
         return "LECTURER";
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public String getUsername() {
-        return getFirstName()+" "+getLastName();
     }
 }

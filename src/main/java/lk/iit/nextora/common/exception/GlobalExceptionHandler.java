@@ -4,6 +4,7 @@ import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.DuplicateResourceException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
+import lk.iit.nextora.config.ratelimit.RateLimitAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -179,6 +180,31 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Handle Rate Limit Exceeded exceptions
+
+    @ExceptionHandler(RateLimitAspect.RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceededException(
+            lk.iit.nextora.config.ratelimit.RateLimitAspect.RateLimitExceededException ex,
+            WebRequest request) {
+
+        log.warn("Rate limit exceeded: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .error("Too Many Requests")
+                .message(ex.getMessage())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getResult().getResetInSeconds()))
+                .header("X-RateLimit-Limit", String.valueOf(ex.getResult().getLimit()))
+                .header("X-RateLimit-Remaining", "0")
+                .body(error);
     }
 
     // Handle all other exceptions

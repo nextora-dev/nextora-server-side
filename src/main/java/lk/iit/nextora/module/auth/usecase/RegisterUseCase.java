@@ -3,13 +3,15 @@ package lk.iit.nextora.module.auth.usecase;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
-import lk.iit.nextora.config.security.JwtTokenProvider;
+import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
+import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.factory.RegistrationStrategyFactory;
+import lk.iit.nextora.module.auth.mapper.AuthMapper;
+import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lk.iit.nextora.module.auth.strategy.RegistrationStrategy;
-import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,6 +31,8 @@ public class RegisterUseCase {
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationService authenticationService;
     private final RegistrationStrategyFactory registrationStrategyFactory;
+    private final AuthMapper authMapper;
+    private final UserResponseMapper userResponseMapper;
 
     public AuthResponse execute(RegisterRequest request) {
         log.info("Registration attempt for: {} as role: {}", request.getEmail(), request.getRole());
@@ -60,17 +64,13 @@ public class RegisterUseCase {
 
         log.info("User registered successfully: {} - {}", user.getEmail(), user.getUserType());
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer")
-                .expiresIn(tokenProvider.getAccessTokenExpiryDate())
-                .userId(user.getId())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .role(user.getRole())
-                .userType(user.getUserType())
-                .build();
+        // Use mappers to build response
+        return authMapper.toAuthResponseWithRoleData(
+                user,
+                accessToken,
+                refreshToken,
+                tokenProvider.getAccessTokenExpiryDate(),
+                userResponseMapper.extractRoleSpecificData(user)
+        );
     }
 }

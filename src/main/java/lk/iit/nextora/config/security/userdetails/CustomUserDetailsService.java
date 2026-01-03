@@ -1,4 +1,4 @@
-package lk.iit.nextora.config.security;
+package lk.iit.nextora.config.security.userdetails;
 
 
 import lombok.RequiredArgsConstructor;

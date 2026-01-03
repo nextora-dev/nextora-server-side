@@ -1,14 +1,10 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
-import lk.iit.nextora.common.enums.UserRole;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -30,23 +26,13 @@ public class Admin extends BaseUser {
     @CollectionTable(name = "admin_permissions",
             joinColumns = @JoinColumn(name = "admin_id"))
     @Column(name = "permission")
+    @Builder.Default
     private Set<String> permissions = new HashSet<>();
 
     private LocalDate assignedDate;
 
-
     @Override
     public String getUserType() {
         return "ADMIN";
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public String getUsername() {
-        return getFirstName() + " " + getLastName();
     }
 }

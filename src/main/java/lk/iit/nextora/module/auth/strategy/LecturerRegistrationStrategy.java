@@ -5,6 +5,7 @@ import lk.iit.nextora.module.auth.dto.request.LecturerRegisterRequest;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.Lecturer;
+import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.repository.LecturerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class LecturerRegistrationStrategy implements RegistrationStrategy {
 
     private final LecturerRepository lecturerRepository;
+    private final UserMapper userMapper;
 
     @Override
     public void validate(RegisterRequest request) {
@@ -34,21 +36,13 @@ public class LecturerRegistrationStrategy implements RegistrationStrategy {
     public BaseUser mapToEntity(RegisterRequest request) {
         LecturerRegisterRequest lecturerRequest = (LecturerRegisterRequest) request;
 
-        Lecturer lecturer = Lecturer.builder()
-                .employeeId(lecturerRequest.getEmployeeId())
-                .department(lecturerRequest.getDepartment())
-                .faculty(lecturerRequest.getFaculty())
-                .designation(lecturerRequest.getDesignation())
-                .specialization(lecturerRequest.getSpecialization())
-                .qualifications(lecturerRequest.getQualifications())
-                .officeLocation(lecturerRequest.getOfficeLocation())
-                .bio(lecturerRequest.getBio())
-                .build();
+        // Use mapper to convert request to entity
+        Lecturer lecturer = userMapper.toLecturer(lecturerRequest);
 
+        // Set common fields from base request
         lecturer.setEmail(lecturerRequest.getEmail());
         lecturer.setFirstName(lecturerRequest.getFirstName());
         lecturer.setLastName(lecturerRequest.getLastName());
-        lecturer.setPhoneNumber(lecturerRequest.getPhone());
 
         return lecturer;
     }
