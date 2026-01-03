@@ -50,10 +50,17 @@ public interface UserService {
     List<UserSummaryResponse> getAllUsers();
 
     /**
-     * Delete user by ID (admin only)
+     * Delete user by ID (super admin only)
      *
      * @param id user ID
      */
     void deleteUser(Long id);
+
+    /**
+     * Restore deleted user by ID (super admin only)
+     *
+     * @param id user ID
+     */
+    void restoreUser(Long id);
 }
 

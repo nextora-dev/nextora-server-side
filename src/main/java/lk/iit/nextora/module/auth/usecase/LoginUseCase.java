@@ -1,6 +1,8 @@
 package lk.iit.nextora.module.auth.usecase;
 
 import lk.iit.nextora.common.exception.custom.BadRequestException;
+import lk.iit.nextora.common.util.StringUtils;
+import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
 import lk.iit.nextora.module.auth.dto.request.LoginRequest;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
@@ -30,7 +32,12 @@ public class LoginUseCase {
     private final UserResponseMapper userResponseMapper;
 
     public AuthResponse execute(LoginRequest request) {
-        log.info("Login attempt for: {} as role: {}", request.getEmail(), request.getRole());
+        // Validate input
+        ValidationUtils.requireValidEmail(request.getEmail(), "Email");
+        ValidationUtils.requireNonBlank(request.getPassword(), "Password");
+        ValidationUtils.requireNonNull(request.getRole(), "Role");
+
+        log.info("Login attempt for: {} as role: {}", StringUtils.maskEmail(request.getEmail()), request.getRole());
 
         try {
             // Authenticate credentials
@@ -45,21 +52,19 @@ public class LoginUseCase {
             BaseUser user = authenticationService
                     .findUserByEmailAndRole(request.getEmail(), request.getRole())
                     .orElseThrow(() -> new BadRequestException(
-                            "No account found with email " + request.getEmail() +
+                            "No account found with email " + StringUtils.maskEmail(request.getEmail()) +
                                     " for role " + request.getRole().getDisplayName()
                     ));
 
             // Verify user is active
-            if (!user.isActive()) {
-                throw new BadRequestException("Account is inactive");
-            }
+            ValidationUtils.requireTrue(user.isActive(), "Account is inactive");
 
             // Generate tokens
             String accessToken = tokenProvider.generateAccessToken(user);
             String refreshToken = tokenProvider.generateRefreshToken(user);
 
             log.info("User logged in successfully: {} - {}",
-                    user.getEmail(), user.getUserType());
+                    StringUtils.maskEmail(user.getEmail()), user.getUserType());
 
             // Use mappers to build response
             return authMapper.toAuthResponseWithRoleData(
@@ -71,7 +76,7 @@ public class LoginUseCase {
             );
 
         } catch (AuthenticationException ex) {
-            log.error("Authentication failed: {}", request.getEmail());
+            log.error("Authentication failed: {}", StringUtils.maskEmail(request.getEmail()));
             throw new BadRequestException("Invalid email or password");
         }
     }

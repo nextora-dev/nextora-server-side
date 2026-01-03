@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.auth.mapper;
 
+import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import org.mapstruct.Mapper;
@@ -10,7 +11,7 @@ import java.util.Date;
 /**
  * MapStruct mapper for authentication-related conversions
  */
-@Mapper(componentModel = "spring")
+@Mapper(config = MapperConfiguration.class)
 public interface AuthMapper {
 
     /**

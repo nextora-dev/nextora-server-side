@@ -5,22 +5,21 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.exception.ErrorResponse;
+import lk.iit.nextora.common.util.DateUtils;
+import lk.iit.nextora.common.util.SecurityUtils;
+import lk.iit.nextora.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 
 /**
@@ -112,20 +111,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private String extractClientIp(HttpServletRequest request) {
         // Check X-Forwarded-For header (common for proxies/load balancers)
         String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+        if (StringUtils.isNotBlank(xForwardedFor)) {
             // Take the first IP (original client)
             return xForwardedFor.split(",")[0].trim();
         }
 
         // Check X-Real-IP header (Nginx)
         String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
+        if (StringUtils.isNotBlank(xRealIp)) {
             return xRealIp;
         }
 
         // Check CF-Connecting-IP (Cloudflare)
         String cfConnectingIp = request.getHeader("CF-Connecting-IP");
-        if (cfConnectingIp != null && !cfConnectingIp.isEmpty()) {
+        if (StringUtils.isNotBlank(cfConnectingIp)) {
             return cfConnectingIp;
         }
 
@@ -134,18 +133,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String extractUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            return auth.getName();
-        }
-        return null;
+        return SecurityUtils.getCurrentUserEmail().orElse(null);
     }
 
     private String buildRateLimitKey(String path, String clientIp, String userId) {
         String prefix = path.replace("/", "_");
 
         // Use user ID if authenticated, otherwise IP
-        if (userId != null) {
+        if (StringUtils.isNotBlank(userId)) {
             return "ratelimit:" + prefix + ":user:" + userId;
         }
         return "ratelimit:" + prefix + ":ip:" + clientIp;
@@ -167,7 +162,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         response.setHeader(HEADER_RETRY_AFTER, String.valueOf(result.getResetInSeconds()));
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(DateUtils.now())
                 .status(HttpStatus.TOO_MANY_REQUESTS.value())
                 .error("Too Many Requests")
                 .message("Rate limit exceeded. Please try again in " + result.getResetInSeconds() + " seconds.")

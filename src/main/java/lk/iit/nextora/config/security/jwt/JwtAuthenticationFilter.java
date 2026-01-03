@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lk.iit.nextora.common.exception.ErrorResponse;
+import lk.iit.nextora.common.util.DateUtils;
+import lk.iit.nextora.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
+        if (StringUtils.isNotBlank(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
                 if (jwtBlacklistService.isBlacklisted(token)) {
@@ -55,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     } else {
-                        log.warn("Invalid token for user: {}", username);
+                        log.warn("Invalid token for user: {}", StringUtils.maskEmail(username));
                         sendErrorResponse(response, request, HttpStatus.UNAUTHORIZED,
                                 "Invalid or expired token. Please login again.");
                         return;
@@ -92,7 +93,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
+                .timestamp(DateUtils.now())
                 .status(status.value())
                 .error(status.getReasonPhrase())
                 .message(message)

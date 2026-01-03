@@ -1,14 +1,17 @@
 package lk.iit.nextora.module.auth.mapper;
 
+import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.module.auth.entity.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+/**
+ * MapStruct mapper for extracting role-specific user data
+ */
+@Mapper(config = MapperConfiguration.class)
 public interface UserResponseMapper {
 
     default Map<String, Object> extractRoleSpecificData(BaseUser user) {

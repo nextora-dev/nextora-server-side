@@ -1,5 +1,7 @@
 package lk.iit.nextora.module.auth.mapper;
 
+import lk.iit.nextora.common.mapper.DateTimeMapper;
+import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.module.auth.dto.request.*;
 import lk.iit.nextora.module.auth.entity.*;
 import org.mapstruct.*;
@@ -11,9 +13,8 @@ import org.mapstruct.*;
  * Uses default constructor + setters instead of builder pattern
  * because Lombok @Builder doesn't include inherited fields from BaseUser
  */
-@Mapper(componentModel = "spring",
-        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+@Mapper(config = MapperConfiguration.class,
+        uses = {DateTimeMapper.class},
         builder = @Builder(disableBuilder = true))
 public interface UserMapper {
 

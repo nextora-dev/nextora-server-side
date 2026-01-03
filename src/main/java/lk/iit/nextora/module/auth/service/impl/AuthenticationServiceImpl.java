@@ -5,6 +5,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
+import lk.iit.nextora.common.util.StringUtils;
+import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +25,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Optional<BaseUser> findUserByEmail(String email) {
-        log.debug("Finding user by email: {}", email);
+        if (StringUtils.isBlank(email)) {
+            return Optional.empty();
+        }
+
+        log.debug("Finding user by email: {}", StringUtils.maskEmail(email));
 
         // Query all user tables
         for (UserRole role : UserRole.values()) {
@@ -38,6 +44,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public Optional<BaseUser> findUserByEmailAndRole(String email, UserRole role) {
+        if (StringUtils.isBlank(email) || role == null) {
+            return Optional.empty();
+        }
+
         try {
             String query = String.format(
                     "SELECT u FROM %s u WHERE u.email = :email",
@@ -52,7 +62,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return Optional.of(user);
 
         } catch (NoResultException e) {
-            log.debug("No user found with email {} for role {}", email, role);
+            log.debug("No user found with email {} for role {}", StringUtils.maskEmail(email), role);
             return Optional.empty();
         } catch (Exception e) {
             log.error("Error finding user by email and role: {}", e.getMessage());
@@ -62,11 +72,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public boolean emailExists(String email) {
+        if (StringUtils.isBlank(email)) {
+            return false;
+        }
         return findUserByEmail(email).isPresent();
     }
 
     @Override
     public BaseUser getUserById(Long id, UserRole role) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        ValidationUtils.requireNonNull(role, "Role");
+
         Class<? extends BaseUser> entityClass = getEntityClass(role);
         BaseUser user = entityManager.find(entityClass, id);
 

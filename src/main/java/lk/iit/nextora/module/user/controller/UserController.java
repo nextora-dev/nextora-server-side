@@ -103,5 +103,17 @@ public class UserController {
         userService.deleteUser(id);
         return ApiResponse.success("User deleted successfully", null);
     }
+
+    @PutMapping(ApiConstants.USER_RESTORE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Operation(
+            summary = "Restore user",
+            description = "Restore a deleted user by ID (Super Admin only)"
+    )
+    public ApiResponse<Void> restoreUser(@PathVariable Long id) {
+        userService.restoreUser(id);
+        return ApiResponse.success("User restored successfully", null);
+    }
 }
 
