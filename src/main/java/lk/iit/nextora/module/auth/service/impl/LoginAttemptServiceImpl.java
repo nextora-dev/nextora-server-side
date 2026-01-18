@@ -14,13 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-/**
- * Implementation of LoginAttemptService.
- * Uses REQUIRES_NEW propagation to ensure failed attempts are saved in a separate transaction,
- * so they persist even when the main login transaction is rolled back.
- */
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class LoginAttemptServiceImpl implements LoginAttemptService {
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
@@ -48,7 +44,7 @@ public class LoginAttemptServiceImpl implements LoginAttemptService {
 
         // Check if it's a new day - reset attempts if last failure was on a different day
         boolean isNewDay = lastFailedAt == null ||
-                           !lastFailedAt.toLocalDate().equals(now.toLocalDate());
+                !lastFailedAt.toLocalDate().equals(now.toLocalDate());
 
         int currentAttempts;
         if (isNewDay) {

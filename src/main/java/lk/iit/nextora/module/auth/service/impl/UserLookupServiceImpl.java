@@ -8,7 +8,7 @@ import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.module.auth.entity.*;
-import lk.iit.nextora.module.auth.service.AuthenticationService;
+import lk.iit.nextora.module.auth.service.UserLookupService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-public class AuthenticationServiceImpl implements AuthenticationService {
+public class UserLookupServiceImpl implements UserLookupService {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -31,7 +31,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         log.debug("Finding user by email: {}", StringUtils.maskEmail(email));
 
-        // Query all user tables
         for (UserRole role : UserRole.values()) {
             Optional<BaseUser> user = findUserByEmailAndRole(email, role);
             if (user.isPresent()) {
@@ -115,4 +114,3 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         };
     }
 }
-

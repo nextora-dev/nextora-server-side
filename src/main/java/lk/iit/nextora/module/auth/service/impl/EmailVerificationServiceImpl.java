@@ -1,30 +1,30 @@
 package lk.iit.nextora.module.auth.service.impl;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.entity.EmailVerificationToken;
 import lk.iit.nextora.module.auth.repository.EmailVerificationTokenRepository;
-import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lk.iit.nextora.module.auth.service.EmailService;
 import lk.iit.nextora.module.auth.service.EmailVerificationService;
+import lk.iit.nextora.module.auth.service.UserLookupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EmailVerificationServiceImpl implements EmailVerificationService {
 
     private final EmailVerificationTokenRepository tokenRepository;
     private final EmailService emailService;
-    private final AuthenticationService authenticationService;
+    private final UserLookupService userLookupService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -77,7 +77,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     @Override
     @Transactional
     public void resendVerificationEmail(String email) {
-        BaseUser user = authenticationService.findUserByEmail(email)
+        BaseUser user = userLookupService.findUserByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found", "email", email));
 
         if (UserStatus.ACTIVE.equals(user.getStatus())) {
@@ -93,7 +93,6 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean isEmailVerified(Long userId) {
         BaseUser user = entityManager.find(BaseUser.class, userId);
         if (user == null) {

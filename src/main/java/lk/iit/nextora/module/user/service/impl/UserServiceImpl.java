@@ -14,7 +14,7 @@ import lk.iit.nextora.config.redis.RedisConfig.CacheNames;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
 import lk.iit.nextora.module.auth.repository.AdminRepository;
-import lk.iit.nextora.module.auth.service.AuthenticationService;
+import lk.iit.nextora.module.auth.service.UserLookupService;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final AuthenticationService authenticationService;
+    private final UserLookupService userLookupService;
     private final UserProfileMapper userProfileMapper;
     private final UserResponseMapper userResponseMapper;
     private final PasswordEncoder passwordEncoder;
@@ -426,7 +426,7 @@ public class UserServiceImpl implements UserService {
 
         // Check if email already exists
         ValidationUtils.requireFalse(
-                authenticationService.findUserByEmail(request.getEmail()).isPresent(),
+                userLookupService.findUserByEmail(request.getEmail()).isPresent(),
                 "Email already registered"
         );
 
@@ -665,7 +665,7 @@ public class UserServiceImpl implements UserService {
 
         return cacheService.getCachedUserByEmail(email, BaseUser.class)
                 .orElseGet(() -> {
-                    BaseUser user = authenticationService.findUserByEmail(email)
+                    BaseUser user = userLookupService.findUserByEmail(email)
                             .orElseThrow(() -> new ResourceNotFoundException("User not found", "email", email));
                     cacheService.cacheUserByEmail(email, user);
                     return user;

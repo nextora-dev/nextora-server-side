@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
-import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
@@ -14,8 +13,8 @@ import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.factory.RegistrationStrategyFactory;
 import lk.iit.nextora.module.auth.mapper.AuthMapper;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
-import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lk.iit.nextora.module.auth.service.EmailVerificationService;
+import lk.iit.nextora.module.auth.service.UserLookupService;
 import lk.iit.nextora.module.auth.strategy.RegistrationStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class RegisterUseCase {
 
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
-    private final AuthenticationService authenticationService;
+    private final UserLookupService userLookupService;
     private final RegistrationStrategyFactory registrationStrategyFactory;
     private final AuthMapper authMapper;
     private final UserResponseMapper userResponseMapper;
@@ -61,7 +60,7 @@ public class RegisterUseCase {
 
         // Check if email already exists
         ValidationUtils.requireFalse(
-                authenticationService.emailExists(request.getEmail()),
+                userLookupService.emailExists(request.getEmail()),
                 "Email already registered"
         );
 
@@ -100,7 +99,7 @@ public class RegisterUseCase {
             emailVerificationService.sendVerificationEmail(user);
             log.info("Verification email sent to: {}", StringUtils.maskEmail(user.getEmail()));
 
-            // Return response without tokens (user cannot login until verified)
+            // Return response without tokens (user cannot log in until verified)
             return authMapper.toPendingVerificationResponse(
                     user,
                     "Registration successful. Please check your email to verify your account."

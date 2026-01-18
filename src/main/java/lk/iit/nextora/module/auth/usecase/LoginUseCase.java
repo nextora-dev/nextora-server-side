@@ -1,6 +1,5 @@
 package lk.iit.nextora.module.auth.usecase;
 
-import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.util.StringUtils;
@@ -11,8 +10,8 @@ import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.auth.mapper.AuthMapper;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
-import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lk.iit.nextora.module.auth.service.LoginAttemptService;
+import lk.iit.nextora.module.auth.service.UserLookupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +31,7 @@ public class LoginUseCase {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final AuthenticationService authenticationService;
+    private final UserLookupService userLookupService;
     private final AuthMapper authMapper;
     private final UserResponseMapper userResponseMapper;
     private final LoginAttemptService loginAttemptService;
@@ -46,7 +45,7 @@ public class LoginUseCase {
         log.info("Login attempt for: {} as role: {}", StringUtils.maskEmail(request.getEmail()), request.getRole());
 
         // First, check if user exists and if account is suspended
-        BaseUser user = authenticationService
+        BaseUser user = userLookupService
                 .findUserByEmailAndRole(request.getEmail(), request.getRole())
                 .orElse(null);
 
@@ -70,7 +69,7 @@ public class LoginUseCase {
                     // Auto-unlock the account for the new day
                     loginAttemptService.resetFailedAttempts(user.getId());
                     // Refresh user object
-                    user = authenticationService.findUserByEmailAndRole(request.getEmail(), request.getRole())
+                    user = userLookupService.findUserByEmailAndRole(request.getEmail(), request.getRole())
                             .orElse(null);
                     log.info("Account auto-unlocked for new day: {}", StringUtils.maskEmail(request.getEmail()));
                 } else {

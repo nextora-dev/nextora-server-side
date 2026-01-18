@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.auth.service.impl;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lk.iit.nextora.module.auth.entity.BaseUser;
@@ -7,10 +8,15 @@ import lk.iit.nextora.module.auth.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -18,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final ResourceLoader resourceLoader;
 
     @Value("${app.mail.from:noreply@nextora.lk}")
     private String fromEmail;
@@ -27,6 +34,32 @@ public class EmailServiceImpl implements EmailService {
 
     @Value("${app.base-url:http://localhost:8081}")
     private String baseUrl;
+
+    @Value("${app.frontend-url:https://nextora.lk}")
+    private String frontendUrl;
+
+    // Cached templates
+    private String verificationEmailTemplate;
+    private String passwordResetEmailTemplate;
+    private String accountActivatedEmailTemplate;
+
+    @PostConstruct
+    public void loadTemplates() {
+        try {
+            verificationEmailTemplate = loadTemplate("classpath:templates/email/verification-email.html");
+            passwordResetEmailTemplate = loadTemplate("classpath:templates/email/password-reset-email.html");
+            accountActivatedEmailTemplate = loadTemplate("classpath:templates/email/account-activated-email.html");
+            log.info("Email templates loaded successfully");
+        } catch (IOException e) {
+            log.error("Failed to load email templates: {}", e.getMessage());
+            throw new RuntimeException("Failed to load email templates", e);
+        }
+    }
+
+    private String loadTemplate(String path) throws IOException {
+        Resource resource = resourceLoader.getResource(path);
+        return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     @Override
     @Async
@@ -76,133 +109,28 @@ public class EmailServiceImpl implements EmailService {
             log.debug("Email sent successfully to: {}", maskEmail(to));
         } catch (MessagingException e) {
             log.error("Failed to send email to {}: {}", maskEmail(to), e.getMessage());
-            // Don't throw - allow the application to continue even if email fails
-            // In production, you might want to queue this for retry
         } catch (Exception e) {
             log.error("Unexpected error sending email to {}: {}", maskEmail(to), e.getMessage());
-            // Don't throw - allow the application to continue even if email fails
         }
     }
 
     private String buildVerificationEmailHtml(String firstName, String verificationLink) {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
-                    .content { padding: 30px; background-color: #f9f9f9; }
-                    .button { display: inline-block; padding: 12px 30px; background-color: #4F46E5; color: white; 
-                              text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                    .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Welcome to Nextora!</h1>
-                    </div>
-                    <div class="content">
-                        <h2>Hello %s,</h2>
-                        <p>Thank you for registering with Nextora. Please verify your email address by clicking the button below:</p>
-                        <p style="text-align: center;">
-                            <a href="%s" class="button">Verify Email</a>
-                        </p>
-                        <p>Or copy and paste this link in your browser:</p>
-                        <p style="word-break: break-all; color: #4F46E5;">%s</p>
-                        <p><strong>This link will expire in 24 hours.</strong></p>
-                        <p>If you didn't create an account, you can safely ignore this email.</p>
-                    </div>
-                    <div class="footer">
-                        <p>&copy; 2026 Nextora. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """.formatted(firstName, verificationLink, verificationLink);
+        return verificationEmailTemplate
+                .replace("{{firstName}}", firstName)
+                .replace("{{verificationLink}}", verificationLink);
     }
 
     private String buildPasswordResetEmailHtml(String firstName, String resetLink) {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #4F46E5; color: white; padding: 20px; text-align: center; }
-                    .content { padding: 30px; background-color: #f9f9f9; }
-                    .button { display: inline-block; padding: 12px 30px; background-color: #4F46E5; color: white; 
-                              text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                    .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Password Reset</h1>
-                    </div>
-                    <div class="content">
-                        <h2>Hello %s,</h2>
-                        <p>We received a request to reset your password. Click the button below to reset it:</p>
-                        <p style="text-align: center;">
-                            <a href="%s" class="button">Reset Password</a>
-                        </p>
-                        <p>Or copy and paste this link in your browser:</p>
-                        <p style="word-break: break-all; color: #4F46E5;">%s</p>
-                        <p><strong>This link will expire in 1 hour.</strong></p>
-                        <p>If you didn't request a password reset, you can safely ignore this email.</p>
-                    </div>
-                    <div class="footer">
-                        <p>&copy; 2026 Nextora. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """.formatted(firstName, resetLink, resetLink);
+        return passwordResetEmailTemplate
+                .replace("{{firstName}}", firstName)
+                .replace("{{resetLink}}", resetLink);
     }
 
     private String buildAccountActivatedEmailHtml(String firstName) {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { background-color: #10B981; color: white; padding: 20px; text-align: center; }
-                    .content { padding: 30px; background-color: #f9f9f9; }
-                    .button { display: inline-block; padding: 12px 30px; background-color: #10B981; color: white; 
-                              text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                    .footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>Account Activated!</h1>
-                    </div>
-                    <div class="content">
-                        <h2>Hello %s,</h2>
-                        <p>Great news! Your email has been verified and your account is now active.</p>
-                        <p>You can now log in to Nextora and start using all features.</p>
-                        <p style="text-align: center;">
-                            <a href="%s/login" class="button">Log In Now</a>
-                        </p>
-                        <p>Thank you for joining Nextora!</p>
-                    </div>
-                    <div class="footer">
-                        <p>&copy; 2026 Nextora. All rights reserved.</p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """.formatted(firstName, "https://nextora.lk");
+        String loginUrl = frontendUrl + "/login";
+        return accountActivatedEmailTemplate
+                .replace("{{firstName}}", firstName)
+                .replace("{{loginUrl}}", loginUrl);
     }
 
     private String maskEmail(String email) {
