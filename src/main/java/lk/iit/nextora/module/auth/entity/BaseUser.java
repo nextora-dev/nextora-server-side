@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +48,20 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
 
     @Column(length = 15)
     private String phoneNumber;
+
+    /**
+     * Number of consecutive failed login attempts.
+     * Reset to 0 on successful login.
+     * Account is suspended after 5 failed attempts (for non-admin users).
+     */
+    @Column(nullable = false)
+    private Integer failedLoginAttempts = 0;
+
+    /**
+     * Timestamp of the last failed login attempt.
+     */
+    @Column
+    private LocalDateTime lastFailedLoginAt;
 
     @Version
     private Long version;
@@ -115,7 +130,7 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return UserStatus.ACTIVE.equals(status);
+        return status != null && status != UserStatus.SUSPENDED && status != UserStatus.DELETED;
     }
 
     @Override

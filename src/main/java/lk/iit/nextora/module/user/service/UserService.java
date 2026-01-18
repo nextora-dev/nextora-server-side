@@ -110,5 +110,13 @@ public interface UserService {
      * @param id user ID
      */
     void resetUserPassword(Long id);
+
+    /**
+     * Unlock a suspended user account and reset failed login attempts (admin only).
+     * Use this to reactivate accounts that were suspended due to multiple failed login attempts.
+     *
+     * @param id user ID
+     */
+    void unlockUser(Long id);
 }
 

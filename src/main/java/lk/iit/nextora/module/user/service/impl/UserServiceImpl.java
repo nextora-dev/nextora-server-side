@@ -430,6 +430,12 @@ public class UserServiceImpl implements UserService {
                 "Email already registered"
         );
 
+        // Check if adminId already exists
+        ValidationUtils.requireFalse(
+                adminRepository.existsByAdminId(request.getAdminId()),
+                "Admin ID '" + request.getAdminId() + "' already exists. Please use a different Admin ID."
+        );
+
         // Create Admin user (only Admin can be created, not Super Admin)
         // Super Admin is unique and created only via DataInitializer
         Admin admin = new Admin();
@@ -594,6 +600,46 @@ public class UserServiceImpl implements UserService {
 
         // TODO: Send email with temporary password or password reset link
         log.info("Password reset for user: {}. Temporary password generated.", StringUtils.maskEmail(user.getEmail()));
+    }
+
+    @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void unlockUser(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.info("Unlocking user account with ID: {}", id);
+
+        // Check if current user is admin
+        ValidationUtils.requireTrue(
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can unlock user accounts"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Check if user is actually suspended
+        if (!UserStatus.SUSPENDED.equals(user.getStatus())) {
+            log.info("User {} is not suspended, current status: {}",
+                    StringUtils.maskEmail(user.getEmail()), user.getStatus());
+            throw new IllegalStateException("User is not suspended. Current status: " + user.getStatus());
+        }
+
+        // Unlock the account
+        user.setStatus(UserStatus.ACTIVE);
+        user.setFailedLoginAttempts(0);
+        user.setLastFailedLoginAt(null);
+        entityManager.merge(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(id);
+
+        log.info("User account unlocked successfully: {}", StringUtils.maskEmail(user.getEmail()));
     }
 
     /**

@@ -74,7 +74,7 @@ public class UserController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Operation(
             summary = "Get all users",
             description = "Retrieve all users (Admin only)"
@@ -86,7 +86,7 @@ public class UserController {
 
     @GetMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:READ')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Operation(
             summary = "Get user by ID",
             description = "Retrieve a specific user by ID (Admin only)"
@@ -98,7 +98,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:CREATE')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(
             summary = "Create user",
             description = "Create a new user - redirects to appropriate endpoint based on role type"
@@ -110,7 +110,7 @@ public class UserController {
 
     @PostMapping("/admin")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(
             summary = "Create Admin user",
             description = "Create a new Admin user (Super Admin only). " +
@@ -123,7 +123,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:UPDATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Operation(
             summary = "Update user by ID",
             description = "Update a specific user by ID (Admin only)"
@@ -137,7 +137,7 @@ public class UserController {
 
     @DeleteMapping(ApiConstants.USER_BY_ID)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:DELETE')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(
             summary = "Delete user",
             description = "Delete (disable) a user by ID (Super Admin only)"
@@ -149,7 +149,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_RESTORE)
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(
             summary = "Restore user",
             description = "Restore a deleted user by ID (Super Admin only)"
@@ -161,7 +161,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_BY_ID + "/activate")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Operation(
             summary = "Activate user",
             description = "Activate a user account (Admin only)"
@@ -173,7 +173,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_BY_ID + "/deactivate")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SUPER_ADMIN') or hasAuthority('USER:ACTIVATE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @Operation(
             summary = "Deactivate user",
             description = "Deactivate a user account (Admin only)"
@@ -185,7 +185,7 @@ public class UserController {
 
     @PutMapping(ApiConstants.USER_BY_ID + "/reset-password")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN') or hasAuthority('USER:RESET_PASSWORD')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(
             summary = "Reset user password",
             description = "Reset a user's password (Super Admin only)"
@@ -193,6 +193,19 @@ public class UserController {
     public ApiResponse<Void> resetUserPassword(@PathVariable Long id) {
         userService.resetUserPassword(id);
         return ApiResponse.success("Password reset email sent successfully", null);
+    }
+
+    @PutMapping(ApiConstants.USER_BY_ID + "/unlock")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @Operation(
+            summary = "Unlock suspended user",
+            description = "Unlock a suspended user account and reset failed login attempts (Admin only). " +
+                    "Use this to reactivate accounts that were suspended due to multiple failed login attempts."
+    )
+    public ApiResponse<Void> unlockUser(@PathVariable Long id) {
+        userService.unlockUser(id);
+        return ApiResponse.success("User account unlocked successfully", null);
     }
 }
 
