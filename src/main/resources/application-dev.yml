@@ -16,6 +16,34 @@ spring:
   flyway:
     enabled: true
 
+  # Email Configuration (Gmail SMTP)
+  # For Gmail: Enable 2FA, then create an App Password at:
+  # https://myaccount.google.com/apppasswords
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    # Disable connection validation at startup (set to true when credentials are configured)
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# App Configuration
+app:
+  base-url: http://localhost:8081
+  mail:
+    from: ${MAIL_USERNAME:noreply@nextora.lk}
+    from-name: Nextora
+
 server:
   port: 8081
 

@@ -9,9 +9,10 @@ import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.config.security.jwt.JwtBlacklistService;
 import lk.iit.nextora.module.auth.dto.request.LoginRequest;
 import lk.iit.nextora.module.auth.dto.request.RegisterRequest;
+import lk.iit.nextora.module.auth.dto.request.ResendVerificationRequest;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
-import lk.iit.nextora.module.auth.usecase.LoginUseCase;
-import lk.iit.nextora.module.auth.usecase.RegisterUseCase;
+import lk.iit.nextora.module.auth.service.AuthenticationService;
+import lk.iit.nextora.module.auth.service.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +24,23 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication", description = "Multi-role authentication endpoints")
 public class AuthController {
 
-    private final RegisterUseCase registerUseCase;
-    private final LoginUseCase loginUseCase;
+    private final AuthenticationService authenticationService;
     private final JwtBlacklistService jwtBlacklistService;
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping(ApiConstants.AUTH_REGISTER)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Register for all roles",
-            description = "Register new user - request body varies by role"
+            description = "Register new user - request body varies by role. " +
+                    "Non-admin users will receive a verification email and cannot login until verified."
     )
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse response = registerUseCase.execute(request);
+        AuthResponse response = authenticationService.register(request);
+        if (response.getAccessToken() == null) {
+            // User needs to verify email
+            return ApiResponse.success(response.getMessage(), response);
+        }
         return ApiResponse.success("Registration successful", response);
     }
 
@@ -42,11 +48,34 @@ public class AuthController {
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Login for all roles",
-            description = "Authenticate user with email, password, and role"
+            description = "Authenticate user with email, password, and role. " +
+                    "Users with pending email verification cannot login."
     )
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse response = loginUseCase.execute(request);
+        AuthResponse response = authenticationService.login(request);
         return ApiResponse.success("Login successful", response);
+    }
+
+    @GetMapping("/verify-email")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Verify email",
+            description = "Verify user email using the token sent via email"
+    )
+    public ApiResponse<String> verifyEmail(@RequestParam String token) {
+        emailVerificationService.verifyEmail(token);
+        return ApiResponse.success("Email verified successfully! You can now login.", null);
+    }
+
+    @PostMapping("/resend-verification")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(
+            summary = "Resend verification email",
+            description = "Resend verification email to user with pending verification"
+    )
+    public ApiResponse<String> resendVerificationEmail(@Valid @RequestBody ResendVerificationRequest request) {
+        emailVerificationService.resendVerificationEmail(request.getEmail());
+        return ApiResponse.success("Verification email sent successfully. Please check your inbox.", null);
     }
 
     @PostMapping(ApiConstants.AUTH_LOGOUT)
@@ -65,6 +94,5 @@ public class AuthController {
 
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
     }
-
 
 }
