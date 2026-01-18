@@ -52,15 +52,16 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     /**
      * Number of consecutive failed login attempts.
      * Reset to 0 on successful login.
-     * Account is suspended after 5 failed attempts (for non-admin users).
+     * Account is suspended after 5 failed attempts per day (for non-admin users).
      */
-    @Column(nullable = false)
+    @Column(name = "failed_login_attempts")
     private Integer failedLoginAttempts = 0;
 
     /**
      * Timestamp of the last failed login attempt.
+     * Used to reset attempts for a new day.
      */
-    @Column
+    @Column(name = "last_failed_login_at")
     private LocalDateTime lastFailedLoginAt;
 
     @Version

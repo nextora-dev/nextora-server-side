@@ -559,7 +559,7 @@ public class UserServiceImpl implements UserService {
         );
 
         user.setIsActive(false);
-        user.setStatus(UserStatus.INACTIVE);
+        user.setStatus(UserStatus.Deactivate);
         entityManager.merge(user);
         entityManager.flush();
 
