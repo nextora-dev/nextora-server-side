@@ -1,0 +1,87 @@
+package lk.iit.nextora.module.kuppi.repository;
+
+import lk.iit.nextora.common.enums.KuppiSessionStatus;
+import lk.iit.nextora.module.kuppi.entity.KuppiSession;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface KuppiSessionRepository extends JpaRepository<KuppiSession, Long> {
+
+    // Find by host
+    Page<KuppiSession> findByHostIdAndIsDeletedFalse(Long hostId, Pageable pageable);
+
+    List<KuppiSession> findByHostIdAndIsDeletedFalse(Long hostId);
+
+    // Find by status
+    Page<KuppiSession> findByStatusAndIsDeletedFalse(KuppiSessionStatus status, Pageable pageable);
+
+    // Find approved/public sessions
+    @Query("SELECT k FROM KuppiSession k WHERE k.status IN :statuses AND k.isDeleted = false")
+    Page<KuppiSession> findByStatusInAndIsDeletedFalse(@Param("statuses") List<KuppiSessionStatus> statuses, Pageable pageable);
+
+    // Search by subject
+    @Query("SELECT k FROM KuppiSession k WHERE LOWER(k.subject) LIKE LOWER(CONCAT('%', :subject, '%')) " +
+           "AND k.status IN :statuses AND k.isDeleted = false")
+    Page<KuppiSession> searchBySubject(@Param("subject") String subject,
+                                        @Param("statuses") List<KuppiSessionStatus> statuses,
+                                        Pageable pageable);
+
+    // Search by title or subject
+    @Query("SELECT k FROM KuppiSession k WHERE " +
+           "(LOWER(k.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(k.subject) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND k.status IN :statuses AND k.isDeleted = false")
+    Page<KuppiSession> searchByKeyword(@Param("keyword") String keyword,
+                                        @Param("statuses") List<KuppiSessionStatus> statuses,
+                                        Pageable pageable);
+
+    // Search by host name (lecturer)
+    @Query("SELECT k FROM KuppiSession k JOIN k.host h WHERE " +
+           "(LOWER(h.firstName) LIKE LOWER(CONCAT('%', :hostName, '%')) OR " +
+           "LOWER(h.lastName) LIKE LOWER(CONCAT('%', :hostName, '%'))) " +
+           "AND k.status IN :statuses AND k.isDeleted = false")
+    Page<KuppiSession> searchByHostName(@Param("hostName") String hostName,
+                                         @Param("statuses") List<KuppiSessionStatus> statuses,
+                                         Pageable pageable);
+
+    // Find by date range
+    @Query("SELECT k FROM KuppiSession k WHERE k.scheduledStartTime BETWEEN :startDate AND :endDate " +
+           "AND k.status IN :statuses AND k.isDeleted = false")
+    Page<KuppiSession> findByDateRange(@Param("startDate") LocalDateTime startDate,
+                                        @Param("endDate") LocalDateTime endDate,
+                                        @Param("statuses") List<KuppiSessionStatus> statuses,
+                                        Pageable pageable);
+
+    // Find upcoming sessions
+    @Query("SELECT k FROM KuppiSession k WHERE k.scheduledStartTime > :now " +
+           "AND k.status IN :statuses AND k.isDeleted = false ORDER BY k.scheduledStartTime ASC")
+    Page<KuppiSession> findUpcomingSessions(@Param("now") LocalDateTime now,
+                                             @Param("statuses") List<KuppiSessionStatus> statuses,
+                                             Pageable pageable);
+
+    // Find by ID with eager loading
+    @Query("SELECT k FROM KuppiSession k LEFT JOIN FETCH k.host WHERE k.id = :id AND k.isDeleted = false")
+    Optional<KuppiSession> findByIdWithHost(@Param("id") Long id);
+
+    // Count by host
+    long countByHostIdAndIsDeletedFalse(Long hostId);
+
+    // Count by status
+    long countByStatusAndIsDeletedFalse(KuppiSessionStatus status);
+
+    // Analytics - total views for a host
+    @Query("SELECT SUM(k.viewCount) FROM KuppiSession k WHERE k.host.id = :hostId AND k.isDeleted = false")
+    Long getTotalViewsByHost(@Param("hostId") Long hostId);
+
+    // Find pending approval sessions (for admin)
+    Page<KuppiSession> findByStatusAndIsDeletedFalseOrderByCreatedAtDesc(KuppiSessionStatus status, Pageable pageable);
+}

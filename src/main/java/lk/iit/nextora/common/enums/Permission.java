@@ -13,6 +13,12 @@ public enum Permission {
     USER_DELETE("USER:DELETE", "Delete user accounts", "USER", "DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_ACTIVATE("USER:ACTIVATE", "Activate/deactivate users", "USER", "ACTIVATE", PermissionCategory.USER_MANAGEMENT),
     USER_RESET_PASSWORD("USER:RESET_PASSWORD", "Reset user passwords", "USER", "RESET_PASSWORD", PermissionCategory.USER_MANAGEMENT),
+    USER_ADMIN_CREATE("USER:ADMIN_CREATE", "Create admin users", "USER", "ADMIN_CREATE", PermissionCategory.USER_MANAGEMENT),
+    USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
+    USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),
+    USER_ADMIN_DELETE("USER:ADMIN_DELETE", "Admin delete any user", "USER", "ADMIN_DELETE", PermissionCategory.USER_MANAGEMENT),
+    USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
+    USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
 
     // ==================== KUPPI SESSIONS ====================
     KUPPI_CREATE("KUPPI:CREATE", "Create kuppi sessions", "KUPPI", "CREATE", PermissionCategory.KUPPI_MANAGEMENT),
@@ -22,6 +28,27 @@ public enum Permission {
     KUPPI_HOST("KUPPI:HOST", "Host kuppi sessions", "KUPPI", "HOST", PermissionCategory.KUPPI_MANAGEMENT),
     KUPPI_JOIN("KUPPI:JOIN", "Join kuppi sessions", "KUPPI", "JOIN", PermissionCategory.KUPPI_MANAGEMENT),
     KUPPI_APPROVE("KUPPI:APPROVE", "Approve kuppi sessions", "KUPPI", "APPROVE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_CANCEL("KUPPI:CANCEL", "Cancel kuppi sessions", "KUPPI", "CANCEL", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_RESCHEDULE("KUPPI:RESCHEDULE", "Reschedule kuppi sessions", "KUPPI", "RESCHEDULE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_LEAVE("KUPPI:LEAVE", "Leave kuppi sessions", "KUPPI", "LEAVE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_FEEDBACK("KUPPI:FEEDBACK", "Submit feedback for kuppi sessions", "KUPPI", "FEEDBACK", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_VIEW_PARTICIPANTS("KUPPI:VIEW_PARTICIPANTS", "View kuppi session participants", "KUPPI", "VIEW_PARTICIPANTS", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_VIEW_ANALYTICS("KUPPI:VIEW_ANALYTICS", "View kuppi analytics", "KUPPI", "VIEW_ANALYTICS", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_VIEW_STATS("KUPPI:VIEW_STATS", "View kuppi platform statistics", "KUPPI", "VIEW_STATS", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_ADMIN_UPDATE("KUPPI:ADMIN_UPDATE", "Admin update any kuppi session", "KUPPI", "ADMIN_UPDATE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_ADMIN_DELETE("KUPPI:ADMIN_DELETE", "Admin delete any kuppi session", "KUPPI", "ADMIN_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_PERMANENT_DELETE("KUPPI:PERMANENT_DELETE", "Permanently delete kuppi sessions", "KUPPI", "PERMANENT_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
+
+    // ==================== KUPPI NOTES ====================
+    KUPPI_NOTE_CREATE("KUPPI_NOTE:CREATE", "Create kuppi notes", "KUPPI_NOTE", "CREATE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_READ("KUPPI_NOTE:READ", "View kuppi notes", "KUPPI_NOTE", "READ", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_UPDATE("KUPPI_NOTE:UPDATE", "Update kuppi notes", "KUPPI_NOTE", "UPDATE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_DELETE("KUPPI_NOTE:DELETE", "Delete kuppi notes", "KUPPI_NOTE", "DELETE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_DOWNLOAD("KUPPI_NOTE:DOWNLOAD", "Download kuppi notes", "KUPPI_NOTE", "DOWNLOAD", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_SEARCH("KUPPI_NOTE:SEARCH", "Search kuppi notes", "KUPPI_NOTE", "SEARCH", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_ADMIN_UPDATE("KUPPI_NOTE:ADMIN_UPDATE", "Admin update any kuppi note", "KUPPI_NOTE", "ADMIN_UPDATE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_ADMIN_DELETE("KUPPI_NOTE:ADMIN_DELETE", "Admin delete any kuppi note", "KUPPI_NOTE", "ADMIN_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_NOTE_PERMANENT_DELETE("KUPPI_NOTE:PERMANENT_DELETE", "Permanently delete kuppi notes", "KUPPI_NOTE", "PERMANENT_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
 
     // ==================== CLUB MANAGEMENT ====================
     CLUB_CREATE("CLUB:CREATE", "Create clubs", "CLUB", "CREATE", PermissionCategory.CLUB_MANAGEMENT),
