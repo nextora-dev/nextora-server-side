@@ -646,14 +646,9 @@ public class UserServiceImpl implements UserService {
      * Generate a temporary password for password reset
      */
     private String generateTemporaryPassword() {
-        // Generate a random 12-character password
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
-        StringBuilder password = new StringBuilder();
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        for (int i = 0; i < 12; i++) {
-            password.append(chars.charAt(random.nextInt(chars.length())));
-        }
-        return password.toString();
+        // Generate a random 12-character alphanumeric password with special chars
+        return StringUtils.randomAlphanumeric(8) + "!@#$".charAt(new java.util.Random().nextInt(4)) +
+               StringUtils.randomNumeric(3);
     }
 
     /**

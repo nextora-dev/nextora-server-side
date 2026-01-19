@@ -44,6 +44,14 @@ app:
     from: ${MAIL_USERNAME:noreply@nextora.lk}
     from-name: Nextora
 
+# AWS S3 Configuration
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    bucket-name: ${AWS_S3_BUCKET}
+
 server:
   port: 8081
 

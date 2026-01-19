@@ -31,4 +31,30 @@ public final class ApiConstants {
     public static final String USER_SEARCH = "/search";
     public static final String USER_ME_SEARCH = USER_ME + USER_SEARCH;
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
+
+    // Kuppi endpoints
+    public static final String KUPPI = API_V1 + "/kuppi";
+    public static final String KUPPI_SESSIONS = KUPPI + "/sessions";
+    public static final String KUPPI_NOTES = KUPPI + "/notes";
+    public static final String KUPPI_COMMENTS = "/comments";
+    public static final String KUPPI_PARTICIPANTS = "/participants";
+    public static final String KUPPI_MY = "/my";
+    public static final String KUPPI_SEARCH = "/search";
+    public static final String KUPPI_UPCOMING = "/upcoming";
+    public static final String KUPPI_PENDING = "/pending";
+    public static final String KUPPI_ANALYTICS = "/analytics";
+    public static final String KUPPI_STATS = "/stats";
+    public static final String KUPPI_JOIN = "/join";
+    public static final String KUPPI_LEAVE = "/leave";
+    public static final String KUPPI_FEEDBACK = "/feedback";
+    public static final String KUPPI_APPROVE = "/approve";
+    public static final String KUPPI_REJECT = "/reject";
+    public static final String KUPPI_CANCEL = "/cancel";
+    public static final String KUPPI_RESCHEDULE = "/reschedule";
+    public static final String KUPPI_DOWNLOAD = "/download";
+
+    // Kuppi Admin endpoints
+    public static final String KUPPI_ADMIN = API_V1 + "/admin/kuppi";
+    public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
+    public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
 }
