@@ -35,7 +35,14 @@ public enum UserRole {
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.LOST_FOUND_CREATE,
-                    Permission.LOST_FOUND_READ
+                    Permission.LOST_FOUND_READ,
+                    // Voting permissions for students
+                    Permission.ELECTION_READ,
+                    Permission.CANDIDATE_VIEW,
+                    Permission.CANDIDATE_NOMINATE,
+                    Permission.VOTE_CAST,
+                    Permission.VOTE_VIEW_RESULTS,
+                    Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
     // ==================== LECTURER - Lecturer access ====================
@@ -64,12 +71,10 @@ public enum UserRole {
             Set.of(
                     Permission.USER_READ,
                     Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.EVENT_READ,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.LOST_FOUND_READ,
-                    Permission.LOST_FOUND_UPDATE
+                    Permission.CLUB_CREATE,
+                    Permission.CLUB_UPDATE,
+                    Permission.CLUB_DELETE,
+                    Permission.CLUB_MEMBERSHIP_MANAGE
             )),
 
     // ==================== ACADEMIC_STAFF ====================
@@ -82,16 +87,7 @@ public enum UserRole {
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.BATCH_UPDATE,
-                    Permission.EVENT_CREATE,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_UPDATE,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_READ
+                    Permission.CLUB_READ
             ));
 
     private final String displayName;

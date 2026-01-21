@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
             student.setClubName(StringUtils.trim(request.getClubName()));
         }
         if (request.getClubPosition() != null) {
-            student.setClubPosition(StringUtils.trim(request.getClubPosition()));
+            student.setClubPosition(request.getClubPosition());
         }
         if (request.getClubJoinDate() != null) {
             student.setClubJoinDate(request.getClubJoinDate());

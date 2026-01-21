@@ -1,6 +1,8 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
+import lk.iit.nextora.common.enums.ClubPositionsType;
+import lk.iit.nextora.common.enums.FacultyType;
 import lk.iit.nextora.common.enums.Permission;
 import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.*;
@@ -27,8 +29,9 @@ public class Student extends BaseUser {
     @Column(nullable = false, length = 100)
     private String program;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String faculty;
+    private FacultyType faculty;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "student_role_type", length = 30)
@@ -53,8 +56,9 @@ public class Student extends BaseUser {
     @Column(length = 100)
     private String clubName;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String clubPosition;
+    private ClubPositionsType clubPosition;
 
     private LocalDate clubJoinDate;
 

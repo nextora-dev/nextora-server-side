@@ -1,8 +1,10 @@
 package lk.iit.nextora.module.auth.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
+import lk.iit.nextora.common.enums.FacultyType;
 import lk.iit.nextora.common.enums.StudentRoleType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,9 +44,8 @@ public class StudentRegisterRequest extends RegisterRequest {
     @Size(max = 100, message = "Program must not exceed 100 characters")
     private String program;
 
-    @NotBlank(message = "Faculty is required")
-    @Size(max = 50, message = "Faculty must not exceed 50 characters")
-    private String faculty;
+    @NotNull(message = "Faculty is required")
+    private FacultyType faculty;
 
     /**
      * Student sub-role type (defaults to NORMAL if not provided)
