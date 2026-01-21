@@ -2,7 +2,9 @@ package lk.iit.nextora.module.auth.dto.request;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lk.iit.nextora.common.enums.FacultyType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,9 +28,8 @@ public class LecturerRegisterRequest extends RegisterRequest {
     @Size(max = 100, message = "Department must not exceed 100 characters")
     private String department;
 
-    @NotBlank(message = "Faculty is required")
-    @Size(max = 50, message = "Faculty must not exceed 50 characters")
-    private String faculty;
+    @NotNull(message = "Faculty is required")
+    private FacultyType faculty;
 
     @Size(max = 50, message = "Designation must not exceed 50 characters")
     private String designation;

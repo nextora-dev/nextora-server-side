@@ -1,5 +1,7 @@
 package lk.iit.nextora.config;
 
+import lk.iit.nextora.common.enums.ClubPositionsType;
+import lk.iit.nextora.common.enums.FacultyType;
 import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.module.auth.entity.*;
@@ -87,7 +89,7 @@ public class DataInitializer implements CommandLineRunner {
             lecturer.setRole(UserRole.ROLE_LECTURER);
             lecturer.setEmployeeId("LEC001");
             lecturer.setDepartment("Computer Science");
-            lecturer.setFaculty("Computing");
+            lecturer.setFaculty(FacultyType.COMPUTING);
             lecturer.setDesignation("Senior Lecturer");
             lecturer.setSpecialization("Machine Learning");
             lecturer.setQualifications(Set.of("PhD", "MSc", "BSc"));
@@ -109,6 +111,7 @@ public class DataInitializer implements CommandLineRunner {
             academicStaff.setRole(UserRole.ROLE_ACADEMIC_STAFF);
             academicStaff.setEmployeeId("ACS001");
             academicStaff.setDepartment("Research and Development");
+            academicStaff.setFaculty(FacultyType.COMPUTING);
             academicStaff.setPosition("Research Coordinator");
             academicStaff.setOfficeLocation("Block B, Room 205");
             academicStaff.setJoinDate(LocalDate.of(2023, 1, 15));
@@ -150,7 +153,7 @@ public class DataInitializer implements CommandLineRunner {
             normalStudent.setStudentId("IIT2024001");
             normalStudent.setBatch("2024");
             normalStudent.setProgram("BSc Computer Science");
-            normalStudent.setFaculty("Computing");
+            normalStudent.setFaculty(FacultyType.COMPUTING);
             normalStudent.setDateOfBirth(LocalDate.of(2002, 5, 15));
             normalStudent.setAddress("123 Main Street, Colombo");
             normalStudent.setGuardianName("Robert Doe");
@@ -170,14 +173,14 @@ public class DataInitializer implements CommandLineRunner {
             clubMember.setStudentId("IIT2024002");
             clubMember.setBatch("2024");
             clubMember.setProgram("BSc Computer Science");
-            clubMember.setFaculty("Computing");
+            clubMember.setFaculty(FacultyType.COMPUTING);
             clubMember.setDateOfBirth(LocalDate.of(2002, 8, 20));
             clubMember.setAddress("456 Park Road, Kandy");
             clubMember.setGuardianName("Mary Smith");
             clubMember.setGuardianPhone("+94777654322");
             clubMember.setStudentRoleType(StudentRoleType.CLUB_MEMBER);
             clubMember.setClubName("IEEE Student Branch");
-            clubMember.setClubPosition("Secretary");
+            clubMember.setClubPosition(ClubPositionsType.PRESIDENT);
             clubMember.setClubJoinDate(LocalDate.of(2024, 3, 15));
             clubMember.setClubMembershipId("IEEE-2024-001");
             studentRepository.save(clubMember);
@@ -194,7 +197,7 @@ public class DataInitializer implements CommandLineRunner {
             seniorKuppi.setStudentId("IIT2022001");
             seniorKuppi.setBatch("2022");
             seniorKuppi.setProgram("BSc Computer Science");
-            seniorKuppi.setFaculty("Computing");
+            seniorKuppi.setFaculty(FacultyType.COMPUTING);
             seniorKuppi.setDateOfBirth(LocalDate.of(2000, 3, 10));
             seniorKuppi.setAddress("789 Lake View, Galle");
             seniorKuppi.setGuardianName("David Johnson");
@@ -219,7 +222,7 @@ public class DataInitializer implements CommandLineRunner {
             batchRep.setStudentId("IIT2024003");
             batchRep.setBatch("2024");
             batchRep.setProgram("BSc Computer Science");
-            batchRep.setFaculty("Computing");
+            batchRep.setFaculty(FacultyType.COMPUTING);
             batchRep.setDateOfBirth(LocalDate.of(2002, 11, 25));
             batchRep.setAddress("321 Hill Street, Negombo");
             batchRep.setGuardianName("James Williams");

@@ -158,6 +158,10 @@ public class SecurityService {
         return hasRole(UserRole.ROLE_LECTURER);
     }
 
+    public boolean isNonAcademicstaff() {
+        return hasRole(UserRole.ROLE_NON_ACADEMIC_STAFF);
+    }
+
     /**
      * Check if the current user is a Senior Kuppi mentor
      */

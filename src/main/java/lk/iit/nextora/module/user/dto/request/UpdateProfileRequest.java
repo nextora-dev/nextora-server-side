@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.user.dto.request;
 
 import jakarta.validation.constraints.Size;
+import lk.iit.nextora.common.enums.ClubPositionsType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,8 +50,7 @@ public class UpdateProfileRequest {
     @Size(max = 100, message = "Club name must not exceed 100 characters")
     private String clubName;
 
-    @Size(max = 50, message = "Club position must not exceed 50 characters")
-    private String clubPosition;
+    private ClubPositionsType clubPosition;
 
     private LocalDate clubJoinDate;
 

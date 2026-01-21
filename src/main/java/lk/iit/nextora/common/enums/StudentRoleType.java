@@ -1,6 +1,7 @@
 package lk.iit.nextora.common.enums;
 
 import lombok.Getter;
+import org.springframework.security.access.method.P;
 
 import java.util.Set;
 
@@ -23,15 +24,7 @@ public enum StudentRoleType {
                     Permission.KUPPI_FEEDBACK,
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_REGISTER,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.LOST_FOUND_CREATE,
-                    Permission.LOST_FOUND_READ
+                    Permission.KUPPI_NOTE_SEARCH
             )),
 
     // ==================== CLUB MEMBER ====================
@@ -47,20 +40,23 @@ public enum StudentRoleType {
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.CLUB_UPDATE,
-                    Permission.CLUB_POST,
-                    Permission.CLUB_MANAGE_MEMBERS,
-                    Permission.BATCH_READ,
-                    Permission.EVENT_CREATE,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_UPDATE,
-                    Permission.EVENT_REGISTER,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_CREATE,
-                    Permission.LOST_FOUND_READ
+
+                    // Club election management permissions
+                    Permission.ELECTION_CREATE,
+                    Permission.ELECTION_READ,
+                    Permission.ELECTION_UPDATE,
+                    Permission.ELECTION_DELETE,
+                    Permission.ELECTION_MANAGE,
+                    Permission.ELECTION_PUBLISH_RESULTS,
+                    Permission.CANDIDATE_NOMINATE,
+                    Permission.CANDIDATE_APPROVE,
+                    Permission.CANDIDATE_VIEW,
+                    Permission.VOTE_CAST,
+                    Permission.VOTE_VIEW_RESULTS,
+                    Permission.VOTE_VIEW_STATISTICS,
+                    Permission.CLUB_MEMBERSHIP_MANAGE,
+                    Permission.CLUB_MEMBERSHIP_VIEW,
+                    Permission.CLUB_UPDATE
             )),
 
     // ==================== SENIOR KUPPI ====================
@@ -86,16 +82,7 @@ public enum StudentRoleType {
                     Permission.KUPPI_NOTE_UPDATE,
                     Permission.KUPPI_NOTE_DELETE,
                     Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_REGISTER,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_CREATE,
-                    Permission.LOST_FOUND_READ
+                    Permission.KUPPI_NOTE_SEARCH
             )),
 
     // ==================== BATCH REPRESENTATIVE ====================
@@ -110,23 +97,7 @@ public enum StudentRoleType {
                     Permission.KUPPI_FEEDBACK,
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.BATCH_UPDATE,
-                    Permission.BATCH_ANNOUNCE,
-                    Permission.BATCH_COORDINATE,
-                    Permission.BATCH_REPRESENT,
-                    Permission.EVENT_CREATE,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_UPDATE,
-                    Permission.EVENT_REGISTER,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_CREATE,
-                    Permission.LOST_FOUND_READ,
-                    Permission.LOST_FOUND_UPDATE
+                    Permission.KUPPI_NOTE_SEARCH
             ));
 
     private final String displayName;

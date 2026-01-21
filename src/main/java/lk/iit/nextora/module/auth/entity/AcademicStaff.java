@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.auth.entity;
 
 import jakarta.persistence.*;
+import lk.iit.nextora.common.enums.FacultyType;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -19,6 +20,10 @@ public class AcademicStaff extends BaseUser {
 
     @Column(nullable = false, length = 100)
     private String department;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private FacultyType faculty;
 
     @Column(nullable = false, length = 50)
     private String position;
