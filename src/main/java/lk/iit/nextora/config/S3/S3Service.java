@@ -67,6 +67,8 @@ public class S3Service {
 
     /**
      * Upload a file to S3 with public read access
+     * Note: The bucket must have a bucket policy that allows public read access
+     * since ACLs are disabled (Bucket owner enforced)
      *
      * @param file   The file to upload
      * @param folder The folder path in S3
@@ -81,7 +83,6 @@ public class S3Service {
                     .bucket(bucketName)
                     .key(key)
                     .contentType(file.getContentType())
-                    .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));

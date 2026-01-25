@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS elections (
     voting_start_time TIMESTAMP NOT NULL,
     voting_end_time TIMESTAMP NOT NULL,
     results_published_at TIMESTAMP,
-    created_by_id BIGINT NOT NULL REFERENCES users(id),
+    created_by_id BIGINT NOT NULL REFERENCES non_academic_staff(id),
     max_candidates INTEGER NOT NULL DEFAULT 10,
     winners_count INTEGER NOT NULL DEFAULT 1,
     is_anonymous_voting BOOLEAN NOT NULL DEFAULT true,

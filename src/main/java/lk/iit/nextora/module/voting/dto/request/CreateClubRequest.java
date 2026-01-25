@@ -54,4 +54,7 @@ public class CreateClubRequest {
 
     @Builder.Default
     private Integer maxMembers = 500;
+
+    @Builder.Default
+    private Boolean isRegistrationOpen = true;
 }

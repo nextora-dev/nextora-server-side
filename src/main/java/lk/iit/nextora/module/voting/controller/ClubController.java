@@ -17,8 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Controller for Club management operations
@@ -33,12 +35,41 @@ public class ClubController {
 
     // ==================== Club Endpoints ====================
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create club", description = "Create a new club (Admin only)")
+    @Operation(summary = "Create club", description = "Create a new club with optional logo upload (Admin only)")
     @PreAuthorize("hasAuthority('CLUB:CREATE')")
-    public ApiResponse<ClubResponse> createClub(@Valid @RequestBody CreateClubRequest request) {
-        ClubResponse response = clubService.createClub(request);
+    public ApiResponse<ClubResponse> createClubWithLogo(
+            @RequestParam("name") String name,
+            @RequestParam("clubCode") String clubCode,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "contactNumber", required = false) String contactNumber,
+            @RequestParam(value = "faculty", required = false) String faculty,
+            @RequestParam(value = "establishedDate", required = false) String establishedDate,
+            @RequestParam(value = "maxMembers", defaultValue = "100") Integer maxMembers,
+            @RequestParam(value = "socialMediaLinks", required = false) String socialMediaLinks,
+            @RequestParam(value = "presidentId", required = false) Long presidentId,
+            @RequestParam(value = "advisorId", required = false) Long advisorId,
+            @RequestParam(value = "isRegistrationOpen", defaultValue = "true") Boolean isRegistrationOpen,
+            @RequestPart(value = "logo", required = false) MultipartFile logo) {
+
+        CreateClubRequest request = CreateClubRequest.builder()
+                .name(name)
+                .clubCode(clubCode)
+                .description(description)
+                .email(email)
+                .contactNumber(contactNumber)
+                .faculty(faculty != null ? lk.iit.nextora.common.enums.FacultyType.valueOf(faculty) : null)
+                .establishedDate(establishedDate != null ? java.time.LocalDate.parse(establishedDate) : null)
+                .maxMembers(maxMembers)
+                .socialMediaLinks(socialMediaLinks)
+                .presidentId(presidentId)
+                .advisorId(advisorId)
+                .isRegistrationOpen(isRegistrationOpen)
+                .build();
+
+        ClubResponse response = clubService.createClub(request, logo);
         return ApiResponse.success("Club created successfully", response);
     }
 
@@ -111,13 +142,33 @@ public class ClubController {
         return ApiResponse.success("Clubs retrieved successfully", response);
     }
 
-    @PutMapping(ApiConstants.CLUB_BY_ID)
-    @Operation(summary = "Update club", description = "Update club details (Club Admin only)")
+    @PutMapping(value = ApiConstants.CLUB_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Update club", description = "Update club details with new logo upload (Club Admin only)")
     @PreAuthorize("hasAuthority('CLUB:UPDATE')")
     public ApiResponse<ClubResponse> updateClub(
             @PathVariable Long clubId,
-            @Valid @RequestBody CreateClubRequest request) {
-        ClubResponse response = clubService.updateClub(clubId, request);
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "contactNumber", required = false) String contactNumber,
+            @RequestParam(value = "faculty", required = false) String faculty,
+            @RequestParam(value = "maxMembers", required = false) Integer maxMembers,
+            @RequestParam(value = "socialMediaLinks", required = false) String socialMediaLinks,
+            @RequestParam(value = "isRegistrationOpen", required = false) Boolean isRegistrationOpen,
+            @RequestParam(value = "logo", required = false) org.springframework.web.multipart.MultipartFile logo) {
+
+        CreateClubRequest request = CreateClubRequest.builder()
+                .name(name)
+                .description(description)
+                .email(email)
+                .contactNumber(contactNumber)
+                .faculty(faculty != null ? lk.iit.nextora.common.enums.FacultyType.valueOf(faculty) : null)
+                .maxMembers(maxMembers)
+                .socialMediaLinks(socialMediaLinks)
+                .isRegistrationOpen(isRegistrationOpen)
+                .build();
+
+        ClubResponse response = clubService.updateClub(clubId, request, logo);
         return ApiResponse.success("Club updated successfully", response);
     }
 

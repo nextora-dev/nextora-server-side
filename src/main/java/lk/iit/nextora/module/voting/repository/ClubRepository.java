@@ -18,6 +18,8 @@ import java.util.Optional;
 @Repository
 public interface ClubRepository extends JpaRepository<Club, Long> {
 
+    Optional<Club> findByClubCode(String clubCode);
+
     Optional<Club> findByClubCodeAndIsDeletedFalse(String clubCode);
 
     Optional<Club> findByIdAndIsDeletedFalse(Long id);
