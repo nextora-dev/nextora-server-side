@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.entity;
+package lk.iit.nextora.module.club.entity;
 
 import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;

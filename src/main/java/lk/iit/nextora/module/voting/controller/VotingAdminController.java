@@ -7,12 +7,15 @@ import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.ElectionStatus;
-import lk.iit.nextora.module.voting.dto.request.CreateClubRequest;
+import lk.iit.nextora.module.club.dto.request.CreateClubRequest;
+import lk.iit.nextora.module.club.dto.response.ClubMembershipResponse;
+import lk.iit.nextora.module.club.dto.response.ClubResponse;
+import lk.iit.nextora.module.club.dto.response.ClubStatisticsResponse;
+import lk.iit.nextora.module.club.service.ClubService;
 import lk.iit.nextora.module.voting.dto.request.CreateElectionRequest;
 import lk.iit.nextora.module.voting.dto.request.ReviewCandidateRequest;
 import lk.iit.nextora.module.voting.dto.request.UpdateElectionRequest;
 import lk.iit.nextora.module.voting.dto.response.*;
-import lk.iit.nextora.module.voting.service.ClubService;
 import lk.iit.nextora.module.voting.service.ElectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(ApiConstants.VOTING_ADMIN)
 @RequiredArgsConstructor
 @Tag(name = "Voting Admin", description = "Administrative endpoints for voting module management")
-public class VotingAdministrationController {
+public class VotingAdminController {
 
     private final ClubService clubService;
     private final ElectionService electionService;
@@ -43,18 +46,18 @@ public class VotingAdministrationController {
     /**
      * Create a new club - Admin only
      */
-//    @PostMapping("/clubs")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    @Operation(
-//            summary = "Create club (Admin)",
-//            description = "Create a new club. Admin only."
-//    )
-//    @PreAuthorize("hasAuthority('CLUB:CREATE')")
-//    public ApiResponse<ClubResponse> createClub(@Valid @RequestBody CreateClubRequest request) {
-//        log.info("Admin creating new club: {}", request.getClubCode());
-//        ClubResponse response = clubService.createClub(request);
-//        return ApiResponse.success("Club created successfully by admin", response);
-//    }
+    @PostMapping("/clubs")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Create club (Admin)",
+            description = "Create a new club. Admin only."
+    )
+    @PreAuthorize("hasAuthority('CLUB:CREATE')")
+    public ApiResponse<ClubResponse> createClub(@Valid @RequestBody CreateClubRequest request) {
+        log.info("Admin creating new club: {}", request.getClubCode());
+        ClubResponse response = clubService.createClub(request);
+        return ApiResponse.success("Club created successfully by admin", response);
+    }
 
     /**
      * Get all clubs with full details - Admin view
@@ -79,19 +82,19 @@ public class VotingAdministrationController {
     /**
      * Update any club - Admin override
      */
-//    @PutMapping("/clubs/{clubId}")
-//    @Operation(
-//            summary = "Update club (Admin)",
-//            description = "Update any club details. Admin override."
-//    )
-//    @PreAuthorize("hasAuthority('CLUB:UPDATE')")
-//    public ApiResponse<ClubResponse> updateClubAdmin(
-//            @PathVariable Long clubId,
-//            @Valid @RequestBody CreateClubRequest request) {
-//        log.info("Admin updating club: {}", clubId);
-//        ClubResponse response = clubService.updateClub(clubId, request);
-//        return ApiResponse.success("Club updated successfully by admin", response);
-//    }
+    @PutMapping("/clubs/{clubId}")
+    @Operation(
+            summary = "Update club (Admin)",
+            description = "Update any club details. Admin override."
+    )
+    @PreAuthorize("hasAuthority('CLUB:UPDATE')")
+    public ApiResponse<ClubResponse> updateClubAdmin(
+            @PathVariable Long clubId,
+            @Valid @RequestBody CreateClubRequest request) {
+        log.info("Admin updating club: {}", clubId);
+        ClubResponse response = clubService.updateClub(clubId, request);
+        return ApiResponse.success("Club updated successfully by admin", response);
+    }
 
     /**
      * Delete any club - Admin only

@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.service.impl;
+package lk.iit.nextora.module.club.service.impl;
 
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.ClubMembershipStatus;
@@ -14,17 +14,16 @@ import lk.iit.nextora.module.auth.entity.AcademicStaff;
 import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.auth.repository.AcademicStaffRepository;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
-import lk.iit.nextora.module.voting.dto.request.CreateClubRequest;
-import lk.iit.nextora.module.voting.dto.request.JoinClubRequest;
-import lk.iit.nextora.module.voting.dto.response.ClubMembershipResponse;
-import lk.iit.nextora.module.voting.dto.response.ClubResponse;
-import lk.iit.nextora.module.voting.entity.Club;
-import lk.iit.nextora.module.voting.entity.ClubMembership;
-import lk.iit.nextora.module.voting.mapper.VotingMapper;
-import lk.iit.nextora.module.voting.repository.ClubMembershipRepository;
-import lk.iit.nextora.module.voting.repository.ClubRepository;
-import lk.iit.nextora.module.voting.repository.ElectionRepository;
-import lk.iit.nextora.module.voting.service.ClubService;
+import lk.iit.nextora.module.club.dto.request.CreateClubRequest;
+import lk.iit.nextora.module.club.dto.request.JoinClubRequest;
+import lk.iit.nextora.module.club.dto.response.ClubMembershipResponse;
+import lk.iit.nextora.module.club.dto.response.ClubResponse;
+import lk.iit.nextora.module.club.entity.Club;
+import lk.iit.nextora.module.club.entity.ClubMembership;
+import lk.iit.nextora.module.club.mapper.ClubMapper;
+import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
+import lk.iit.nextora.module.club.repository.ClubRepository;
+import lk.iit.nextora.module.club.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -50,11 +49,10 @@ public class ClubServiceImpl implements ClubService {
 
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository membershipRepository;
-    private final ElectionRepository electionRepository;
     private final StudentRepository studentRepository;
     private final AcademicStaffRepository academicStaffRepository;
     private final SecurityService securityService;
-    private final VotingMapper votingMapper;
+    private final ClubMapper clubMapper;
     private final lk.iit.nextora.config.S3.S3Service s3Service;
 
     // ==================== Club Management ====================
@@ -74,7 +72,7 @@ public class ClubServiceImpl implements ClubService {
             throw new DuplicateResourceException("Club", "name", request.getName());
         }
 
-        Club club = votingMapper.toEntity(request);
+        Club club = clubMapper.toEntity(request);
 
         // Upload logo to S3 if provided
         if (logo != null && !logo.isEmpty()) {
@@ -100,7 +98,7 @@ public class ClubServiceImpl implements ClubService {
         club = clubRepository.save(club);
         log.info("Club created successfully: {} (ID: {})", club.getName(), club.getId());
 
-        return enrichClubResponse(votingMapper.toResponse(club), club.getId());
+        return enrichClubResponse(clubMapper.toResponse(club), club.getId());
     }
 
     @Override
@@ -133,7 +131,7 @@ public class ClubServiceImpl implements ClubService {
         log.info("Club deleted successfully: {}", clubId);
     }
 
-    private void validateLogoFile(org.springframework.web.multipart.MultipartFile file) {
+    private void validateLogoFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("Logo file is required");
         }
@@ -166,14 +164,14 @@ public class ClubServiceImpl implements ClubService {
     @Override
     public ClubResponse getClubById(Long clubId) {
         Club club = findClubById(clubId);
-        return enrichClubResponse(votingMapper.toResponse(club), clubId);
+        return enrichClubResponse(clubMapper.toResponse(club), clubId);
     }
 
     @Override
     public ClubResponse getClubByCode(String clubCode) {
         Club club = clubRepository.findByClubCodeAndIsDeletedFalse(clubCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Club", "clubCode", clubCode));
-        return enrichClubResponse(votingMapper.toResponse(club), club.getId());
+        return enrichClubResponse(clubMapper.toResponse(club), club.getId());
     }
 
     @Override
@@ -202,7 +200,7 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     @Transactional
-    public ClubResponse updateClub(Long clubId, CreateClubRequest request, org.springframework.web.multipart.MultipartFile logo) {
+    public ClubResponse updateClub(Long clubId, CreateClubRequest request, MultipartFile logo) {
         log.info("Updating club with logo: {}", clubId);
         Club club = findClubById(clubId);
 
@@ -261,7 +259,7 @@ public class ClubServiceImpl implements ClubService {
         club = clubRepository.save(club);
         log.info("Club updated successfully with logo: {}", clubId);
 
-        return enrichClubResponse(votingMapper.toResponse(club), clubId);
+        return enrichClubResponse(clubMapper.toResponse(club), clubId);
     }
 
     // ==================== Membership Management ====================
@@ -322,7 +320,7 @@ public class ClubServiceImpl implements ClubService {
         membership = membershipRepository.save(membership);
         log.info("Membership application created: {}", membership.getMembershipNumber());
 
-        return votingMapper.toResponse(membership);
+        return clubMapper.toResponse(membership);
     }
 
     @Override
@@ -374,7 +372,7 @@ public class ClubServiceImpl implements ClubService {
         }
 
         log.info("Membership approved: {}", membershipId);
-        return votingMapper.toResponse(membership);
+        return clubMapper.toResponse(membership);
     }
 
     /**
@@ -476,7 +474,7 @@ public class ClubServiceImpl implements ClubService {
     @Override
     public ClubMembershipResponse getMembershipById(Long membershipId) {
         ClubMembership membership = findMembershipById(membershipId);
-        return votingMapper.toResponse(membership);
+        return clubMapper.toResponse(membership);
     }
 
     @Override
@@ -598,14 +596,15 @@ public class ClubServiceImpl implements ClubService {
     private ClubResponse enrichClubResponse(ClubResponse response, Long clubId) {
         response.setTotalMembers((int) membershipRepository.countActiveMembers(clubId, LocalDate.now()));
         response.setActiveMembers((int) membershipRepository.countActiveMembers(clubId, LocalDate.now()));
-        response.setTotalElections((int) electionRepository.countByClubIdAndIsDeletedFalse(clubId));
+        // Elections are managed in voting module, so we don't count them here
+        response.setTotalElections(0);
         return response;
     }
 
     private PagedResponse<ClubResponse> toPagedResponse(Page<Club> page) {
         return PagedResponse.<ClubResponse>builder()
                 .content(page.getContent().stream()
-                        .map(club -> enrichClubResponse(votingMapper.toResponse(club), club.getId()))
+                        .map(club -> enrichClubResponse(clubMapper.toResponse(club), club.getId()))
                         .toList())
                 .pageNumber(page.getNumber())
                 .pageSize(page.getSize())
@@ -619,7 +618,7 @@ public class ClubServiceImpl implements ClubService {
 
     private PagedResponse<ClubMembershipResponse> toMembershipPagedResponse(Page<ClubMembership> page) {
         return PagedResponse.<ClubMembershipResponse>builder()
-                .content(votingMapper.toMembershipResponseList(page.getContent()))
+                .content(clubMapper.toMembershipResponseList(page.getContent()))
                 .pageNumber(page.getNumber())
                 .pageSize(page.getSize())
                 .totalElements(page.getTotalElements())

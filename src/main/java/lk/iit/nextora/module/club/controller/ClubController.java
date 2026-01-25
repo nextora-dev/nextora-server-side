@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.controller;
+package lk.iit.nextora.module.club.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,11 +7,11 @@ import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.FacultyType;
-import lk.iit.nextora.module.voting.dto.request.CreateClubRequest;
-import lk.iit.nextora.module.voting.dto.request.JoinClubRequest;
-import lk.iit.nextora.module.voting.dto.response.ClubMembershipResponse;
-import lk.iit.nextora.module.voting.dto.response.ClubResponse;
-import lk.iit.nextora.module.voting.service.ClubService;
+import lk.iit.nextora.module.club.dto.request.CreateClubRequest;
+import lk.iit.nextora.module.club.dto.request.JoinClubRequest;
+import lk.iit.nextora.module.club.dto.response.ClubMembershipResponse;
+import lk.iit.nextora.module.club.dto.response.ClubResponse;
+import lk.iit.nextora.module.club.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
  * Controller for Club management operations
  */
 @RestController
-@RequestMapping(ApiConstants.CLUBS)
+@RequestMapping(ApiConstants.CLUB_MODULE)
 @RequiredArgsConstructor
 @Tag(name = "Club Management", description = "Club and membership management endpoints")
 public class ClubController {
@@ -60,7 +60,7 @@ public class ClubController {
                 .description(description)
                 .email(email)
                 .contactNumber(contactNumber)
-                .faculty(faculty != null ? lk.iit.nextora.common.enums.FacultyType.valueOf(faculty) : null)
+                .faculty(faculty != null ? FacultyType.valueOf(faculty) : null)
                 .establishedDate(establishedDate != null ? java.time.LocalDate.parse(establishedDate) : null)
                 .maxMembers(maxMembers)
                 .socialMediaLinks(socialMediaLinks)
@@ -155,14 +155,14 @@ public class ClubController {
             @RequestParam(value = "maxMembers", required = false) Integer maxMembers,
             @RequestParam(value = "socialMediaLinks", required = false) String socialMediaLinks,
             @RequestParam(value = "isRegistrationOpen", required = false) Boolean isRegistrationOpen,
-            @RequestParam(value = "logo", required = false) org.springframework.web.multipart.MultipartFile logo) {
+            @RequestParam(value = "logo", required = false) MultipartFile logo) {
 
         CreateClubRequest request = CreateClubRequest.builder()
                 .name(name)
                 .description(description)
                 .email(email)
                 .contactNumber(contactNumber)
-                .faculty(faculty != null ? lk.iit.nextora.common.enums.FacultyType.valueOf(faculty) : null)
+                .faculty(faculty != null ? FacultyType.valueOf(faculty) : null)
                 .maxMembers(maxMembers)
                 .socialMediaLinks(socialMediaLinks)
                 .isRegistrationOpen(isRegistrationOpen)

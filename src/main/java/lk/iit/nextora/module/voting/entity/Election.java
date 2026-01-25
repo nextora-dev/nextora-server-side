@@ -6,6 +6,7 @@ import lk.iit.nextora.common.enums.ElectionStatus;
 import lk.iit.nextora.common.enums.ElectionType;
 import lk.iit.nextora.module.auth.entity.NonAcademicStaff;
 import lk.iit.nextora.module.auth.entity.Student;
+import lk.iit.nextora.module.club.entity.Club;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 

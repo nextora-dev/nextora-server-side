@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.dto.response;
+package lk.iit.nextora.module.club.dto.response;
 
 import lk.iit.nextora.common.enums.ClubMembershipStatus;
 import lk.iit.nextora.common.enums.ClubPositionsType;

@@ -1,7 +1,7 @@
-package lk.iit.nextora.module.voting.repository;
+package lk.iit.nextora.module.club.repository;
 
 import lk.iit.nextora.common.enums.FacultyType;
-import lk.iit.nextora.module.voting.entity.Club;
+import lk.iit.nextora.module.club.entity.Club;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

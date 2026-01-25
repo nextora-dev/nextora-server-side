@@ -59,6 +59,11 @@ public final class ApiConstants {
     public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
 
     // ==================== Club & Voting Endpoints ====================
+
+    // Club Module (standalone club management)
+    public static final String CLUB_MODULE = API_V1 + "/club-management";
+
+    // Clubs (voting module - for elections)
     public static final String CLUBS = API_V1 + "/clubs";
     public static final String CLUB_BY_ID = "/{clubId}";
     public static final String CLUB_BY_CODE = "/code/{clubCode}";

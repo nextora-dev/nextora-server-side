@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.dto.response;
+package lk.iit.nextora.module.club.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

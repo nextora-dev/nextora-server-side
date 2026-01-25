@@ -1,4 +1,4 @@
-package lk.iit.nextora.module.voting.dto.request;
+package lk.iit.nextora.module.club.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lk.iit.nextora.common.enums.ClubPositionsType;
