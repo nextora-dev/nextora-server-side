@@ -31,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -44,6 +45,9 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class ClubServiceImpl implements ClubService {
 
+    private static final String CLUB_LOGO_FOLDER = "clubs/logos";
+    private static final long MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
+
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository membershipRepository;
     private final ElectionRepository electionRepository;
@@ -51,12 +55,13 @@ public class ClubServiceImpl implements ClubService {
     private final AcademicStaffRepository academicStaffRepository;
     private final SecurityService securityService;
     private final VotingMapper votingMapper;
+    private final lk.iit.nextora.config.S3.S3Service s3Service;
 
     // ==================== Club Management ====================
 
     @Override
     @Transactional
-    public ClubResponse createClub(CreateClubRequest request) {
+    public ClubResponse createClub(CreateClubRequest request, MultipartFile logo) {
         log.info("Creating new club: {}", request.getClubCode());
 
         // Validate unique club code
@@ -71,14 +76,22 @@ public class ClubServiceImpl implements ClubService {
 
         Club club = votingMapper.toEntity(request);
 
-        // Set president if provided - must be CLUB_MEMBER with President position
+        // Upload logo to S3 if provided
+        if (logo != null && !logo.isEmpty()) {
+            validateLogoFile(logo);
+            String logoUrl = s3Service.uploadFilePublic(logo, CLUB_LOGO_FOLDER);
+            log.info("Club logo uploaded to S3: {}", logoUrl);
+            club.setLogoUrl(logoUrl);
+        }
+
+        // Set president if provided
         if (request.getPresidentId() != null) {
             Student president = findStudentById(request.getPresidentId());
             validatePresidentEligibility(president);
             club.setPresident(president);
         }
 
-        // Set advisor if provided (AcademicStaff)
+        // Set advisor if provided
         if (request.getAdvisorId() != null) {
             AcademicStaff advisor = findAcademicStaffById(request.getAdvisorId());
             club.setAdvisor(advisor);
@@ -88,6 +101,66 @@ public class ClubServiceImpl implements ClubService {
         log.info("Club created successfully: {} (ID: {})", club.getName(), club.getId());
 
         return enrichClubResponse(votingMapper.toResponse(club), club.getId());
+    }
+
+    @Override
+    @Transactional
+    public void deleteClub(Long clubId) {
+        log.info("Deleting club: {}", clubId);
+
+        Club club = findClubById(clubId);
+
+        // Validate permissions (must be admin or club president)
+        validateClubAdminAccess(club);
+
+        // Delete logo from S3 if exists
+        if (club.getLogoUrl() != null && !club.getLogoUrl().isEmpty()) {
+            try {
+                String key = extractS3KeyFromUrl(club.getLogoUrl());
+
+                if (key != null) {
+                    s3Service.deleteFile(key);
+                    log.info("Deleted club logo from S3: {}", key);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to delete logo from S3: {}", e.getMessage());
+            }
+        }
+
+        // Soft delete the club
+        club.softDelete();
+        clubRepository.save(club);
+        log.info("Club deleted successfully: {}", clubId);
+    }
+
+    private void validateLogoFile(org.springframework.web.multipart.MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Logo file is required");
+        }
+
+        if (file.getSize() > MAX_LOGO_SIZE) {
+            throw new BadRequestException("Logo file size must not exceed 5MB");
+        }
+
+        if (!lk.iit.nextora.common.util.FileUtils.isImageFile(file)) {
+            throw new BadRequestException("Only image files (JPEG, PNG, GIF, WEBP) are allowed");
+        }
+    }
+
+    private String extractS3KeyFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+        // URL format: https://bucket-name.s3.region.amazonaws.com/folder/filename
+        try {
+            String[] parts = url.split(".amazonaws.com/");
+            if (parts.length > 1) {
+                return parts[1];
+            }
+        } catch (Exception e) {
+            log.warn("Failed to extract S3 key from URL: {}", url);
+        }
+        return null;
     }
 
     @Override
@@ -129,8 +202,8 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     @Transactional
-    public ClubResponse updateClub(Long clubId, CreateClubRequest request) {
-        log.info("Updating club: {}", clubId);
+    public ClubResponse updateClub(Long clubId, CreateClubRequest request, org.springframework.web.multipart.MultipartFile logo) {
+        log.info("Updating club with logo: {}", clubId);
         Club club = findClubById(clubId);
 
         // Validate permissions (must be president or admin)
@@ -142,9 +215,6 @@ public class ClubServiceImpl implements ClubService {
         }
         if (request.getDescription() != null) {
             club.setDescription(request.getDescription());
-        }
-        if (request.getLogoUrl() != null) {
-            club.setLogoUrl(request.getLogoUrl());
         }
         if (request.getEmail() != null) {
             club.setEmail(request.getEmail());
@@ -158,21 +228,40 @@ public class ClubServiceImpl implements ClubService {
         if (request.getMaxMembers() != null) {
             club.setMaxMembers(request.getMaxMembers());
         }
+        if (request.getIsRegistrationOpen() != null) {
+            club.setIsRegistrationOpen(request.getIsRegistrationOpen());
+        }
+        if (request.getFaculty() != null) {
+            club.setFaculty(request.getFaculty());
+        }
+
+        // Handle logo upload if provided
+        if (logo != null && !logo.isEmpty()) {
+            validateLogoFile(logo);
+
+            // Delete old logo if exists
+            if (club.getLogoUrl() != null && !club.getLogoUrl().isEmpty()) {
+                try {
+                    String oldKey = extractS3KeyFromUrl(club.getLogoUrl());
+                    if (oldKey != null) {
+                        s3Service.deleteFile(oldKey);
+                        log.info("Deleted old logo: {}", oldKey);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete old logo: {}", e.getMessage());
+                }
+            }
+
+            // Upload new logo
+            String logoUrl = s3Service.uploadFilePublic(logo, CLUB_LOGO_FOLDER);
+            club.setLogoUrl(logoUrl);
+            log.info("New club logo uploaded to S3: {}", logoUrl);
+        }
 
         club = clubRepository.save(club);
-        log.info("Club updated successfully: {}", clubId);
+        log.info("Club updated successfully with logo: {}", clubId);
 
         return enrichClubResponse(votingMapper.toResponse(club), clubId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteClub(Long clubId) {
-        log.info("Deleting club: {}", clubId);
-        Club club = findClubById(clubId);
-        club.softDelete();
-        clubRepository.save(club);
-        log.info("Club deleted successfully: {}", clubId);
     }
 
     // ==================== Membership Management ====================

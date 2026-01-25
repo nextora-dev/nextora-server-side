@@ -138,21 +138,20 @@ public final class ApiConstants {
     public static final String VOTING_ADMIN_STATISTICS = VOTING_ADMIN + "/statistics";
     public static final String VOTING_ADMIN_CLUB_STATISTICS = VOTING_ADMIN_CLUBS + "/{clubId}/statistics";
 
-    // ==================== Voting Super Admin Endpoints ====================
-    public static final String VOTING_SUPER_ADMIN = API_V1 + "/super-admin/voting";
-    public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS = VOTING_SUPER_ADMIN + "/elections/process-status-updates";
-    public static final String VOTING_SUPER_ADMIN_AUDIT_LOG = VOTING_SUPER_ADMIN + "/audit-log";
+    public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS = VOTING_ADMIN + "/elections/process-status-updates";
+    public static final String VOTING_SUPER_ADMIN_AUDIT_LOG = VOTING_ADMIN + "/audit-log";
 
-    public static final String VOTING_SUPER_ADMIN_BULK_APPROVE = VOTING_SUPER_ADMIN + "/memberships/bulk-approve";
-    public static final String VOTING_SUPER_ADMIN_BULK_CANCEL = VOTING_SUPER_ADMIN + "/elections/bulk-cancel";
+    public static final String VOTING_SUPER_ADMIN_BULK_APPROVE = VOTING_ADMIN + "/memberships/bulk-approve";
+    public static final String VOTING_SUPER_ADMIN_BULK_CANCEL = VOTING_ADMIN + "/elections/bulk-cancel";
 
-    public static final String VOTING_SUPER_ADMIN_CLUB_EXPORT = VOTING_SUPER_ADMIN + "/clubs/{clubId}/export";
-    public static final String VOTING_SUPER_ADMIN_ELECTION_EXPORT = VOTING_SUPER_ADMIN + "/elections/{electionId}/export";
+    public static final String VOTING_SUPER_ADMIN_CLUB_EXPORT = VOTING_ADMIN + "/clubs/{clubId}/export";
+    public static final String VOTING_SUPER_ADMIN_ELECTION_EXPORT = VOTING_ADMIN + "/elections/{electionId}/export";
 
-    public static final String VOTING_SUPER_ADMIN_PERMANENT_DELETE_CLUB = VOTING_SUPER_ADMIN + "/clubs/{clubId}/permanent";
-    public static final String VOTING_SUPER_ADMIN_RESET_VOTES = VOTING_SUPER_ADMIN + "/elections/{electionId}/reset-votes";
-    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = VOTING_SUPER_ADMIN + "/voters/{voterId}/invalidate-votes";
-    public static final String VOTING_SUPER_ADMIN_CONFIG = VOTING_SUPER_ADMIN + "/config";
+    public static final String VOTING_SUPER_ADMIN_PERMANENT_DELETE_CLUB = VOTING_ADMIN + "/clubs/{clubId}/permanent";
+    public static final String VOTING_SUPER_ADMIN_RESET_VOTES = VOTING_ADMIN + "/elections/{electionId}/reset-votes";
+    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = VOTING_ADMIN + "/voters/{voterId}/invalidate-votes";
+    public static final String VOTING_SUPER_ADMIN_CONFIG = VOTING_ADMIN + "/config";
+
 }
 
 

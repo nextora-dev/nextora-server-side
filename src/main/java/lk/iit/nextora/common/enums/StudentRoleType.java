@@ -42,21 +42,15 @@ public enum StudentRoleType {
                     Permission.KUPPI_NOTE_SEARCH,
 
                     // Club election management permissions
-                    Permission.ELECTION_CREATE,
-                    Permission.ELECTION_READ,
-                    Permission.ELECTION_UPDATE,
-                    Permission.ELECTION_DELETE,
-                    Permission.ELECTION_MANAGE,
-                    Permission.ELECTION_PUBLISH_RESULTS,
                     Permission.CANDIDATE_NOMINATE,
-                    Permission.CANDIDATE_APPROVE,
                     Permission.CANDIDATE_VIEW,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
-                    Permission.VOTE_VIEW_STATISTICS,
                     Permission.CLUB_MEMBERSHIP_MANAGE,
                     Permission.CLUB_MEMBERSHIP_VIEW,
-                    Permission.CLUB_UPDATE
+                    Permission.CLUB_UPDATE,
+
+                    Permission.ELECTION_READ
             )),
 
     // ==================== SENIOR KUPPI ====================

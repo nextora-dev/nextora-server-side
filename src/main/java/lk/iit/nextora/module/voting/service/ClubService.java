@@ -7,6 +7,7 @@ import lk.iit.nextora.module.voting.dto.request.JoinClubRequest;
 import lk.iit.nextora.module.voting.dto.response.ClubMembershipResponse;
 import lk.iit.nextora.module.voting.dto.response.ClubResponse;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Service interface for Club operations
@@ -16,9 +17,14 @@ public interface ClubService {
     // ==================== Club Management ====================
 
     /**
-     * Create a new club (Admin only)
+     * Create a new club with logo upload (Admin only)
      */
-    ClubResponse createClub(CreateClubRequest request);
+    ClubResponse createClub(CreateClubRequest request, MultipartFile logo);
+
+    /**
+     * Delete club (soft delete club and delete logo from S3 - Admin only)
+     */
+    void deleteClub(Long clubId);
 
     /**
      * Get club by ID
@@ -51,14 +57,9 @@ public interface ClubService {
     PagedResponse<ClubResponse> getClubsOpenForRegistration(Pageable pageable);
 
     /**
-     * Update club (Club Admin only)
+     * Update club with logo (Club Admin only)
      */
-    ClubResponse updateClub(Long clubId, CreateClubRequest request);
-
-    /**
-     * Delete club (Admin only)
-     */
-    void deleteClub(Long clubId);
+    ClubResponse updateClub(Long clubId, CreateClubRequest request, MultipartFile logo);
 
     // ==================== Membership Management ====================
 
@@ -125,5 +126,7 @@ public interface ClubService {
     /**
      * Check if user can nominate in club elections
      */
-    boolean canNominateInClub(Long clubId, Long memberId);
+    default boolean canNominateInClub(Long clubId, Long memberId) {
+        return false;
+    }
 }

@@ -74,7 +74,17 @@ public enum UserRole {
                     Permission.CLUB_CREATE,
                     Permission.CLUB_UPDATE,
                     Permission.CLUB_DELETE,
-                    Permission.CLUB_MEMBERSHIP_MANAGE
+                    Permission.CLUB_MEMBERSHIP_MANAGE,
+
+                    Permission.ELECTION_CREATE,
+                    Permission.ELECTION_UPDATE,
+                    Permission.ELECTION_DELETE,
+                    Permission.ELECTION_READ,
+                    Permission.ELECTION_MANAGE,
+                    Permission.VOTE_VIEW_STATISTICS,
+                    Permission.ELECTION_PUBLISH_RESULTS,
+                    Permission.CANDIDATE_APPROVE,
+                    Permission.CANDIDATE_VIEW
             )),
 
     // ==================== ACADEMIC_STAFF ====================

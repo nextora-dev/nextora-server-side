@@ -57,6 +57,26 @@ public enum Permission {
     CLUB_DELETE("CLUB:DELETE", "Delete clubs", "CLUB", "DELETE", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_MANAGE_MEMBERS("CLUB:MANAGE_MEMBERS", "Manage club members", "CLUB", "MANAGE_MEMBERS", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_POST("CLUB:POST", "Post club announcements", "CLUB", "POST", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_MEMBERSHIP_MANAGE("CLUB_MEMBERSHIP:MANAGE", "Manage club memberships", "CLUB_MEMBERSHIP", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
+    CLUB_MEMBERSHIP_VIEW("CLUB_MEMBERSHIP:VIEW", "View club memberships", "CLUB_MEMBERSHIP", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
+
+    // ==================== VOTING/ELECTION MANAGEMENT ====================
+    ELECTION_CREATE("ELECTION:CREATE", "Create elections", "ELECTION", "CREATE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_READ("ELECTION:READ", "View elections", "ELECTION", "READ", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_UPDATE("ELECTION:UPDATE", "Update elections", "ELECTION", "UPDATE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_DELETE("ELECTION:DELETE", "Delete elections", "ELECTION", "DELETE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_MANAGE("ELECTION:MANAGE", "Manage election lifecycle", "ELECTION", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_PUBLISH_RESULTS("ELECTION:PUBLISH_RESULTS", "Publish election results", "ELECTION", "PUBLISH_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
+
+    CANDIDATE_NOMINATE("CANDIDATE:NOMINATE", "Nominate as candidate", "CANDIDATE", "NOMINATE", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_APPROVE("CANDIDATE:APPROVE", "Approve candidate nominations", "CANDIDATE", "APPROVE", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_VIEW("CANDIDATE:VIEW", "View candidates", "CANDIDATE", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
+
+    VOTE_CAST("VOTE:CAST", "Cast vote in elections", "VOTE", "CAST", PermissionCategory.VOTING_MANAGEMENT),
+    VOTE_VIEW_RESULTS("VOTE:VIEW_RESULTS", "View voting results", "VOTE", "VIEW_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
+    VOTE_VIEW_STATISTICS("VOTE:VIEW_STATISTICS", "View voting statistics", "VOTE", "VIEW_STATISTICS", PermissionCategory.VOTING_MANAGEMENT),
+
+
 
     // ==================== BATCH MANAGEMENT ====================
     BATCH_READ("BATCH:READ", "View batch information", "BATCH", "READ", PermissionCategory.BATCH_MANAGEMENT),
@@ -81,26 +101,7 @@ public enum Permission {
     LOST_FOUND_CREATE("LOST_FOUND:CREATE", "Create lost/found items", "LOST_FOUND", "CREATE", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_READ("LOST_FOUND:READ", "View lost/found items", "LOST_FOUND", "READ", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_UPDATE("LOST_FOUND:UPDATE", "Update lost/found items", "LOST_FOUND", "UPDATE", PermissionCategory.LOST_AND_FOUND),
-    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND),
-
-    // ==================== VOTING/ELECTION MANAGEMENT ====================
-    ELECTION_CREATE("ELECTION:CREATE", "Create elections", "ELECTION", "CREATE", PermissionCategory.VOTING_MANAGEMENT),
-    ELECTION_READ("ELECTION:READ", "View elections", "ELECTION", "READ", PermissionCategory.VOTING_MANAGEMENT),
-    ELECTION_UPDATE("ELECTION:UPDATE", "Update elections", "ELECTION", "UPDATE", PermissionCategory.VOTING_MANAGEMENT),
-    ELECTION_DELETE("ELECTION:DELETE", "Delete elections", "ELECTION", "DELETE", PermissionCategory.VOTING_MANAGEMENT),
-    ELECTION_MANAGE("ELECTION:MANAGE", "Manage election lifecycle", "ELECTION", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
-    ELECTION_PUBLISH_RESULTS("ELECTION:PUBLISH_RESULTS", "Publish election results", "ELECTION", "PUBLISH_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
-
-    CANDIDATE_NOMINATE("CANDIDATE:NOMINATE", "Nominate as candidate", "CANDIDATE", "NOMINATE", PermissionCategory.VOTING_MANAGEMENT),
-    CANDIDATE_APPROVE("CANDIDATE:APPROVE", "Approve candidate nominations", "CANDIDATE", "APPROVE", PermissionCategory.VOTING_MANAGEMENT),
-    CANDIDATE_VIEW("CANDIDATE:VIEW", "View candidates", "CANDIDATE", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
-
-    VOTE_CAST("VOTE:CAST", "Cast vote in elections", "VOTE", "CAST", PermissionCategory.VOTING_MANAGEMENT),
-    VOTE_VIEW_RESULTS("VOTE:VIEW_RESULTS", "View voting results", "VOTE", "VIEW_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
-    VOTE_VIEW_STATISTICS("VOTE:VIEW_STATISTICS", "View voting statistics", "VOTE", "VIEW_STATISTICS", PermissionCategory.VOTING_MANAGEMENT),
-
-    CLUB_MEMBERSHIP_MANAGE("CLUB_MEMBERSHIP:MANAGE", "Manage club memberships", "CLUB_MEMBERSHIP", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
-    CLUB_MEMBERSHIP_VIEW("CLUB_MEMBERSHIP:VIEW", "View club memberships", "CLUB_MEMBERSHIP", "VIEW", PermissionCategory.VOTING_MANAGEMENT);
+    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND);
 
     private final String permission;
     private final String description;
