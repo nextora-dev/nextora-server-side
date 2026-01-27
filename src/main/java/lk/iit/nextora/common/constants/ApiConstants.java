@@ -101,6 +101,8 @@ public final class ApiConstants {
     public static final String CANDIDATES = "/candidates";
     public static final String CANDIDATE_BY_ID = "/candidates/{candidateId}";
     public static final String CANDIDATE_NOMINATE = "/candidates/nominate";
+    public static final String CANDIDATE_UPDATE = "/candidates/nominate/{candidateId}";
+    public static final String CANDIDATE_DELETE = "/candidates/nominate/{candidateId}";
     public static final String CANDIDATE_REVIEW = "/candidates/review";
     public static final String CANDIDATE_WITHDRAW = "/candidates/{candidateId}/withdraw";
     public static final String ELECTION_CANDIDATES = "/{electionId}/candidates";

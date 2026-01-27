@@ -70,4 +70,17 @@ public interface ClubMembershipRepository extends JpaRepository<ClubMembership, 
 
     @Query("SELECT cm FROM ClubMembership cm WHERE cm.expiryDate <= :expiryDate AND cm.status = 'ACTIVE' AND cm.isDeleted = false")
     List<ClubMembership> findExpiringMemberships(@Param("expiryDate") LocalDate expiryDate);
+
+    /**
+     * Check if a member can nominate in a club election
+     * Requires: ACTIVE status, not deleted, not expired, and member for at least 3 months
+     */
+    @Query("SELECT CASE WHEN COUNT(cm) > 0 THEN true ELSE false END FROM ClubMembership cm " +
+           "WHERE cm.club.id = :clubId AND cm.member.id = :memberId AND cm.status = 'ACTIVE' " +
+           "AND cm.isDeleted = false AND (cm.expiryDate IS NULL OR cm.expiryDate > :currentDate) " +
+           "AND cm.joinDate <= :eligibilityDate")
+    boolean canNominateInClub(@Param("clubId") Long clubId,
+                              @Param("memberId") Long memberId,
+                              @Param("currentDate") LocalDate currentDate,
+                              @Param("eligibilityDate") LocalDate eligibilityDate);
 }

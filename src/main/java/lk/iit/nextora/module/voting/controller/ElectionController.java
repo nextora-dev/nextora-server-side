@@ -13,6 +13,7 @@ import lk.iit.nextora.module.voting.dto.request.CastVoteRequest;
 import lk.iit.nextora.module.voting.dto.request.CreateElectionRequest;
 import lk.iit.nextora.module.voting.dto.request.NominateCandidateRequest;
 import lk.iit.nextora.module.voting.dto.request.ReviewCandidateRequest;
+import lk.iit.nextora.module.voting.dto.request.UpdateCandidateRequest;
 import lk.iit.nextora.module.voting.dto.request.UpdateElectionRequest;
 import lk.iit.nextora.module.voting.dto.response.CandidateResponse;
 import lk.iit.nextora.module.voting.dto.response.ElectionResponse;
@@ -25,8 +26,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST Controller for Election and Voting operations.
@@ -211,46 +214,66 @@ public class ElectionController {
 
     // ==================== CANDIDATE ENDPOINTS ====================
 
-    @PostMapping(ApiConstants.CANDIDATE_NOMINATE)
-    @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Nominate self as candidate", description = "Submit nomination for an election")
-    @PreAuthorize("hasAuthority('CANDIDATE:NOMINATE')")
-    public ApiResponse<CandidateResponse> nominateSelf(@Valid @RequestBody NominateCandidateRequest request) {
-        log.info("Self-nomination for election: {}", request.getElectionId());
-        CandidateResponse response = electionService.nominateSelf(request);
-        return ApiResponse.success("Nomination submitted successfully. Pending approval.", response);
-    }
-
-    @PostMapping(value = "/candidates/nominate/with-photo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = ApiConstants.CANDIDATE_NOMINATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Nominate self with photo", description = "Submit nomination with photo upload for an election")
     @PreAuthorize("hasAuthority('CANDIDATE:NOMINATE')")
-    public ApiResponse<CandidateResponse> nominateSelfWithPhoto(
-            @Valid @RequestPart("data") NominateCandidateRequest request,
-            @RequestPart("photo") org.springframework.web.multipart.MultipartFile photo) {
-        log.info("Self-nomination with photo for election: {}", request.getElectionId());
-        CandidateResponse response = electionService.nominateSelfWithPhoto(request, photo);
-        return ApiResponse.success("Nomination with photo submitted successfully. Pending approval.", response);
+    public ApiResponse<CandidateResponse> nominateSelf(
+            @RequestParam("electionId") Long electionId,
+            @RequestParam(value = "manifesto", required = false) String manifesto,
+            @RequestParam(value = "slogan", required = false) String slogan,
+            @RequestParam(value = "qualifications", required = false) String qualifications,
+            @RequestParam(value = "previousExperience", required = false) String previousExperience,
+            @RequestPart("photo") MultipartFile photo) {
+
+        log.info("Self-nomination with photo for election: {}", electionId);
+
+        // Build the nomination request from parameters
+        NominateCandidateRequest request = NominateCandidateRequest.builder()
+                .electionId(electionId)
+                .manifesto(manifesto)
+                .slogan(slogan)
+                .qualifications(qualifications)
+                .previousExperience(previousExperience)
+                .build();
+
+        CandidateResponse response = electionService.nominateSelf(request, photo);
+        return ApiResponse.success("Nomination submitted successfully. Pending approval.", response);
     }
 
-    @PostMapping(value = "/candidates/{candidateId}/photo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload candidate photo", description = "Upload or update candidate photo")
+    @PutMapping(value = ApiConstants.CANDIDATE_UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Update nominationSelf", description = "Update your nomination details with optional photo")
     @PreAuthorize("hasAuthority('CANDIDATE:NOMINATE')")
-    public ApiResponse<CandidateResponse> uploadCandidatePhoto(
+    public ApiResponse<CandidateResponse> updateNominationSelf(
             @PathVariable Long candidateId,
-            @RequestPart("photo") org.springframework.web.multipart.MultipartFile photo) {
-        log.info("Uploading photo for candidate: {}", candidateId);
-        CandidateResponse response = electionService.uploadCandidatePhoto(candidateId, photo);
-        return ApiResponse.success("Candidate photo uploaded successfully", response);
+            @RequestParam(value = "manifesto", required = false) String manifesto,
+            @RequestParam(value = "slogan", required = false) String slogan,
+            @RequestParam(value = "qualifications", required = false) String qualifications,
+            @RequestParam(value = "previousExperience", required = false) String previousExperience,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+
+        log.info("Updating nominationSelf {} with photo", candidateId);
+
+        UpdateCandidateRequest request = UpdateCandidateRequest.builder()
+                .manifesto(manifesto)
+                .slogan(slogan)
+                .qualifications(qualifications)
+                .previousExperience(previousExperience)
+                .build();
+
+        CandidateResponse response;
+        response = electionService.updateNominationSelf(candidateId, request, photo);
+        return ApiResponse.success("NominationSelf updated successfully", response);
     }
 
-    @DeleteMapping("/candidates/{candidateId}/photo")
-    @Operation(summary = "Delete candidate photo", description = "Delete candidate photo")
+    @DeleteMapping(ApiConstants.CANDIDATE_DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete nomination self", description = "Delete your nomination before voting starts")
     @PreAuthorize("hasAuthority('CANDIDATE:NOMINATE')")
-    public ApiResponse<CandidateResponse> deleteCandidatePhoto(@PathVariable Long candidateId) {
-        log.info("Deleting photo for candidate: {}", candidateId);
-        CandidateResponse response = electionService.deleteCandidatePhoto(candidateId);
-        return ApiResponse.success("Candidate photo deleted successfully", response);
+    public ApiResponse<Void> deleteNomination(@PathVariable Long candidateId) {
+        log.info("Deleting nominationSelf: {}", candidateId);
+        electionService.deleteNominationSelf(candidateId);
+        return ApiResponse.success("Nomination deleted successfully", null);
     }
 
     @PostMapping(ApiConstants.CANDIDATE_REVIEW)

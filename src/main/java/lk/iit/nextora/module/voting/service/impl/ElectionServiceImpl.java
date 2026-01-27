@@ -25,7 +25,6 @@ import lk.iit.nextora.module.voting.repository.*;
 import lk.iit.nextora.module.voting.service.ElectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +38,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static lk.iit.nextora.common.util.FileUtils.MAX_IMAGE_SIZE;
+
 /**
  * Service implementation for Election operations
  */
@@ -49,7 +50,6 @@ import java.util.stream.Collectors;
 public class ElectionServiceImpl implements ElectionService {
 
     private static final String CANDIDATE_PHOTO_FOLDER = "elections/candidates";
-    private static final long MAX_PHOTO_SIZE = 5 * 1024 * 1024; // 5MB
 
     private final ElectionRepository electionRepository;
     private final CandidateRepository candidateRepository;
@@ -312,60 +312,7 @@ public class ElectionServiceImpl implements ElectionService {
 
     @Override
     @Transactional
-    public CandidateResponse nominateSelf(NominateCandidateRequest request) {
-        Long currentUserId = securityService.getCurrentUserId();
-        log.info("User {} nominating self for election {}", currentUserId, request.getElectionId());
-
-        Election election = findElectionById(request.getElectionId());
-
-        // Validate election is accepting nominations
-        if (!election.isNominationOpen()) {
-            throw new BadRequestException("Nominations are not currently open for this election");
-        }
-
-        // Validate user is eligible (active club member)
-        if (!clubService.canNominateInClub(election.getClub().getId(), currentUserId)) {
-            throw new BadRequestException("You are not eligible to nominate for this election. " +
-                    "Must be an active member for at least 3 months.");
-        }
-
-        // Check if already nominated
-        if (candidateRepository.existsByElectionIdAndStudentIdAndIsDeletedFalse(request.getElectionId(), currentUserId)) {
-            throw new DuplicateResourceException("Candidate", "election and student",
-                    request.getElectionId() + ", " + currentUserId);
-        }
-
-        // Check max candidates
-        long currentCandidates = candidateRepository.countByElectionIdAndIsDeletedFalse(request.getElectionId());
-        if (currentCandidates >= election.getMaxCandidates()) {
-            throw new BadRequestException("Maximum number of candidates reached");
-        }
-
-        // Validate manifesto if required
-        if (election.getRequireManifesto() &&
-            (request.getManifesto() == null || request.getManifesto().isBlank())) {
-            throw new BadRequestException("Manifesto is required for this election");
-        }
-
-        Student student = findStudentById(currentUserId);
-
-        Candidate candidate = votingMapper.toEntity(request);
-        candidate.setElection(election);
-        candidate.setStudent(student);
-        candidate.setNominatedBy(student);
-        candidate.setNominatedAt(LocalDateTime.now());
-        candidate.setStatus(CandidateStatus.PENDING);
-        candidate.setDisplayOrder((int) currentCandidates + 1);
-
-        candidate = candidateRepository.save(candidate);
-        log.info("Candidate nomination created: {} for election {}", candidate.getId(), request.getElectionId());
-
-        return votingMapper.toResponse(candidate);
-    }
-
-    @Override
-    @Transactional
-    public CandidateResponse nominateSelfWithPhoto(NominateCandidateRequest request, MultipartFile photo) {
+    public CandidateResponse nominateSelf(NominateCandidateRequest request, MultipartFile photo) {
         Long currentUserId = securityService.getCurrentUserId();
         log.info("User {} nominating self with photo for election {}", currentUserId, request.getElectionId());
 
@@ -403,25 +350,166 @@ public class ElectionServiceImpl implements ElectionService {
             throw new BadRequestException("Manifesto is required for this election");
         }
 
-        // Upload photo to S3
-        String photoUrl = s3Service.uploadFilePublic(photo, CANDIDATE_PHOTO_FOLDER);
-        log.info("Candidate photo uploaded to S3: {}", photoUrl);
+        Candidate candidate = votingMapper.toEntity(request);
+
+        // Upload logo to S3 if provided
+        if (!photo.isEmpty()) {
+            validateLogoFile(photo);
+            String photoUrl = s3Service.uploadFilePublic(photo, CANDIDATE_PHOTO_FOLDER);
+            log.info("Candidate photo uploaded to S3: {}", photoUrl);
+            candidate.setPhotoUrl(photoUrl);
+        }
 
         Student student = findStudentById(currentUserId);
 
-        Candidate candidate = votingMapper.toEntity(request);
         candidate.setElection(election);
         candidate.setStudent(student);
         candidate.setNominatedBy(student);
         candidate.setNominatedAt(LocalDateTime.now());
         candidate.setStatus(CandidateStatus.PENDING);
         candidate.setDisplayOrder((int) currentCandidates + 1);
-        candidate.setPhotoUrl(photoUrl);
 
         candidate = candidateRepository.save(candidate);
         log.info("Candidate nomination with photo created: {} for election {}", candidate.getId(), request.getElectionId());
 
         return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    @Transactional
+    public CandidateResponse updateNominationSelf(Long candidateId, UpdateCandidateRequest request, MultipartFile photo) {
+        Long currentUserId = securityService.getCurrentUserId();
+        log.info("User {} updating nomination {} with photo", currentUserId, candidateId);
+
+        Candidate candidate = findCandidateById(candidateId);
+
+        // Validate ownership - only the candidate can update their nomination
+        if (!candidate.getStudent().getId().equals(currentUserId)) {
+            throw new UnauthorizedException("You can only update your own nomination");
+        }
+
+        // Validate election status - cannot update after voting starts
+        Election election = candidate.getElection();
+        if (election.getStatus() == ElectionStatus.VOTING_OPEN ||
+            election.getStatus() == ElectionStatus.VOTING_CLOSED ||
+            election.getStatus() == ElectionStatus.RESULTS_PUBLISHED) {
+            throw new BadRequestException("Cannot update nomination after voting has started");
+        }
+
+        // Validate candidate status
+        if (candidate.getStatus() == CandidateStatus.WITHDRAWN) {
+            throw new BadRequestException("Cannot update a withdrawn nomination");
+        }
+        if (candidate.getStatus() == CandidateStatus.REJECTED) {
+            throw new BadRequestException("Cannot update a rejected nomination");
+        }
+
+        // Update fields if provided
+        if (request.getManifesto() != null) {
+            candidate.setManifesto(request.getManifesto());
+        }
+        if (request.getSlogan() != null) {
+            candidate.setSlogan(request.getSlogan());
+        }
+        if (request.getQualifications() != null) {
+            candidate.setQualifications(request.getQualifications());
+        }
+        if (request.getPreviousExperience() != null) {
+            candidate.setPreviousExperience(request.getPreviousExperience());
+        }
+
+        // Handle photo update
+        if (photo != null && !photo.isEmpty()) {
+            validatePhotoFile(photo);
+
+            // Delete old photo if exists
+            if (candidate.getPhotoUrl() != null && !candidate.getPhotoUrl().isEmpty()) {
+                try {
+                    String oldKey = extractS3KeyFromUrl(candidate.getPhotoUrl());
+                    if (oldKey != null) {
+                        s3Service.deleteFile(oldKey);
+                        log.info("Deleted old candidate photo: {}", oldKey);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete old candidate photo: {}", e.getMessage());
+                }
+            }
+
+            // Upload new photo
+            String photoUrl = s3Service.uploadFilePublic(photo, CANDIDATE_PHOTO_FOLDER);
+            log.info("New candidate photo uploaded to S3: {}", photoUrl);
+            candidate.setPhotoUrl(photoUrl);
+        }
+
+        // If candidate was approved and updates details, reset to pending for re-review
+        if (candidate.getStatus() == CandidateStatus.APPROVED) {
+            candidate.setStatus(CandidateStatus.PENDING);
+            candidate.setReviewedAt(null);
+            candidate.setReviewedBy(null);
+            log.info("Candidate {} status reset to PENDING due to nomination update", candidateId);
+        }
+
+        candidate = candidateRepository.save(candidate);
+        log.info("Nomination with photo updated successfully: {}", candidateId);
+
+        return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    @Transactional
+    public void deleteNominationSelf(Long candidateId) {
+        Long currentUserId = securityService.getCurrentUserId();
+        log.info("User {} deleting nomination {}", currentUserId, candidateId);
+
+        Candidate candidate = findCandidateById(candidateId);
+
+        // Validate ownership - only the candidate can delete their nomination
+        if (!candidate.getStudent().getId().equals(currentUserId)) {
+            throw new UnauthorizedException("You can only delete your own nomination");
+        }
+
+        // Validate election status - cannot delete after voting starts
+        Election election = candidate.getElection();
+        if (election.getStatus() == ElectionStatus.VOTING_OPEN ||
+            election.getStatus() == ElectionStatus.VOTING_CLOSED ||
+            election.getStatus() == ElectionStatus.RESULTS_PUBLISHED) {
+            throw new BadRequestException("Cannot delete nomination after voting has started");
+        }
+
+        // Delete photo from S3 if exists
+        if (candidate.getPhotoUrl() != null && !candidate.getPhotoUrl().isEmpty()) {
+            try {
+                String key = extractS3KeyFromUrl(candidate.getPhotoUrl());
+                if (key != null) {
+                    s3Service.deleteFile(key);
+                    log.info("Deleted candidate photo from S3: {}", key);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to delete candidate photo from S3: {}", e.getMessage());
+            }
+        }
+
+        // Soft delete the nomination
+        candidate.setIsDeleted(true);
+        candidate.setDeletedAt(LocalDateTime.now());
+        candidate.setDeletedBy(currentUserId);
+        candidateRepository.save(candidate);
+
+        log.info("Nomination deleted successfully: {}", candidateId);
+    }
+
+    private void validateLogoFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("Logo file is required");
+        }
+
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new BadRequestException("Logo file size must not exceed 5MB");
+        }
+
+        if (!lk.iit.nextora.common.util.FileUtils.isImageFile(file)) {
+            throw new BadRequestException("Only image files (JPEG, PNG, GIF, WEBP) are allowed");
+        }
     }
 
     @Override
@@ -513,7 +601,7 @@ public class ElectionServiceImpl implements ElectionService {
             throw new BadRequestException("Photo file is required");
         }
 
-        if (file.getSize() > MAX_PHOTO_SIZE) {
+        if (file.getSize() > MAX_IMAGE_SIZE) {
             throw new BadRequestException("Photo file size must not exceed 5MB");
         }
 

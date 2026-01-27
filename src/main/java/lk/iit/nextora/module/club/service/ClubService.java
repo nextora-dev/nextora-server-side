@@ -22,13 +22,6 @@ public interface ClubService {
     ClubResponse createClub(CreateClubRequest request, MultipartFile logo);
 
     /**
-     * Create a new club without logo (Admin only)
-     */
-    default ClubResponse createClub(CreateClubRequest request) {
-        return createClub(request, null);
-    }
-
-    /**
      * Delete club (soft delete club and delete logo from S3 - Admin only)
      */
     void deleteClub(Long clubId);
@@ -67,13 +60,6 @@ public interface ClubService {
      * Update club with logo (Club Admin only)
      */
     ClubResponse updateClub(Long clubId, CreateClubRequest request, MultipartFile logo);
-
-    /**
-     * Update club without logo (Club Admin only)
-     */
-    default ClubResponse updateClub(Long clubId, CreateClubRequest request) {
-        return updateClub(clubId, request, null);
-    }
 
     // ==================== Membership Management ====================
 

@@ -1,10 +1,7 @@
 package lk.iit.nextora.module.club.service.impl;
 
 import lk.iit.nextora.common.dto.PagedResponse;
-import lk.iit.nextora.common.enums.ClubMembershipStatus;
-import lk.iit.nextora.common.enums.ClubPositionsType;
-import lk.iit.nextora.common.enums.FacultyType;
-import lk.iit.nextora.common.enums.StudentRoleType;
+import lk.iit.nextora.common.enums.*;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.DuplicateResourceException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
@@ -24,6 +21,10 @@ import lk.iit.nextora.module.club.mapper.ClubMapper;
 import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.club.service.ClubService;
+import lk.iit.nextora.module.voting.dto.request.NominateCandidateRequest;
+import lk.iit.nextora.module.voting.dto.response.CandidateResponse;
+import lk.iit.nextora.module.voting.entity.Candidate;
+import lk.iit.nextora.module.voting.entity.Election;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
+
+import static lk.iit.nextora.common.util.FileUtils.MAX_IMAGE_SIZE;
 
 /**
  * Service implementation for Club operations
@@ -45,7 +49,6 @@ import java.util.Optional;
 public class ClubServiceImpl implements ClubService {
 
     private static final String CLUB_LOGO_FOLDER = "clubs/logos";
-    private static final long MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
 
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository membershipRepository;
@@ -136,7 +139,7 @@ public class ClubServiceImpl implements ClubService {
             throw new BadRequestException("Logo file is required");
         }
 
-        if (file.getSize() > MAX_LOGO_SIZE) {
+        if (file.getSize() > MAX_IMAGE_SIZE) {
             throw new BadRequestException("Logo file size must not exceed 5MB");
         }
 
@@ -520,9 +523,9 @@ public class ClubServiceImpl implements ClubService {
 
     @Override
     public boolean canNominateInClub(Long clubId, Long memberId) {
-        return membershipRepository.findByClubIdAndMemberIdAndIsDeletedFalse(clubId, memberId)
-                .map(ClubMembership::canNominate)
-                .orElse(false);
+        LocalDate today = LocalDate.now();
+        LocalDate eligibilityDate = today.minusMonths(3); // Member must have joined at least 3 months ago
+        return membershipRepository.canNominateInClub(clubId, memberId, today, eligibilityDate);
     }
 
     // ==================== Helper Methods ====================

@@ -106,12 +106,17 @@ public interface ElectionService {
     /**
      * Nominate self as candidate
      */
-    CandidateResponse nominateSelf(NominateCandidateRequest request);
+    CandidateResponse nominateSelf(NominateCandidateRequest request, MultipartFile photo);
 
     /**
-     * Nominate self as candidate with photo upload
+     * Update own nomination details
      */
-    CandidateResponse nominateSelfWithPhoto(NominateCandidateRequest request, MultipartFile photo);
+    CandidateResponse updateNominationSelf(Long candidateId, UpdateCandidateRequest request, MultipartFile photo);
+
+    /**
+     * Delete own nomination
+     */
+    void deleteNominationSelf(Long candidateId);
 
     /**
      * Upload or update candidate photo
