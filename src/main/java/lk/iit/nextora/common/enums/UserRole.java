@@ -76,15 +76,21 @@ public enum UserRole {
                     Permission.CLUB_DELETE,
                     Permission.CLUB_MEMBERSHIP_MANAGE,
 
+                    // Election management permissions
                     Permission.ELECTION_CREATE,
                     Permission.ELECTION_UPDATE,
                     Permission.ELECTION_DELETE,
                     Permission.ELECTION_READ,
                     Permission.ELECTION_MANAGE,
-                    Permission.VOTE_VIEW_STATISTICS,
                     Permission.ELECTION_PUBLISH_RESULTS,
+
+                    // Candidate management permissions
                     Permission.CANDIDATE_APPROVE,
-                    Permission.CANDIDATE_VIEW
+                    Permission.CANDIDATE_VIEW,
+
+                    // Voting statistics permissions
+                    Permission.VOTE_VIEW_STATISTICS,
+                    Permission.VOTE_VIEW_RESULTS
             )),
 
     // ==================== ACADEMIC_STAFF ====================
@@ -118,8 +124,18 @@ public enum UserRole {
         return new HashSet<>(Arrays.asList(Permission.values()));
     }
 
+    /**
+     * Get admin permissions - all permissions except SUPER_ADMIN exclusive ones
+     */
     private static Set<Permission> getAdminPermissions() {
-        return new HashSet<>(Arrays.asList(Permission.values()));
+        Set<Permission> adminPermissions = new HashSet<>(Arrays.asList(Permission.values()));
+        // Remove super admin exclusive permissions
+        adminPermissions.remove(Permission.ELECTION_SUPER_ADMIN);
+        adminPermissions.remove(Permission.ELECTION_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.USER_ADMIN_DELETE);
+        adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+        return adminPermissions;
     }
 
     /**

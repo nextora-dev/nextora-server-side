@@ -201,6 +201,25 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
     }
 
     @Override
+    @Transactional
+    public void deleteSession(Long sessionId) {
+        Long currentUserId = securityService.getCurrentUserId();
+        KuppiSession session = findSessionById(sessionId);
+
+        validateSessionOwnership(session, currentUserId);
+
+        // Validate session can be deleted
+        if (KuppiSessionStatus.LIVE.equals(session.getStatus())) {
+            throw new BadRequestException("Cannot delete a session that is currently live");
+        }
+
+        session.softDelete();
+        sessionRepository.save(session);
+
+        log.info("Kuppi session {} deleted by student {}", sessionId, currentUserId);
+    }
+
+    @Override
     public PagedResponse<KuppiSessionResponse> getMySessions(Pageable pageable) {
         Long currentUserId = securityService.getCurrentUserId();
         Page<KuppiSession> sessions = sessionRepository.findByHostIdAndIsDeletedFalse(currentUserId, pageable);

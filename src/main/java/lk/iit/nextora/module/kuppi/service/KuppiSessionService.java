@@ -77,6 +77,11 @@ public interface KuppiSessionService {
     KuppiSessionResponse rescheduleSession(Long sessionId, LocalDateTime newStartTime, LocalDateTime newEndTime);
 
     /**
+     * Delete own Kuppi session (soft delete)
+     */
+    void deleteSession(Long sessionId);
+
+    /**
      * Get own sessions
      */
     PagedResponse<KuppiSessionResponse> getMySessions(Pageable pageable);

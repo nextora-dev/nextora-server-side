@@ -198,4 +198,96 @@ public interface ElectionService {
      * Process elections needing status updates (scheduled task)
      */
     void processElectionStatusUpdates();
+
+    // ==================== Admin Operations ====================
+
+    /**
+     * Get all elections for admin (includes all statuses and deleted)
+     */
+    PagedResponse<ElectionResponse> getAllElectionsAdmin(Pageable pageable);
+
+    /**
+     * Permanently delete an election (Super Admin)
+     */
+    void permanentlyDeleteElection(Long electionId);
+
+    /**
+     * Force open nominations (admin override)
+     */
+    ElectionResponse forceOpenNominations(Long electionId);
+
+    /**
+     * Force close nominations (admin override)
+     */
+    ElectionResponse forceCloseNominations(Long electionId);
+
+    /**
+     * Force open voting (admin override)
+     */
+    ElectionResponse forceOpenVoting(Long electionId);
+
+    /**
+     * Force close voting (admin override)
+     */
+    ElectionResponse forceCloseVoting(Long electionId);
+
+    /**
+     * Force publish results (admin override)
+     */
+    ElectionResponse forcePublishResults(Long electionId);
+
+    /**
+     * Force cancel election (admin override)
+     */
+    void forceCancelElection(Long electionId, String reason);
+
+    /**
+     * Get all candidates for admin (includes all statuses)
+     */
+    PagedResponse<CandidateResponse> getAllCandidatesAdmin(Long electionId, Pageable pageable);
+
+    /**
+     * Force approve candidate (admin override)
+     */
+    CandidateResponse forceApproveCandidate(Long candidateId);
+
+    /**
+     * Force reject candidate (admin override)
+     */
+    CandidateResponse forceRejectCandidate(Long candidateId, String reason);
+
+    /**
+     * Disqualify candidate from election
+     */
+    CandidateResponse disqualifyCandidate(Long candidateId, String reason);
+
+    /**
+     * Admin override to update any candidate
+     */
+    CandidateResponse adminUpdateCandidate(Long candidateId, UpdateCandidateRequest request, MultipartFile photo);
+
+    /**
+     * Get platform voting statistics
+     */
+    VotingStatisticsResponse getPlatformStatistics();
+
+    /**
+     * Get voting statistics for a specific club
+     */
+    VotingStatisticsResponse getClubStatistics(Long clubId);
+
+    /**
+     * Get detailed statistics for a specific election
+     */
+    ElectionResultsResponse getElectionStatistics(Long electionId);
+
+    /**
+     * Get quick statistics summary
+     */
+    VotingStatisticsResponse getStatisticsSummary();
+
+    /**
+     * Reset all votes for an election (Super Admin)
+     */
+    void resetElectionVotes(Long electionId);
 }

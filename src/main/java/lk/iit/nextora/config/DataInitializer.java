@@ -669,8 +669,8 @@ public class DataInitializer implements CommandLineRunner {
                     membership.setMembershipNumber("IEEE-M-008");
                     membership.setStatus(ClubMembershipStatus.ACTIVE);
                     membership.setPosition(ClubPositionsType.GENERAL_MEMBER);
-                    membership.setJoinDate(LocalDate.of(2024, 3, 15));
-                    membership.setApprovedAt(LocalDateTime.of(2024, 3, 16, 10, 0));
+                    membership.setJoinDate(LocalDate.of(2023, 3, 15)); // Changed to 2023 to ensure > 3 months eligibility
+                    membership.setApprovedAt(LocalDateTime.of(2023, 3, 16, 10, 0));
                     clubMembershipRepository.save(membership);
                     log.info("Created IEEE Membership: {} as GENERAL_MEMBER", ieeeGeneral2.getFullName());
                 }
