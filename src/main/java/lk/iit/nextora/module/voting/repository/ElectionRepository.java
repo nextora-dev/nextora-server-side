@@ -95,4 +95,14 @@ public interface ElectionRepository extends JpaRepository<Election, Long> {
 
     @Query("SELECT e FROM Election e LEFT JOIN FETCH e.candidates LEFT JOIN FETCH e.club WHERE e.id = :id AND e.isDeleted = false")
     Optional<Election> findByIdWithDetails(@Param("id") Long id);
+
+    // Count elections by status
+    long countByStatus(ElectionStatus status);
+
+    // Count elections by statuses
+    @Query("SELECT COUNT(e) FROM Election e WHERE e.status IN :statuses")
+    long countByStatusIn(@Param("statuses") List<ElectionStatus> statuses);
+
+    // Find elections by club and status
+    List<Election> findByClubIdAndStatusAndIsDeletedFalse(Long clubId, ElectionStatus status);
 }

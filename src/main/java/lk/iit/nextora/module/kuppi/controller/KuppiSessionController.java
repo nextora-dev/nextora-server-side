@@ -165,6 +165,15 @@ public class KuppiSessionController {
         return ApiResponse.success("Session rescheduled successfully", response);
     }
 
+    @DeleteMapping("/{sessionId}")
+    @Operation(summary = "Delete session", description = "Delete own Kuppi session (soft delete)")
+    @PreAuthorize("hasAuthority('KUPPI:DELETE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ApiResponse<Void> deleteSession(@PathVariable Long sessionId) {
+        sessionService.deleteSession(sessionId);
+        return ApiResponse.success("Session deleted successfully");
+    }
+
     @GetMapping(ApiConstants.KUPPI_MY)
     @Operation(summary = "Get my sessions", description = "Get own created sessions")
     @PreAuthorize("hasAuthority('KUPPI:READ')")

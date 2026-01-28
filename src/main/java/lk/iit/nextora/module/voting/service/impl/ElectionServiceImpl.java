@@ -917,6 +917,377 @@ public class ElectionServiceImpl implements ElectionService {
         }
     }
 
+    // ==================== Admin Operations ====================
+
+    @Override
+    public PagedResponse<ElectionResponse> getAllElectionsAdmin(Pageable pageable) {
+        log.info("Admin fetching all elections");
+        Page<Election> elections = electionRepository.findAll(pageable);
+        return toPagedResponse(elections);
+    }
+
+    @Override
+    @Transactional
+    public void permanentlyDeleteElection(Long electionId) {
+        log.info("Super Admin permanently deleting election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        // Delete all candidates first
+        candidateRepository.deleteByElectionId(electionId);
+        // Delete all votes
+        voteRepository.deleteByElectionId(electionId);
+        // Finally delete the election
+        electionRepository.delete(election);
+
+        log.info("Super Admin permanently deleted election: {}", electionId);
+    }
+
+    @Override
+    @Transactional
+    public ElectionResponse forceOpenNominations(Long electionId) {
+        log.info("Admin force opening nominations for election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.NOMINATION_OPEN);
+        election = electionRepository.save(election);
+
+        log.info("Admin force opened nominations for election: {}", electionId);
+        return enrichElectionResponse(votingMapper.toResponse(election), election);
+    }
+
+    @Override
+    @Transactional
+    public ElectionResponse forceCloseNominations(Long electionId) {
+        log.info("Admin force closing nominations for election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.NOMINATION_CLOSED);
+        election = electionRepository.save(election);
+
+        log.info("Admin force closed nominations for election: {}", electionId);
+        return enrichElectionResponse(votingMapper.toResponse(election), election);
+    }
+
+    @Override
+    @Transactional
+    public ElectionResponse forceOpenVoting(Long electionId) {
+        log.info("Admin force opening voting for election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.VOTING_OPEN);
+        election = electionRepository.save(election);
+
+        log.info("Admin force opened voting for election: {}", electionId);
+        return enrichElectionResponse(votingMapper.toResponse(election), election);
+    }
+
+    @Override
+    @Transactional
+    public ElectionResponse forceCloseVoting(Long electionId) {
+        log.info("Admin force closing voting for election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.VOTING_CLOSED);
+        election = electionRepository.save(election);
+
+        log.info("Admin force closed voting for election: {}", electionId);
+        return enrichElectionResponse(votingMapper.toResponse(election), election);
+    }
+
+    @Override
+    @Transactional
+    public ElectionResponse forcePublishResults(Long electionId) {
+        log.info("Admin force publishing results for election: {}", electionId);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.RESULTS_PUBLISHED);
+        election.setResultsPublishedAt(LocalDateTime.now());
+        election = electionRepository.save(election);
+
+        log.info("Admin force published results for election: {}", electionId);
+        return enrichElectionResponse(votingMapper.toResponse(election), election);
+    }
+
+    @Override
+    @Transactional
+    public void forceCancelElection(Long electionId, String reason) {
+        log.info("Admin force cancelling election: {} with reason: {}", electionId, reason);
+        Election election = electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        election.setStatus(ElectionStatus.CANCELLED);
+        election.setCancellationReason(reason);
+        election.setCancelledAt(LocalDateTime.now());
+        electionRepository.save(election);
+
+        log.info("Admin force cancelled election: {}", electionId);
+    }
+
+    @Override
+    public PagedResponse<CandidateResponse> getAllCandidatesAdmin(Long electionId, Pageable pageable) {
+        log.info("Admin fetching all candidates for election: {}", electionId);
+        Page<Candidate> candidates = candidateRepository.findByElectionId(electionId, pageable);
+        return toCandidatePagedResponse(candidates);
+    }
+
+    @Override
+    @Transactional
+    public CandidateResponse forceApproveCandidate(Long candidateId) {
+        log.info("Admin force approving candidate: {}", candidateId);
+
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", "id", candidateId));
+
+        BaseUser reviewer = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+
+        candidate.setStatus(CandidateStatus.APPROVED);
+        candidate.setReviewedAt(LocalDateTime.now());
+        candidate.setReviewedBy(reviewer);
+        candidate = candidateRepository.save(candidate);
+
+        log.info("Admin force approved candidate: {}", candidateId);
+        return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    @Transactional
+    public CandidateResponse forceRejectCandidate(Long candidateId, String reason) {
+        log.info("Admin force rejecting candidate: {} with reason: {}", candidateId, reason);
+
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", "id", candidateId));
+
+        BaseUser reviewer = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+
+        candidate.setStatus(CandidateStatus.REJECTED);
+        candidate.setReviewedAt(LocalDateTime.now());
+        candidate.setReviewedBy(reviewer);
+        candidate.setRejectionReason(reason);
+        candidate = candidateRepository.save(candidate);
+
+        log.info("Admin force rejected candidate: {}", candidateId);
+        return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    @Transactional
+    public CandidateResponse disqualifyCandidate(Long candidateId, String reason) {
+        log.info("Admin disqualifying candidate: {} with reason: {}", candidateId, reason);
+
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", "id", candidateId));
+
+        BaseUser reviewer = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+
+        candidate.setStatus(CandidateStatus.DISQUALIFIED);
+        candidate.setReviewedAt(LocalDateTime.now());
+        candidate.setReviewedBy(reviewer);
+        candidate.setRejectionReason("DISQUALIFIED: " + reason);
+        candidate = candidateRepository.save(candidate);
+
+        log.info("Admin disqualified candidate: {}", candidateId);
+        return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    @Transactional
+    public CandidateResponse adminUpdateCandidate(Long candidateId, UpdateCandidateRequest request, MultipartFile photo) {
+        log.info("Admin updating candidate: {}", candidateId);
+
+        Candidate candidate = candidateRepository.findById(candidateId)
+                .orElseThrow(() -> new ResourceNotFoundException("Candidate", "id", candidateId));
+
+        // Update fields if provided
+        if (request.getManifesto() != null) {
+            candidate.setManifesto(request.getManifesto());
+        }
+        if (request.getSlogan() != null) {
+            candidate.setSlogan(request.getSlogan());
+        }
+        if (request.getQualifications() != null) {
+            candidate.setQualifications(request.getQualifications());
+        }
+        if (request.getPreviousExperience() != null) {
+            candidate.setPreviousExperience(request.getPreviousExperience());
+        }
+
+        // Handle photo update
+        if (photo != null && !photo.isEmpty()) {
+            validatePhotoFile(photo);
+
+            // Delete old photo if exists
+            if (candidate.getPhotoUrl() != null && !candidate.getPhotoUrl().isEmpty()) {
+                try {
+                    String oldKey = extractS3KeyFromUrl(candidate.getPhotoUrl());
+                    if (oldKey != null) {
+                        s3Service.deleteFile(oldKey);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete old candidate photo: {}", e.getMessage());
+                }
+            }
+
+            // Upload new photo
+            String photoUrl = s3Service.uploadFilePublic(photo, CANDIDATE_PHOTO_FOLDER);
+            candidate.setPhotoUrl(photoUrl);
+        }
+
+        candidate = candidateRepository.save(candidate);
+        log.info("Admin updated candidate: {}", candidateId);
+
+        return votingMapper.toResponse(candidate);
+    }
+
+    @Override
+    public VotingStatisticsResponse getPlatformStatistics() {
+        log.info("Fetching platform voting statistics");
+
+        long totalElections = electionRepository.count();
+        long activeElections = electionRepository.countByStatusIn(
+                List.of(ElectionStatus.NOMINATION_OPEN, ElectionStatus.NOMINATION_CLOSED, ElectionStatus.VOTING_OPEN));
+        long completedElections = electionRepository.countByStatus(ElectionStatus.RESULTS_PUBLISHED);
+        long cancelledElections = electionRepository.countByStatus(ElectionStatus.CANCELLED);
+        long upcomingElections = electionRepository.countByStatus(ElectionStatus.DRAFT);
+
+        long totalVotes = voteRepository.count();
+        long totalCandidates = candidateRepository.count();
+        long approvedCandidates = candidateRepository.countByStatus(CandidateStatus.APPROVED);
+        long pendingCandidates = candidateRepository.countByStatus(CandidateStatus.PENDING);
+
+        long totalClubs = clubRepository.count();
+        long totalMembers = membershipRepository.count();
+
+        return VotingStatisticsResponse.builder()
+                .totalElections(totalElections)
+                .activeElections(activeElections)
+                .completedElections(completedElections)
+                .cancelledElections(cancelledElections)
+                .upcomingElections(upcomingElections)
+                .totalVotesCast(totalVotes)
+                .totalCandidates(totalCandidates)
+                .approvedCandidates(approvedCandidates)
+                .pendingCandidates(pendingCandidates)
+                .totalClubs(totalClubs)
+                .totalMembers(totalMembers)
+                .generatedAt(LocalDateTime.now())
+                .message("Statistics generated successfully")
+                .build();
+    }
+
+    @Override
+    public VotingStatisticsResponse getClubStatistics(Long clubId) {
+        log.info("Fetching voting statistics for club: {}", clubId);
+
+        Club club = findClubById(clubId);
+
+        long clubElections = electionRepository.countByClubIdAndIsDeletedFalse(clubId);
+        long activeElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.VOTING_OPEN);
+        long completedElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.RESULTS_PUBLISHED);
+
+        long clubMembers = membershipRepository.countActiveMembers(clubId, LocalDate.now());
+
+        // Get total votes cast in club elections
+        long totalVotes = voteRepository.countByElection_ClubIdAndIsDeletedFalse(clubId);
+
+        // Calculate average participation rate for completed elections
+        Double avgParticipation = calculateClubAverageParticipation(clubId);
+
+        return VotingStatisticsResponse.builder()
+                .totalElections(clubElections)
+                .activeElections(activeElections)
+                .completedElections(completedElections)
+                .totalMembers(clubMembers)
+                .activeMembers(clubMembers)
+                .totalVotesCast(totalVotes)
+                .averageParticipationRate(avgParticipation)
+                .mostActiveClub(club.getName())
+                .generatedAt(LocalDateTime.now())
+                .message("Club statistics for " + club.getName() + " generated successfully")
+                .build();
+    }
+
+    @Override
+    public ElectionResultsResponse getElectionStatistics(Long electionId) {
+        log.info("Fetching detailed statistics for election: {}", electionId);
+        return getLiveVoteCount(electionId);
+    }
+
+    @Override
+    public VotingStatisticsResponse getStatisticsSummary() {
+        log.info("Fetching quick statistics summary");
+
+        long totalElections = electionRepository.count();
+        long activeElections = electionRepository.countByStatusIn(
+                List.of(ElectionStatus.NOMINATION_OPEN, ElectionStatus.VOTING_OPEN));
+        long totalVotes = voteRepository.count();
+        long totalClubs = clubRepository.count();
+        long totalMembers = membershipRepository.count();
+
+        return VotingStatisticsResponse.builder()
+                .totalElections(totalElections)
+                .activeElections(activeElections)
+                .totalVotesCast(totalVotes)
+                .totalClubs(totalClubs)
+                .totalMembers(totalMembers)
+                .generatedAt(LocalDateTime.now())
+                .message("Quick summary generated successfully")
+                .build();
+    }
+
+    private Double calculateClubAverageParticipation(Long clubId) {
+        List<Election> completedElections = electionRepository
+                .findByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.RESULTS_PUBLISHED);
+
+        if (completedElections.isEmpty()) {
+            return 0.0;
+        }
+
+        double totalParticipation = 0.0;
+        int count = 0;
+
+        for (Election election : completedElections) {
+            long votes = voteRepository.countByElectionIdAndIsDeletedFalse(election.getId());
+            long eligibleVoters = membershipRepository.countActiveMembers(clubId, LocalDate.now());
+
+            if (eligibleVoters > 0) {
+                totalParticipation += (double) votes / eligibleVoters * 100;
+                count++;
+            }
+        }
+
+        return count > 0 ? totalParticipation / count : 0.0;
+    }
+
+    @Override
+    @Transactional
+    public void resetElectionVotes(Long electionId) {
+        log.info("Super Admin resetting votes for election: {}", electionId);
+
+        electionRepository.findById(electionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
+
+        // Delete all votes for this election
+        voteRepository.deleteByElectionId(electionId);
+
+        // Reset vote counts on candidates
+        List<Candidate> candidates = candidateRepository.findByElectionIdAndStatusAndIsDeletedFalseOrderByDisplayOrderAsc(electionId, CandidateStatus.APPROVED);
+        for (Candidate candidate : candidates) {
+            candidate.setVoteCount(0);
+            candidateRepository.save(candidate);
+        }
+
+        log.info("Super Admin reset votes for election: {}", electionId);
+    }
+
     // ==================== Helper Methods ====================
 
     private Election findElectionById(Long electionId) {

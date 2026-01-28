@@ -68,15 +68,31 @@ public enum Permission {
     ELECTION_MANAGE("ELECTION:MANAGE", "Manage election lifecycle", "ELECTION", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
     ELECTION_PUBLISH_RESULTS("ELECTION:PUBLISH_RESULTS", "Publish election results", "ELECTION", "PUBLISH_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
 
+    // Election Admin Permissions
+    ELECTION_ADMIN_READ("ELECTION:ADMIN_READ", "Admin view all elections", "ELECTION", "ADMIN_READ", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_ADMIN_UPDATE("ELECTION:ADMIN_UPDATE", "Admin update any election", "ELECTION", "ADMIN_UPDATE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_ADMIN_DELETE("ELECTION:ADMIN_DELETE", "Admin delete any election", "ELECTION", "ADMIN_DELETE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_FORCE_MANAGE("ELECTION:FORCE_MANAGE", "Force manage election lifecycle", "ELECTION", "FORCE_MANAGE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_PERMANENT_DELETE("ELECTION:PERMANENT_DELETE", "Permanently delete elections", "ELECTION", "PERMANENT_DELETE", PermissionCategory.VOTING_MANAGEMENT),
+    ELECTION_SUPER_ADMIN("ELECTION:SUPER_ADMIN", "Super admin election operations", "ELECTION", "SUPER_ADMIN", PermissionCategory.VOTING_MANAGEMENT),
+
+    // Candidate Permissions
     CANDIDATE_NOMINATE("CANDIDATE:NOMINATE", "Nominate as candidate", "CANDIDATE", "NOMINATE", PermissionCategory.VOTING_MANAGEMENT),
     CANDIDATE_APPROVE("CANDIDATE:APPROVE", "Approve candidate nominations", "CANDIDATE", "APPROVE", PermissionCategory.VOTING_MANAGEMENT),
     CANDIDATE_VIEW("CANDIDATE:VIEW", "View candidates", "CANDIDATE", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
 
+    // Candidate Admin Permissions
+    CANDIDATE_ADMIN_VIEW("CANDIDATE:ADMIN_VIEW", "Admin view all candidates", "CANDIDATE", "ADMIN_VIEW", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_ADMIN_UPDATE("CANDIDATE:ADMIN_UPDATE", "Admin update any candidate", "CANDIDATE", "ADMIN_UPDATE", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_ADMIN_DELETE("CANDIDATE:ADMIN_DELETE", "Admin delete any candidate", "CANDIDATE", "ADMIN_DELETE", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_FORCE_APPROVE("CANDIDATE:FORCE_APPROVE", "Force approve candidates", "CANDIDATE", "FORCE_APPROVE", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_FORCE_REJECT("CANDIDATE:FORCE_REJECT", "Force reject candidates", "CANDIDATE", "FORCE_REJECT", PermissionCategory.VOTING_MANAGEMENT),
+    CANDIDATE_DISQUALIFY("CANDIDATE:DISQUALIFY", "Disqualify candidates", "CANDIDATE", "DISQUALIFY", PermissionCategory.VOTING_MANAGEMENT),
+
+    // Vote Permissions
     VOTE_CAST("VOTE:CAST", "Cast vote in elections", "VOTE", "CAST", PermissionCategory.VOTING_MANAGEMENT),
     VOTE_VIEW_RESULTS("VOTE:VIEW_RESULTS", "View voting results", "VOTE", "VIEW_RESULTS", PermissionCategory.VOTING_MANAGEMENT),
     VOTE_VIEW_STATISTICS("VOTE:VIEW_STATISTICS", "View voting statistics", "VOTE", "VIEW_STATISTICS", PermissionCategory.VOTING_MANAGEMENT),
-
-
 
     // ==================== BATCH MANAGEMENT ====================
     BATCH_READ("BATCH:READ", "View batch information", "BATCH", "READ", PermissionCategory.BATCH_MANAGEMENT),

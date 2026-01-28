@@ -4,6 +4,7 @@ import lk.iit.nextora.module.voting.entity.Vote;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -85,4 +86,13 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     @Query("SELECT v.voter.id, COUNT(v) FROM Vote v WHERE v.election.id = :electionId AND v.isDeleted = false " +
            "GROUP BY v.voter.id HAVING COUNT(v) > 1")
     List<Object[]> findDuplicateVotes(@Param("electionId") Long electionId);
+
+    // Delete all votes by election (for admin reset)
+    @Modifying
+    @Query("DELETE FROM Vote v WHERE v.election.id = :electionId")
+    void deleteByElectionId(@Param("electionId") Long electionId);
+
+    // Count votes by club (through election relationship)
+    @Query("SELECT COUNT(v) FROM Vote v WHERE v.election.club.id = :clubId AND v.isDeleted = false")
+    long countByElection_ClubIdAndIsDeletedFalse(@Param("clubId") Long clubId);
 }

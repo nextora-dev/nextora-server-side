@@ -75,4 +75,18 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
     @Query("SELECT c FROM Candidate c LEFT JOIN FETCH c.student WHERE c.election.id = :electionId " +
            "AND c.status = 'APPROVED' AND c.isDeleted = false ORDER BY c.displayOrder ASC")
     List<Candidate> findApprovedWithStudentDetails(@Param("electionId") Long electionId);
+
+    // Find all candidates for an election (including deleted for admin view)
+    Page<Candidate> findByElectionId(Long electionId, Pageable pageable);
+
+    // Find all candidates for an election (not deleted)
+    List<Candidate> findByElectionIdAndIsDeletedFalse(Long electionId);
+
+    // Delete all candidates by election
+    @Modifying
+    @Query("DELETE FROM Candidate c WHERE c.election.id = :electionId")
+    void deleteByElectionId(@Param("electionId") Long electionId);
+
+    // Count by status
+    long countByStatus(CandidateStatus status);
 }
