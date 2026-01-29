@@ -80,7 +80,10 @@ public class UpdateProfileRequest {
     @Size(max = 500, message = "Batch rep responsibilities must not exceed 500 characters")
     private String batchRepResponsibilities;
 
-    // ==================== Lecturer Fields ====================
+    // ==================== Academic Staff Fields (includes former Lecturer fields) ====================
+
+    @Size(max = 50, message = "Designation must not exceed 50 characters")
+    private String designation;
 
     @Size(max = 50, message = "Specialization must not exceed 50 characters")
     private String specialization;
@@ -93,10 +96,10 @@ public class UpdateProfileRequest {
 
     private Boolean availableForMeetings;
 
-    // ==================== Staff Fields (Academic & Non-Academic) ====================
-
     @Size(max = 500, message = "Responsibilities must not exceed 500 characters")
     private String responsibilities;
+
+    // ==================== Non-Academic Staff Fields ====================
 
     @Size(max = 100, message = "Work location must not exceed 100 characters")
     private String workLocation;

@@ -122,8 +122,6 @@ public class UserServiceImpl implements UserService {
     private void updateRoleSpecificFields(BaseUser user, UpdateProfileRequest request) {
         if (user instanceof Student student) {
             updateStudentFields(student, request);
-        } else if (user instanceof Lecturer lecturer) {
-            updateLecturerFields(lecturer, request);
         } else if (user instanceof AcademicStaff staff) {
             updateAcademicStaffFields(staff, request);
         } else if (user instanceof NonAcademicStaff staff) {
@@ -203,27 +201,25 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void updateLecturerFields(lk.iit.nextora.module.auth.entity.Lecturer lecturer, UpdateProfileRequest request) {
-        if (request.getSpecialization() != null) {
-            lecturer.setSpecialization(StringUtils.trim(request.getSpecialization()));
-        }
-        if (request.getOfficeLocation() != null) {
-            lecturer.setOfficeLocation(StringUtils.trim(request.getOfficeLocation()));
-        }
-        if (request.getBio() != null) {
-            lecturer.setBio(StringUtils.trim(request.getBio()));
-        }
-        if (request.getAvailableForMeetings() != null) {
-            lecturer.setAvailableForMeetings(request.getAvailableForMeetings());
-        }
-    }
-
     private void updateAcademicStaffFields(lk.iit.nextora.module.auth.entity.AcademicStaff staff, UpdateProfileRequest request) {
         if (request.getOfficeLocation() != null) {
             staff.setOfficeLocation(StringUtils.trim(request.getOfficeLocation()));
         }
         if (request.getResponsibilities() != null) {
             staff.setResponsibilities(StringUtils.trim(request.getResponsibilities()));
+        }
+        // Lecturer-specific fields (merged into AcademicStaff)
+        if (request.getSpecialization() != null) {
+            staff.setSpecialization(StringUtils.trim(request.getSpecialization()));
+        }
+        if (request.getBio() != null) {
+            staff.setBio(StringUtils.trim(request.getBio()));
+        }
+        if (request.getAvailableForMeetings() != null) {
+            staff.setAvailableForMeetings(request.getAvailableForMeetings());
+        }
+        if (request.getDesignation() != null) {
+            staff.setDesignation(StringUtils.trim(request.getDesignation()));
         }
     }
 

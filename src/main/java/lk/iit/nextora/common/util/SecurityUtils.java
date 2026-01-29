@@ -164,10 +164,10 @@ public final class SecurityUtils {
     }
 
     /**
-     * Check if current user is lecturer
+     * Check if current user is academic staff (includes former lecturer role)
      */
-    public static boolean isLecturer() {
-        return hasRole("ROLE_LECTURER");
+    public static boolean isAcademicStaff() {
+        return hasRole("ROLE_ACADEMIC_STAFF");
     }
 
     // ==================== Student Sub-Role Checks ====================

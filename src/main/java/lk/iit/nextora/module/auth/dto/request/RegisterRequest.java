@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = StudentRegisterRequest.class, name = "ROLE_STUDENT"),
-        @JsonSubTypes.Type(value = LecturerRegisterRequest.class, name = "ROLE_LECTURER"),
         @JsonSubTypes.Type(value = AcademicStaffRegisterRequest.class, name = "ROLE_ACADEMIC_STAFF"),
         @JsonSubTypes.Type(value = NonAcademicStaffRegisterRequest.class, name = "ROLE_NON_ACADEMIC_STAFF"),
         @JsonSubTypes.Type(value = AdminRegisterRequest.class, name = "ROLE_ADMIN"),

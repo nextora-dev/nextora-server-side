@@ -54,7 +54,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     // Repositories
     private final StudentRepository studentRepository;
-    private final LecturerRepository lecturerRepository;
     private final AcademicStaffRepository academicStaffRepository;
     private final NonAcademicStaffRepository nonAcademicStaffRepository;
     private final AdminRepository adminRepository;
@@ -245,7 +244,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private BaseUser validateAndMapToEntity(RegisterRequest request) {
         return switch (request.getRole()) {
             case ROLE_STUDENT -> validateAndMapStudent(request);
-            case ROLE_LECTURER -> validateAndMapLecturer(request);
             case ROLE_ACADEMIC_STAFF -> validateAndMapAcademicStaff(request);
             case ROLE_NON_ACADEMIC_STAFF -> validateAndMapNonAcademicStaff(request);
             case ROLE_ADMIN -> validateAndMapAdmin(request);
@@ -301,22 +299,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    // --- Lecturer ---
-    private BaseUser validateAndMapLecturer(RegisterRequest request) {
-        if (!(request instanceof LecturerRegisterRequest lecturerRequest)) {
-            throw new BadRequestException("Invalid request type for lecturer registration");
-        }
-
-        if (lecturerRepository.existsByEmployeeId(lecturerRequest.getEmployeeId())) {
-            throw new BadRequestException("Employee ID already exists");
-        }
-
-        Lecturer lecturer = userMapper.toLecturer(lecturerRequest);
-        lecturer.setEmail(lecturerRequest.getEmail());
-        lecturer.setFirstName(lecturerRequest.getFirstName());
-        lecturer.setLastName(lecturerRequest.getLastName());
-        return lecturer;
-    }
 
     // --- Academic Staff ---
     private BaseUser validateAndMapAcademicStaff(RegisterRequest request) {
@@ -412,9 +394,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     student.getStudentId(),
                     StringUtils.maskEmail(student.getEmail()),
                     student.getStudentRoleDisplayName());
-        } else if (user instanceof Lecturer lecturer) {
-            log.info("Lecturer registered successfully: {} - {}",
-                    lecturer.getEmployeeId(), lecturer.getEmail());
         } else if (user instanceof AcademicStaff staff) {
             log.info("Academic Staff registered successfully: {} - {}",
                     staff.getEmployeeId(), staff.getEmail());

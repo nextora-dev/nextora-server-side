@@ -152,10 +152,10 @@ public class SecurityService {
     }
 
     /**
-     * Check if the current user is a Lecturer
+     * Check if the current user is an Academic Staff (includes former Lecturer role)
      */
-    public boolean isLecturer() {
-        return hasRole(UserRole.ROLE_LECTURER);
+    public boolean isAcademicStaff() {
+        return hasRole(UserRole.ROLE_ACADEMIC_STAFF);
     }
 
     public boolean isNonAcademicstaff() {

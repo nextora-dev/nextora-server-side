@@ -17,8 +17,6 @@ public interface UserResponseMapper {
     default Map<String, Object> extractRoleSpecificData(BaseUser user) {
         if (user instanceof Student student) {
             return extractStudentData(student);
-        } else if (user instanceof Lecturer lecturer) {
-            return extractLecturerData(lecturer);
         } else if (user instanceof Admin admin) {
             return extractAdminData(admin);
         } else if (user instanceof AcademicStaff academicStaff) {
@@ -89,25 +87,6 @@ public interface UserResponseMapper {
     }
 
     /**
-     * Extract Lecturer-specific data
-     */
-    @Named("extractLecturerData")
-    default Map<String, Object> extractLecturerData(Lecturer lecturer) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("employeeId", lecturer.getEmployeeId());
-        data.put("department", lecturer.getDepartment());
-        data.put("faculty", lecturer.getFaculty());
-        data.put("designation", lecturer.getDesignation());
-        data.put("specialization", lecturer.getSpecialization());
-        data.put("qualifications", lecturer.getQualifications());
-        data.put("joinDate", lecturer.getJoinDate());
-        data.put("officeLocation", lecturer.getOfficeLocation());
-        data.put("bio", lecturer.getBio());
-        data.put("availableForMeetings", lecturer.getAvailableForMeetings());
-        return data;
-    }
-
-    /**
      * Extract Admin-specific data
      */
     @Named("extractAdminData")
@@ -121,17 +100,24 @@ public interface UserResponseMapper {
     }
 
     /**
-     * Extract AcademicStaff-specific data
+     * Extract AcademicStaff-specific data (includes lecturer fields)
      */
     @Named("extractAcademicStaffData")
     default Map<String, Object> extractAcademicStaffData(AcademicStaff staff) {
         Map<String, Object> data = new HashMap<>();
         data.put("employeeId", staff.getEmployeeId());
         data.put("department", staff.getDepartment());
+        data.put("faculty", staff.getFaculty());
         data.put("position", staff.getPosition());
         data.put("officeLocation", staff.getOfficeLocation());
         data.put("joinDate", staff.getJoinDate());
         data.put("responsibilities", staff.getResponsibilities());
+        // Lecturer-specific fields
+        data.put("designation", staff.getDesignation());
+        data.put("specialization", staff.getSpecialization());
+        data.put("qualifications", staff.getQualifications());
+        data.put("bio", staff.getBio());
+        data.put("availableForMeetings", staff.getAvailableForMeetings());
         return data;
     }
 

@@ -51,30 +51,6 @@ public interface UserMapper {
     @Mapping(target = "kuppiRating", ignore = true)
     void updateStudentFromRequest(StudentRegisterRequest request, @MappingTarget Student student);
 
-    // ==================== Lecturer Mappings ====================
-
-    /**
-     * Map LecturerRegisterRequest to Lecturer entity
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "phoneNumber", source = "phone")
-    @Mapping(target = "joinDate", ignore = true)
-    @Mapping(target = "version", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    Lecturer toLecturer(LecturerRegisterRequest request);
-
-    /**
-     * Update existing Lecturer entity from request
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "password", ignore = true)
-    @Mapping(target = "email", ignore = true)
-    @Mapping(target = "role", ignore = true)
-    @Mapping(target = "phoneNumber", source = "phone")
-    void updateLecturerFromRequest(LecturerRegisterRequest request, @MappingTarget Lecturer lecturer);
 
     // ==================== Admin Mappings ====================
 

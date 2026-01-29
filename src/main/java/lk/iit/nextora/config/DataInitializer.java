@@ -27,7 +27,6 @@ public class DataInitializer implements CommandLineRunner {
     private final AcademicStaffRepository academicStaffRepository;
     private final NonAcademicStaffRepository nonAcademicStaffRepository;
     private final StudentRepository studentRepository;
-    private final LecturerRepository lecturerRepository;
     private final SuperAdminRepository superAdminRepository;
     private final AdminRepository adminRepository;
     private final ClubRepository clubRepository;
@@ -42,7 +41,6 @@ public class DataInitializer implements CommandLineRunner {
 
         createSuperAdmin();
         createAdmin();
-        createLecturer();
         createAcademicStaff();
         createNonAcademicStaff();
         createStudents();
@@ -88,30 +86,30 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void createLecturer() {
-        if (lecturerRepository.count() == 0) {
-            Lecturer lecturer = new Lecturer();
+    private void createAcademicStaff() {
+        if (academicStaffRepository.count() == 0) {
+            // Create first academic staff (with lecturer-like details)
+            AcademicStaff lecturer = new AcademicStaff();
             lecturer.setFirstName("Dr. James");
             lecturer.setLastName("Smith");
-            lecturer.setEmail("james.lecturer@example.com");
+            lecturer.setEmail("james.academic@example.com");
             lecturer.setPhoneNumber("0771112233");
             lecturer.setPassword(passwordEncoder.encode("Password123"));
-            lecturer.setRole(UserRole.ROLE_LECTURER);
-            lecturer.setEmployeeId("LEC001");
+            lecturer.setRole(UserRole.ROLE_ACADEMIC_STAFF);
+            lecturer.setEmployeeId("ACS001");
             lecturer.setDepartment("Computer Science");
             lecturer.setFaculty(FacultyType.COMPUTING);
+            lecturer.setPosition("Senior Lecturer");
             lecturer.setDesignation("Senior Lecturer");
             lecturer.setSpecialization("Machine Learning");
             lecturer.setQualifications(Set.of("PhD", "MSc", "BSc"));
             lecturer.setOfficeLocation("Block A, Room 101");
             lecturer.setBio("Experienced lecturer in AI and ML");
-            lecturerRepository.save(lecturer);
-            log.info("Created Lecturer: {}", lecturer.getEmail());
-        }
-    }
+            lecturer.setJoinDate(LocalDate.of(2020, 1, 15));
+            academicStaffRepository.save(lecturer);
+            log.info("Created Academic Staff (Lecturer): {}", lecturer.getEmail());
 
-    private void createAcademicStaff() {
-        if (academicStaffRepository.count() == 0) {
+            // Create second academic staff (research coordinator)
             AcademicStaff academicStaff = new AcademicStaff();
             academicStaff.setFirstName("Sarah");
             academicStaff.setLastName("Williams");
@@ -119,7 +117,7 @@ public class DataInitializer implements CommandLineRunner {
             academicStaff.setPhoneNumber("0772223344");
             academicStaff.setPassword(passwordEncoder.encode("Password123"));
             academicStaff.setRole(UserRole.ROLE_ACADEMIC_STAFF);
-            academicStaff.setEmployeeId("ACS001");
+            academicStaff.setEmployeeId("ACS002");
             academicStaff.setDepartment("Research and Development");
             academicStaff.setFaculty(FacultyType.COMPUTING);
             academicStaff.setPosition("Research Coordinator");

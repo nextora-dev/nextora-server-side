@@ -95,7 +95,6 @@ public class UserLookupServiceImpl implements UserLookupService {
     private String getEntityName(UserRole role) {
         return switch (role) {
             case ROLE_STUDENT -> "Student";
-            case ROLE_LECTURER -> "Lecturer";
             case ROLE_ACADEMIC_STAFF -> "AcademicStaff";
             case ROLE_NON_ACADEMIC_STAFF -> "NonAcademicStaff";
             case ROLE_ADMIN -> "Admin";
@@ -106,7 +105,6 @@ public class UserLookupServiceImpl implements UserLookupService {
     private Class<? extends BaseUser> getEntityClass(UserRole role) {
         return switch (role) {
             case ROLE_STUDENT -> Student.class;
-            case ROLE_LECTURER -> Lecturer.class;
             case ROLE_ACADEMIC_STAFF -> AcademicStaff.class;
             case ROLE_NON_ACADEMIC_STAFF -> NonAcademicStaff.class;
             case ROLE_ADMIN -> Admin.class;
