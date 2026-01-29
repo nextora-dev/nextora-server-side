@@ -56,7 +56,7 @@ public class AuthController {
         return ApiResponse.success("Login successful", response);
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping(ApiConstants.AUTH_VERIFY_EMAIL)
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Verify email",
@@ -67,7 +67,7 @@ public class AuthController {
         return ApiResponse.success("Email verified successfully! You can now login.", null);
     }
 
-    @PostMapping("/resend-verification")
+    @PostMapping(ApiConstants.AUTH_RESEND_VERIFICATION)
     @ResponseStatus(HttpStatus.OK)
     @Operation(
             summary = "Resend verification email",

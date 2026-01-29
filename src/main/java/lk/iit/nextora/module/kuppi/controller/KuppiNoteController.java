@@ -50,7 +50,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Notes retrieved successfully", response);
     }
 
-    @GetMapping("/session/{sessionId}")
+    @GetMapping(ApiConstants.KUPPI_NOTE_SESSION)
     @Operation(summary = "Get notes for session", description = "View notes for a specific session")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:READ')")
     public ApiResponse<List<KuppiNoteResponse>> getNotesForSession(@PathVariable Long sessionId) {
@@ -58,7 +58,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Notes retrieved successfully", response);
     }
 
-    @GetMapping("/{noteId}")
+    @GetMapping(ApiConstants.KUPPI_NOTE_BY_ID)
     @Operation(summary = "Get note by ID", description = "View a specific note")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:READ')")
     public ApiResponse<KuppiNoteResponse> getNoteById(@PathVariable Long noteId) {
@@ -66,7 +66,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Note retrieved successfully", response);
     }
 
-    @GetMapping("/{noteId}" + ApiConstants.KUPPI_DOWNLOAD)
+    @GetMapping(ApiConstants.KUPPI_NOTE_BY_ID + ApiConstants.KUPPI_DOWNLOAD)
     @Operation(summary = "Download note", description = "Download a note (if allowed)")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DOWNLOAD')")
     public ApiResponse<KuppiNoteResponse> downloadNote(@PathVariable Long noteId) {
@@ -89,7 +89,7 @@ public class KuppiNoteController {
 
     // ==================== Kuppi Student Endpoints ====================
 
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = ApiConstants.KUPPI_NOTE_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload note with file", description = "Upload a new note with file to S3 (Kuppi Students only)")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:CREATE')")
     @ResponseStatus(HttpStatus.CREATED)
@@ -111,7 +111,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Note with file uploaded successfully to S3", response);
     }
 
-    @GetMapping("/{noteId}/download/file")
+    @GetMapping(ApiConstants.KUPPI_NOTE_DOWNLOAD_FILE)
     @Operation(summary = "Download note file", description = "Download the actual note file from S3")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DOWNLOAD')")
     public ResponseEntity<byte[]> downloadNoteFile(@PathVariable Long noteId) {
@@ -125,7 +125,7 @@ public class KuppiNoteController {
         return new ResponseEntity<>(download.getFileContent(), headers, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/{noteId}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = ApiConstants.KUPPI_NOTE_UPDATE_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Update note with file", description = "Update own note with new file to S3")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:UPDATE')")
     public ApiResponse<KuppiNoteResponse> updateNoteWithFile(
@@ -145,7 +145,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Note updated successfully", response);
     }
 
-    @DeleteMapping("/{noteId}")
+    @DeleteMapping(ApiConstants.KUPPI_NOTE_BY_ID)
     @Operation(summary = "Delete note", description = "Delete own note")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DELETE')")
     public ApiResponse<Void> deleteNote(@PathVariable Long noteId) {
