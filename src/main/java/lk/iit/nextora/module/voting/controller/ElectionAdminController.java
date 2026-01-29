@@ -48,7 +48,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Elections retrieved successfully", response);
     }
 
-    @DeleteMapping("/{electionId}/permanent")
+    @DeleteMapping(ApiConstants.VOTING_ADMIN_ELECTION_PERMANENT)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Permanently delete election", description = "Permanently delete an election (Super Admin only)")
     @PreAuthorize("hasAuthority('ELECTION:PERMANENT_DELETE')")
@@ -118,7 +118,7 @@ public class ElectionAdminController {
 
     // ==================== CANDIDATE ADMIN OPERATIONS ====================
 
-    @GetMapping("/{electionId}/candidates")
+    @GetMapping(ApiConstants.VOTING_ADMIN_CANDIDATES_BY_ELECTION)
     @Operation(summary = "Get all candidates for election", description = "Get all candidates including pending/rejected")
     @PreAuthorize("hasAuthority('CANDIDATE:ADMIN_VIEW')")
     public ApiResponse<PagedResponse<CandidateResponse>> getAllCandidates(
@@ -131,7 +131,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Candidates retrieved successfully", response);
     }
 
-    @PostMapping("/{electionId}/candidates/{candidateId}/force-approve")
+    @PostMapping(ApiConstants.VOTING_ADMIN_CANDIDATE_FORCE_APPROVE_PATH)
     @Operation(summary = "Force approve candidate", description = "Admin override to force approve a candidate")
     @PreAuthorize("hasAuthority('CANDIDATE:FORCE_APPROVE')")
     public ApiResponse<CandidateResponse> forceApproveCandidate(
@@ -142,7 +142,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Candidate force approved successfully", response);
     }
 
-    @PostMapping("/{electionId}/candidates/{candidateId}/force-reject")
+    @PostMapping(ApiConstants.VOTING_ADMIN_CANDIDATE_FORCE_REJECT_PATH)
     @Operation(summary = "Force reject candidate", description = "Admin override to force reject a candidate")
     @PreAuthorize("hasAuthority('CANDIDATE:FORCE_REJECT')")
     public ApiResponse<CandidateResponse> forceRejectCandidate(
@@ -154,7 +154,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Candidate force rejected successfully", response);
     }
 
-    @PostMapping("/{electionId}/candidates/{candidateId}/disqualify")
+    @PostMapping(ApiConstants.VOTING_ADMIN_CANDIDATE_DISQUALIFY_PATH)
     @Operation(summary = "Disqualify candidate", description = "Disqualify a candidate from election. Reason is required.")
     @PreAuthorize("hasAuthority('CANDIDATE:DISQUALIFY')")
     public ApiResponse<CandidateResponse> disqualifyCandidate(
@@ -167,7 +167,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Candidate disqualified successfully", response);
     }
 
-    @PutMapping(value = "/candidates/{candidateId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = ApiConstants.VOTING_ADMIN_CANDIDATES_UPDATE, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Admin update candidate", description = "Admin override to update any candidate's details")
     @PreAuthorize("hasAuthority('CANDIDATE:ADMIN_UPDATE')")
     public ApiResponse<CandidateResponse> adminUpdateCandidate(
@@ -201,7 +201,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Live vote statistics retrieved successfully", response);
     }
 
-    @GetMapping("/statistics")
+    @GetMapping(ApiConstants.VOTING_ADMIN_STATISTICS_PATH)
     @Operation(summary = "Get platform voting statistics", description = "Get overall voting platform statistics including clubs, elections, and voting metrics")
     @PreAuthorize("hasAuthority('VOTE:VIEW_STATISTICS')")
     public ApiResponse<VotingStatisticsResponse> getPlatformStatistics() {
@@ -210,7 +210,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Platform statistics retrieved successfully", response);
     }
 
-    @GetMapping("/statistics/clubs/{clubId}")
+    @GetMapping(ApiConstants.VOTING_ADMIN_STATISTICS_CLUBS)
     @Operation(summary = "Get club voting statistics", description = "Get voting statistics for a specific club")
     @PreAuthorize("hasAuthority('VOTE:VIEW_STATISTICS')")
     public ApiResponse<VotingStatisticsResponse> getClubStatistics(@PathVariable Long clubId) {
@@ -219,7 +219,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Club statistics retrieved successfully", response);
     }
 
-    @GetMapping("/statistics/elections/{electionId}")
+    @GetMapping(ApiConstants.VOTING_ADMIN_STATISTICS_ELECTIONS)
     @Operation(summary = "Get election detailed statistics", description = "Get detailed statistics for a specific election")
     @PreAuthorize("hasAuthority('VOTE:VIEW_STATISTICS')")
     public ApiResponse<ElectionResultsResponse> getElectionStatistics(@PathVariable Long electionId) {
@@ -228,7 +228,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Election statistics retrieved successfully", response);
     }
 
-    @GetMapping("/statistics/summary")
+    @GetMapping(ApiConstants.VOTING_ADMIN_STATISTICS_SUMMARY)
     @Operation(summary = "Get quick statistics summary", description = "Get a quick summary of key voting metrics")
     @PreAuthorize("hasAuthority('VOTE:VIEW_STATISTICS')")
     public ApiResponse<VotingStatisticsResponse> getStatisticsSummary() {
@@ -239,7 +239,7 @@ public class ElectionAdminController {
 
     // ==================== SUPER ADMIN OPERATIONS ====================
 
-    @PostMapping("/process-status-updates")
+    @PostMapping(ApiConstants.VOTING_SUPER_ADMIN_PROCESS_STATUS_PATH)
     @Operation(summary = "Process status updates", description = "Manually trigger election status updates (Super Admin)")
     @PreAuthorize("hasAuthority('ELECTION:SUPER_ADMIN')")
     public ApiResponse<Void> processElectionStatusUpdates() {
@@ -248,7 +248,7 @@ public class ElectionAdminController {
         return ApiResponse.success("Election status updates processed successfully", null);
     }
 
-    @PostMapping("/{electionId}/reset-votes")
+    @PostMapping(ApiConstants.VOTING_ADMIN_RESET_VOTES_PATH)
     @Operation(summary = "Reset election votes", description = "Reset all votes for an election (Super Admin only)")
     @PreAuthorize("hasAuthority('ELECTION:SUPER_ADMIN')")
     public ApiResponse<Void> resetElectionVotes(@PathVariable Long electionId) {

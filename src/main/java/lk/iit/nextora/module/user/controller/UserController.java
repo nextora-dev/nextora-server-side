@@ -108,7 +108,7 @@ public class UserController {
         return ApiResponse.success("User created successfully", profile);
     }
 
-    @PostMapping("/admin")
+    @PostMapping(ApiConstants.USER_ADMIN)
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('USER:ADMIN_CREATE')")
     @Operation(
@@ -159,7 +159,7 @@ public class UserController {
         return ApiResponse.success("User restored successfully", null);
     }
 
-    @PutMapping(ApiConstants.USER_BY_ID + "/activate")
+    @PutMapping(ApiConstants.USER_ACTIVATE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ACTIVATE')")
     @Operation(
@@ -171,7 +171,7 @@ public class UserController {
         return ApiResponse.success("User activated successfully", null);
     }
 
-    @PutMapping(ApiConstants.USER_BY_ID + "/deactivate")
+    @PutMapping(ApiConstants.USER_DEACTIVATE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ACTIVATE')")
     @Operation(
@@ -183,7 +183,7 @@ public class UserController {
         return ApiResponse.success("User deactivated successfully", null);
     }
 
-    @PutMapping(ApiConstants.USER_BY_ID + "/reset-password")
+    @PutMapping(ApiConstants.USER_RESET_PASSWORD)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:RESET_PASSWORD')")
     @Operation(
@@ -195,7 +195,7 @@ public class UserController {
         return ApiResponse.success("Password reset email sent successfully", null);
     }
 
-    @PutMapping(ApiConstants.USER_BY_ID + "/unlock")
+    @PutMapping(ApiConstants.USER_UNLOCK)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:UNLOCK')")
     @Operation(

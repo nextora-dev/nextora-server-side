@@ -29,7 +29,7 @@ public class KuppiAdminController {
 
     // ==================== Session Management ====================
 
-    @PutMapping("/sessions/{sessionId}")
+    @PutMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_BY_ID)
     @Operation(summary = "Edit session", description = "Edit any Kuppi session (admin override)")
     @PreAuthorize("hasAuthority('KUPPI:ADMIN_UPDATE')")
     public ApiResponse<KuppiSessionResponse> adminUpdateSession(
@@ -39,7 +39,7 @@ public class KuppiAdminController {
         return ApiResponse.success("Session updated successfully", response);
     }
 
-    @DeleteMapping("/sessions/{sessionId}")
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_BY_ID)
     @Operation(summary = "Remove session", description = "Soft delete any Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:ADMIN_DELETE')")
     public ApiResponse<Void> adminDeleteSession(@PathVariable Long sessionId) {
@@ -47,7 +47,7 @@ public class KuppiAdminController {
         return ApiResponse.success("Session removed successfully");
     }
 
-    @DeleteMapping("/sessions/{sessionId}/permanent")
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_PERMANENT)
     @Operation(summary = "Permanently delete session", description = "Permanently delete a Kuppi session (Super Admin only)")
     @PreAuthorize("hasAuthority('KUPPI:PERMANENT_DELETE')")
     public ApiResponse<Void> permanentlyDeleteSession(@PathVariable Long sessionId) {
@@ -57,7 +57,7 @@ public class KuppiAdminController {
 
     // ==================== Note Management ====================
 
-    @PutMapping("/notes/{noteId}")
+    @PutMapping(ApiConstants.KUPPI_ADMIN_NOTES_BY_ID)
     @Operation(summary = "Edit note", description = "Edit any note (admin override)")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:ADMIN_UPDATE')")
     public ApiResponse<KuppiNoteResponse> adminUpdateNote(
@@ -67,7 +67,7 @@ public class KuppiAdminController {
         return ApiResponse.success("Note updated successfully", response);
     }
 
-    @DeleteMapping("/notes/{noteId}")
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_NOTES_BY_ID)
     @Operation(summary = "Remove note", description = "Soft delete any note")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:ADMIN_DELETE')")
     public ApiResponse<Void> adminDeleteNote(@PathVariable Long noteId) {
@@ -75,7 +75,7 @@ public class KuppiAdminController {
         return ApiResponse.success("Note removed successfully");
     }
 
-    @DeleteMapping("/notes/{noteId}/permanent")
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_NOTES_PERMANENT)
     @Operation(summary = "Permanently delete note", description = "Permanently delete a note (Super Admin only)")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:PERMANENT_DELETE')")
     public ApiResponse<Void> permanentlyDeleteNote(@PathVariable Long noteId) {

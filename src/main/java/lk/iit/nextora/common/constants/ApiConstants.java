@@ -20,6 +20,8 @@ public final class ApiConstants {
     public static final String AUTH_REGISTER = "/register";
     public static final String AUTH_REFRESH = "/refresh-token";
     public static final String AUTH_LOGOUT = "/logout";
+    public static final String AUTH_VERIFY_EMAIL = "/verify-email";
+    public static final String AUTH_RESEND_VERIFICATION = "/resend-verification";
 
     // User endpoints
     public static final String USERS = API_V1 + "/users";
@@ -31,6 +33,11 @@ public final class ApiConstants {
     public static final String USER_SEARCH = "/search";
     public static final String USER_ME_SEARCH = USER_ME + USER_SEARCH;
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
+    public static final String USER_ADMIN = "/admin";
+    public static final String USER_ACTIVATE = USER_BY_ID + "/activate";
+    public static final String USER_DEACTIVATE = USER_BY_ID + "/deactivate";
+    public static final String USER_RESET_PASSWORD = USER_BY_ID + "/reset-password";
+    public static final String USER_UNLOCK = USER_BY_ID + "/unlock";
 
     // Kuppi endpoints
     public static final String KUPPI = API_V1 + "/kuppi";
@@ -52,11 +59,26 @@ public final class ApiConstants {
     public static final String KUPPI_CANCEL = "/cancel";
     public static final String KUPPI_RESCHEDULE = "/reschedule";
     public static final String KUPPI_DOWNLOAD = "/download";
+    public static final String KUPPI_SESSION_BY_ID = "/{sessionId}";
+    public static final String KUPPI_SEARCH_SUBJECT = "/search/subject";
+    public static final String KUPPI_SEARCH_HOST = "/search/host";
+    public static final String KUPPI_SEARCH_DATE = "/search/date";
 
     // Kuppi Admin endpoints
     public static final String KUPPI_ADMIN = API_V1 + "/admin/kuppi";
     public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
+    public static final String KUPPI_ADMIN_SESSIONS_BY_ID = "/sessions/{sessionId}";
+    public static final String KUPPI_ADMIN_SESSIONS_PERMANENT = "/sessions/{sessionId}/permanent";
     public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
+    public static final String KUPPI_ADMIN_NOTES_BY_ID = "/notes/{noteId}";
+    public static final String KUPPI_ADMIN_NOTES_PERMANENT = "/notes/{noteId}/permanent";
+
+    // Kuppi Notes endpoints
+    public static final String KUPPI_NOTE_BY_ID = "/{noteId}";
+    public static final String KUPPI_NOTE_SESSION = "/session/{sessionId}";
+    public static final String KUPPI_NOTE_UPLOAD = "/upload";
+    public static final String KUPPI_NOTE_DOWNLOAD_FILE = "/{noteId}/download/file";
+    public static final String KUPPI_NOTE_UPDATE_UPLOAD = "/{noteId}/upload";
 
     // ==================== Club & Voting Endpoints ====================
 
@@ -143,9 +165,21 @@ public final class ApiConstants {
 
     public static final String VOTING_ADMIN_LIVE_VOTES = "/{electionId}/live-votes";
     public static final String VOTING_ADMIN_STATISTICS = VOTING_ADMIN + "/statistics";
+    public static final String VOTING_ADMIN_STATISTICS_PATH = "/statistics";
     public static final String VOTING_ADMIN_CLUB_STATISTICS = VOTING_ADMIN_CLUBS + "/{clubId}/statistics";
+    public static final String VOTING_ADMIN_STATISTICS_CLUBS = "/statistics/clubs/{clubId}";
+    public static final String VOTING_ADMIN_STATISTICS_ELECTIONS = "/statistics/elections/{electionId}";
+    public static final String VOTING_ADMIN_STATISTICS_SUMMARY = "/statistics/summary";
+    public static final String VOTING_ADMIN_ELECTION_PERMANENT = "/{electionId}/permanent";
+    public static final String VOTING_ADMIN_CANDIDATES_BY_ELECTION = "/{electionId}/candidates";
+    public static final String VOTING_ADMIN_CANDIDATE_FORCE_APPROVE_PATH = "/{electionId}/candidates/{candidateId}/force-approve";
+    public static final String VOTING_ADMIN_CANDIDATE_FORCE_REJECT_PATH = "/{electionId}/candidates/{candidateId}/force-reject";
+    public static final String VOTING_ADMIN_CANDIDATE_DISQUALIFY_PATH = "/{electionId}/candidates/{candidateId}/disqualify";
+    public static final String VOTING_ADMIN_CANDIDATES_UPDATE = "/candidates/{candidateId}";
+    public static final String VOTING_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
 
     public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS = VOTING_ADMIN + "/elections/process-status-updates";
+    public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
     public static final String VOTING_SUPER_ADMIN_AUDIT_LOG = VOTING_ADMIN + "/audit-log";
 
     public static final String VOTING_SUPER_ADMIN_BULK_APPROVE = VOTING_ADMIN + "/memberships/bulk-approve";

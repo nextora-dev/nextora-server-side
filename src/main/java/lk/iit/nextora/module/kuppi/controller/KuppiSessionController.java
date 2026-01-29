@@ -49,7 +49,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Sessions retrieved successfully", response);
     }
 
-    @GetMapping("/{sessionId}")
+    @GetMapping(ApiConstants.KUPPI_SESSION_BY_ID)
     @Operation(summary = "Get session by ID", description = "View a specific Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:READ')")
     public ApiResponse<KuppiSessionResponse> getSessionById(@PathVariable Long sessionId) {
@@ -70,7 +70,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Search completed successfully", response);
     }
 
-    @GetMapping("/search/subject")
+    @GetMapping(ApiConstants.KUPPI_SEARCH_SUBJECT)
     @Operation(summary = "Search by subject", description = "Search sessions by subject")
     @PreAuthorize("hasAuthority('KUPPI:READ')")
     public ApiResponse<PagedResponse<KuppiSessionResponse>> searchBySubject(
@@ -83,7 +83,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Search completed successfully", response);
     }
 
-    @GetMapping("/search/host")
+    @GetMapping(ApiConstants.KUPPI_SEARCH_HOST)
     @Operation(summary = "Search by host", description = "Search sessions by host/lecturer name")
     @PreAuthorize("hasAuthority('KUPPI:READ')")
     public ApiResponse<PagedResponse<KuppiSessionResponse>> searchByHostName(
@@ -96,7 +96,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Search completed successfully", response);
     }
 
-    @GetMapping("/search/date")
+    @GetMapping(ApiConstants.KUPPI_SEARCH_DATE)
     @Operation(summary = "Search by date range", description = "Search sessions by date range")
     @PreAuthorize("hasAuthority('KUPPI:READ')")
     public ApiResponse<PagedResponse<KuppiSessionResponse>> searchByDateRange(
@@ -134,7 +134,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session created successfully", response);
     }
 
-    @PutMapping("/{sessionId}")
+    @PutMapping(ApiConstants.KUPPI_SESSION_BY_ID)
     @Operation(summary = "Update session", description = "Update own Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:UPDATE')")
     public ApiResponse<KuppiSessionResponse> updateSession(
@@ -144,7 +144,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session updated successfully", response);
     }
 
-    @PostMapping("/{sessionId}" + ApiConstants.KUPPI_CANCEL)
+    @PostMapping(ApiConstants.KUPPI_SESSION_BY_ID + ApiConstants.KUPPI_CANCEL)
     @Operation(summary = "Cancel session", description = "Cancel own Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:CANCEL')")
     public ApiResponse<Void> cancelSession(
@@ -154,7 +154,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session cancelled successfully");
     }
 
-    @PostMapping("/{sessionId}" + ApiConstants.KUPPI_RESCHEDULE)
+    @PostMapping(ApiConstants.KUPPI_SESSION_BY_ID + ApiConstants.KUPPI_RESCHEDULE)
     @Operation(summary = "Reschedule session", description = "Reschedule own Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:RESCHEDULE')")
     public ApiResponse<KuppiSessionResponse> rescheduleSession(
@@ -165,7 +165,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session rescheduled successfully", response);
     }
 
-    @DeleteMapping("/{sessionId}")
+    @DeleteMapping(ApiConstants.KUPPI_SESSION_BY_ID)
     @Operation(summary = "Delete session", description = "Delete own Kuppi session (soft delete)")
     @PreAuthorize("hasAuthority('KUPPI:DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
