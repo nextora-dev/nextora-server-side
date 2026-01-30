@@ -183,10 +183,19 @@ public class SecurityService {
     }
 
     /**
-     * Check if the current user is a Senior Kuppi mentor
+     * Check if the current user has Kuppi Student capabilities
+     * Checks for both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
      */
+    public boolean isKuppiStudent() {
+        return hasStudentRoleType(StudentRoleType.KUPPI_STUDENT) || hasStudentRoleType(StudentRoleType.SENIOR_KUPPI);
+    }
+
+    /**
+     * @deprecated Use isKuppiStudent() instead
+     */
+    @Deprecated
     public boolean isSeniorKuppi() {
-        return hasStudentRoleType(StudentRoleType.SENIOR_KUPPI);
+        return isKuppiStudent();
     }
 
     /**

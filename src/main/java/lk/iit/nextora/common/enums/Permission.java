@@ -20,6 +20,13 @@ public enum Permission {
     USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
     USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
 
+    // ==================== STUDENT ROLE MANAGEMENT ====================
+    STUDENT_ROLE_ADD("STUDENT_ROLE:ADD", "Add roles to students", "STUDENT_ROLE", "ADD", PermissionCategory.USER_MANAGEMENT),
+    STUDENT_ROLE_REMOVE("STUDENT_ROLE:REMOVE", "Remove roles from students", "STUDENT_ROLE", "REMOVE", PermissionCategory.USER_MANAGEMENT),
+    STUDENT_ROLE_VIEW("STUDENT_ROLE:VIEW", "View student roles", "STUDENT_ROLE", "VIEW", PermissionCategory.USER_MANAGEMENT),
+    STUDENT_BATCH_REP_ASSIGN("STUDENT_ROLE:BATCH_REP_ASSIGN", "Assign batch representative role", "STUDENT_ROLE", "BATCH_REP_ASSIGN", PermissionCategory.USER_MANAGEMENT),
+    STUDENT_KUPPI_APPROVE("STUDENT_ROLE:KUPPI_APPROVE", "Approve kuppi student role", "STUDENT_ROLE", "KUPPI_APPROVE", PermissionCategory.USER_MANAGEMENT),
+
     // ==================== KUPPI SESSIONS ====================
     KUPPI_CREATE("KUPPI:CREATE", "Create kuppi sessions", "KUPPI", "CREATE", PermissionCategory.KUPPI_MANAGEMENT),
     KUPPI_READ("KUPPI:READ", "View kuppi sessions", "KUPPI", "READ", PermissionCategory.KUPPI_MANAGEMENT),

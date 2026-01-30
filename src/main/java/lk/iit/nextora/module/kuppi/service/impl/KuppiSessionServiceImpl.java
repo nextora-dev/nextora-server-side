@@ -325,7 +325,8 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
     }
 
     private void validateKuppiStudent(Student student) {
-        if (!student.hasRoleType(StudentRoleType.SENIOR_KUPPI)) {
+        // Check for both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
+        if (!student.hasKuppiCapability()) {
             throw new UnauthorizedException("Only Kuppi Students can create sessions");
         }
     }

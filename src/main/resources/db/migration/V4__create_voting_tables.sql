@@ -1,5 +1,7 @@
--- Voting Module Database Migration
+-- ===================================================================================
+-- V4: Voting Module Tables Migration
 -- Creates tables for Clubs, Club Memberships, Elections, Candidates, and Votes
+-- ===================================================================================
 
 -- ==================== CLUBS TABLE ====================
 CREATE TABLE IF NOT EXISTS clubs (
@@ -8,10 +10,9 @@ CREATE TABLE IF NOT EXISTS clubs (
     name VARCHAR(100) NOT NULL,
     description VARCHAR(1000),
     logo_url VARCHAR(500),
-    -- FacultyType enum: COMPUTING, BUSINESS
     faculty VARCHAR(50),
     email VARCHAR(200),
-    contact_number VARCHAR(15),
+    contact_number VARCHAR(20),
     established_date DATE,
     social_media_links VARCHAR(500),
     president_id BIGINT REFERENCES students(id),
@@ -37,7 +38,6 @@ CREATE TABLE IF NOT EXISTS club_memberships (
     member_id BIGINT NOT NULL REFERENCES users(id),
     membership_number VARCHAR(30) UNIQUE,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    -- ClubPositionsType enum: PRESIDENT, VICE_PRESIDENT, SECRETARY, TREASURER, COMMITTEE_MEMBER, GENERAL_MEMBER
     position VARCHAR(50),
     join_date DATE NOT NULL,
     expiry_date DATE,

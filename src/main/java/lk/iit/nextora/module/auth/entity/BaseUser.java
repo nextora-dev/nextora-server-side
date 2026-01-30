@@ -43,7 +43,7 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
     private UserRole role;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private UserStatus status = UserStatus.ACTIVE;
 
     @Column(length = 15)

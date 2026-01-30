@@ -23,6 +23,11 @@ public final class ApiConstants {
     public static final String AUTH_VERIFY_EMAIL = "/verify-email";
     public static final String AUTH_RESEND_VERIFICATION = "/resend-verification";
 
+    // Admin User Management endpoints
+    public static final String ADMIN_USERS = API_V1 + "/admin/users";
+    public static final String ADMIN_CREATE_USER = "";
+    public static final String ADMIN_CHANGE_PASSWORD_FIRST_LOGIN = "/change-password-first-login";
+
     // User endpoints
     public static final String USERS = API_V1 + "/users";
     public static final String USER_ME = "/me";
@@ -38,6 +43,17 @@ public final class ApiConstants {
     public static final String USER_DEACTIVATE = USER_BY_ID + "/deactivate";
     public static final String USER_RESET_PASSWORD = USER_BY_ID + "/reset-password";
     public static final String USER_UNLOCK = USER_BY_ID + "/unlock";
+
+    // Student Role Management endpoints (Admin-controlled role upgrades)
+    public static final String STUDENT_ROLES = API_V1 + "/students";
+    public static final String STUDENT_ROLES_BY_ID = "/{studentId}/roles";
+    public static final String STUDENT_ADD_ROLE = "/{studentId}/roles/add";
+    public static final String STUDENT_REMOVE_ROLE = "/{studentId}/roles/remove";
+    public static final String STUDENT_ADD_CLUB_MEMBER = "/{studentId}/roles/club-member";
+    public static final String STUDENT_ADD_BATCH_REP = "/{studentId}/roles/batch-rep";
+    public static final String STUDENT_ADD_KUPPI_STUDENT = "/{studentId}/roles/kuppi-student";
+    public static final String STUDENTS_BY_ROLE = "/by-role/{roleType}";
+    public static final String STUDENT_ROLE_HISTORY = "/{studentId}/roles/history";
 
     // Kuppi endpoints
     public static final String KUPPI = API_V1 + "/kuppi";
@@ -92,7 +108,7 @@ public final class ApiConstants {
     public static final String CLUB_SEARCH = "/search";
     public static final String CLUB_FACULTY = "/faculty/{faculty}";
     public static final String CLUB_OPEN_REGISTRATION = "/open-registration";
-    public static final String CLUB_JOIN = "/join";
+    public static final String CLUB_JOIN =  "/join";
     public static final String CLUB_LEAVE = "/{clubId}/leave";
     public static final String CLUB_MEMBERS = "/{clubId}/members";
     public static final String CLUB_MEMBERS_ACTIVE = "/{clubId}/members/active";

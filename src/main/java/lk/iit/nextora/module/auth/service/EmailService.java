@@ -9,4 +9,6 @@ public interface EmailService {
     void sendPasswordResetEmail(BaseUser user, String token);
 
     void sendAccountActivatedEmail(BaseUser user);
+
+    void sendAccountCredentialsEmail(String toEmail, String firstName, String loginEmail, String temporaryPassword);
 }

@@ -149,14 +149,18 @@ public class Student extends BaseUser {
 
     /**
      * Get the primary (highest priority) role type for display purposes
-     * Priority: SENIOR_KUPPI > BATCH_REP > CLUB_MEMBER > NORMAL
+     * Priority: KUPPI_STUDENT > BATCH_REP > CLUB_MEMBER > NORMAL
      */
     public StudentRoleType getPrimaryRoleType() {
         if (studentRoleTypes == null || studentRoleTypes.isEmpty()) {
             return StudentRoleType.NORMAL;
         }
+        // Check for KUPPI_STUDENT first (new role), then deprecated SENIOR_KUPPI for backward compatibility
+        if (studentRoleTypes.contains(StudentRoleType.KUPPI_STUDENT)) {
+            return StudentRoleType.KUPPI_STUDENT;
+        }
         if (studentRoleTypes.contains(StudentRoleType.SENIOR_KUPPI)) {
-            return StudentRoleType.SENIOR_KUPPI;
+            return StudentRoleType.KUPPI_STUDENT; // Return new role name for display
         }
         if (studentRoleTypes.contains(StudentRoleType.BATCH_REP)) {
             return StudentRoleType.BATCH_REP;
@@ -165,6 +169,13 @@ public class Student extends BaseUser {
             return StudentRoleType.CLUB_MEMBER;
         }
         return StudentRoleType.NORMAL;
+    }
+
+    /**
+     * Check if student has Kuppi capabilities (either new KUPPI_STUDENT or deprecated SENIOR_KUPPI)
+     */
+    public boolean hasKuppiCapability() {
+        return hasRoleType(StudentRoleType.KUPPI_STUDENT) || hasRoleType(StudentRoleType.SENIOR_KUPPI);
     }
 
     /**

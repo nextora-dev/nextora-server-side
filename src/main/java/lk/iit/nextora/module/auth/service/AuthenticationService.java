@@ -6,7 +6,5 @@ import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 
 public interface AuthenticationService {
 
-    AuthResponse register(RegisterRequest request);
-
     AuthResponse login(LoginRequest request);
 }

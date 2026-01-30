@@ -209,10 +209,20 @@ public final class SecurityUtils {
     }
 
     /**
-     * Check if current user is a Senior Kuppi Mentor
+     * Check if current user has Kuppi Student capabilities
+     * Checks for both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
      */
+    public static boolean isKuppiStudent() {
+        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.KUPPI_STUDENT)
+                || hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI);
+    }
+
+    /**
+     * @deprecated Use isKuppiStudent() instead
+     */
+    @Deprecated
     public static boolean isSeniorKuppi() {
-        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI);
+        return isKuppiStudent();
     }
 
     /**

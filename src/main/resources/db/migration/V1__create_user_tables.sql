@@ -1,18 +1,21 @@
 -- ===================================================================================
 -- V1: Core User Tables Migration
--- Creates base user tables with inheritance structure and authentication tokens
+-- Creates base user tables with inheritance structure
 -- ===================================================================================
+
+-- ==================== SEQUENCE FOR ALL ENTITIES ====================
+CREATE SEQUENCE IF NOT EXISTS entity_sequence START WITH 1 INCREMENT BY 1;
 
 -- ==================== USERS TABLE (Base for all user types) ====================
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY DEFAULT nextval('entity_sequence'),
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     role VARCHAR(30) NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'PENDING_VERIFICATION',
-    phone_number VARCHAR(15),
+    status VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(20),
     failed_login_attempts INTEGER DEFAULT 0,
     last_failed_login_at TIMESTAMP,
     version BIGINT DEFAULT 0,
@@ -34,17 +37,14 @@ CREATE TABLE IF NOT EXISTS students (
     student_id VARCHAR(20) NOT NULL UNIQUE,
     batch VARCHAR(50) NOT NULL,
     program VARCHAR(100) NOT NULL,
-    -- FacultyType enum: COMPUTING, BUSINESS
     faculty VARCHAR(50) NOT NULL,
-    student_role_type VARCHAR(30) DEFAULT 'NORMAL',
     enrollment_date DATE,
     date_of_birth DATE,
     address VARCHAR(200),
-    guardian_name VARCHAR(50),
-    guardian_phone VARCHAR(15),
+    guardian_name VARCHAR(100),
+    guardian_phone VARCHAR(20),
     -- Club Member specific fields
     club_name VARCHAR(100),
-    -- ClubPositionsType enum: PRESIDENT, VICE_PRESIDENT, SECRETARY, TREASURER, COMMITTEE_MEMBER, GENERAL_MEMBER
     club_position VARCHAR(50),
     club_join_date DATE,
     club_membership_id VARCHAR(50),
@@ -63,7 +63,16 @@ CREATE TABLE IF NOT EXISTS students (
 CREATE INDEX IF NOT EXISTS idx_students_student_id ON students(student_id);
 CREATE INDEX IF NOT EXISTS idx_students_batch ON students(batch);
 CREATE INDEX IF NOT EXISTS idx_students_faculty ON students(faculty);
-CREATE INDEX IF NOT EXISTS idx_students_role_type ON students(student_role_type);
+
+-- Student Role Types (ElementCollection - allows multiple roles per student)
+CREATE TABLE IF NOT EXISTS student_role_types (
+    student_id BIGINT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    role_type VARCHAR(30) NOT NULL,
+    PRIMARY KEY (student_id, role_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_student_role_types_student ON student_role_types(student_id);
+CREATE INDEX IF NOT EXISTS idx_student_role_types_role ON student_role_types(role_type);
 
 -- Student Kuppi Subjects (ElementCollection)
 CREATE TABLE IF NOT EXISTS student_kuppi_subjects (
@@ -72,46 +81,25 @@ CREATE TABLE IF NOT EXISTS student_kuppi_subjects (
     PRIMARY KEY (student_id, subject)
 );
 
--- ==================== LECTURERS TABLE ====================
-CREATE TABLE IF NOT EXISTS lecturers (
-    id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    employee_id VARCHAR(20) NOT NULL UNIQUE,
-    department VARCHAR(100) NOT NULL,
-    -- FacultyType enum: COMPUTING, BUSINESS
-    faculty VARCHAR(50) NOT NULL,
-    designation VARCHAR(50),
-    specialization VARCHAR(50),
-    join_date DATE,
-    office_location VARCHAR(100),
-    bio VARCHAR(500),
-    available_for_meetings BOOLEAN DEFAULT true
-);
-
-CREATE INDEX IF NOT EXISTS idx_lecturers_employee_id ON lecturers(employee_id);
-CREATE INDEX IF NOT EXISTS idx_lecturers_department ON lecturers(department);
-CREATE INDEX IF NOT EXISTS idx_lecturers_faculty ON lecturers(faculty);
-
--- Lecturer Qualifications (ElementCollection)
-CREATE TABLE IF NOT EXISTS lecturer_qualifications (
-    lecturer_id BIGINT NOT NULL REFERENCES lecturers(id) ON DELETE CASCADE,
-    qualification VARCHAR(200) NOT NULL,
-    PRIMARY KEY (lecturer_id, qualification)
-);
-
 -- ==================== ACADEMIC STAFF TABLE ====================
 CREATE TABLE IF NOT EXISTS academic_staff (
     id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     employee_id VARCHAR(20) NOT NULL UNIQUE,
     department VARCHAR(100) NOT NULL,
-    -- FacultyType enum: COMPUTING, BUSINESS
     faculty VARCHAR(50) NOT NULL,
     position VARCHAR(50) NOT NULL,
-    join_date DATE,
     office_location VARCHAR(100),
-    responsibilities VARCHAR(500)
+    join_date DATE,
+    responsibilities VARCHAR(500),
+    designation VARCHAR(50),
+    specialization VARCHAR(50),
+    bio VARCHAR(500),
+    available_for_meetings BOOLEAN DEFAULT true
 );
 
 CREATE INDEX IF NOT EXISTS idx_academic_staff_employee_id ON academic_staff(employee_id);
+CREATE INDEX IF NOT EXISTS idx_academic_staff_department ON academic_staff(department);
+CREATE INDEX IF NOT EXISTS idx_academic_staff_faculty ON academic_staff(faculty);
 
 -- Academic Staff Qualifications (ElementCollection)
 CREATE TABLE IF NOT EXISTS academic_staff_qualifications (
@@ -125,9 +113,10 @@ CREATE TABLE IF NOT EXISTS non_academic_staff (
     id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     employee_id VARCHAR(20) NOT NULL UNIQUE,
     department VARCHAR(100) NOT NULL,
-    designation VARCHAR(50),
-    join_date DATE,
-    office_location VARCHAR(100)
+    position VARCHAR(50),
+    shift VARCHAR(50),
+    work_location VARCHAR(100),
+    join_date DATE
 );
 
 CREATE INDEX IF NOT EXISTS idx_non_academic_staff_employee_id ON non_academic_staff(employee_id);
@@ -152,18 +141,18 @@ CREATE TABLE IF NOT EXISTS admin_permissions (
 -- ==================== SUPER ADMINS TABLE ====================
 CREATE TABLE IF NOT EXISTS super_admins (
     id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    admin_id VARCHAR(20) NOT NULL UNIQUE,
-    department VARCHAR(100),
+    super_admin_id VARCHAR(20) NOT NULL UNIQUE,
+    access_level VARCHAR(50),
     assigned_date DATE
 );
 
-CREATE INDEX IF NOT EXISTS idx_super_admins_admin_id ON super_admins(admin_id);
+CREATE INDEX IF NOT EXISTS idx_super_admins_admin_id ON super_admins(super_admin_id);
 
 -- ==================== COMMENTS ====================
 COMMENT ON TABLE users IS 'Base table for all user types using JOINED inheritance';
 COMMENT ON TABLE students IS 'Student users with academic and role-specific information';
-COMMENT ON TABLE lecturers IS 'Lecturer users with academic credentials';
-COMMENT ON TABLE academic_staff IS 'Academic staff members';
+COMMENT ON TABLE academic_staff IS 'Academic staff members including lecturers';
 COMMENT ON TABLE non_academic_staff IS 'Non-academic staff members';
 COMMENT ON TABLE admins IS 'Admin users with system management permissions';
 COMMENT ON TABLE super_admins IS 'Super admin users with full system access';
+COMMENT ON TABLE student_role_types IS 'Multiple role types per student - allows a student to be CLUB_MEMBER and SENIOR_KUPPI simultaneously';

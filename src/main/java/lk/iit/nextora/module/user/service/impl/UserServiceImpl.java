@@ -151,8 +151,9 @@ public class UserServiceImpl implements UserService {
             if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.CLUB_MEMBER)) {
                 updateClubMemberFields(student, request);
             }
-            if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI)) {
-                updateSeniorKuppiFields(student, request);
+            // Handle both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
+            if (student.hasKuppiCapability()) {
+                updateKuppiStudentFields(student, request);
             }
             if (student.hasRoleType(lk.iit.nextora.common.enums.StudentRoleType.BATCH_REP)) {
                 updateBatchRepFields(student, request);
@@ -175,7 +176,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void updateSeniorKuppiFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
+    private void updateKuppiStudentFields(lk.iit.nextora.module.auth.entity.Student student, UpdateProfileRequest request) {
         if (request.getKuppiSubjects() != null && !request.getKuppiSubjects().isEmpty()) {
             student.setKuppiSubjects(request.getKuppiSubjects());
         }

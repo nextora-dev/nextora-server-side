@@ -34,7 +34,7 @@ public class AuthResponse {
 
     private Object roleSpecificData;
 
-    // Email verification fields
+    // Status fields
     private String message;
-    private Boolean emailVerified;
+    private Boolean passwordChangeRequired;
 }

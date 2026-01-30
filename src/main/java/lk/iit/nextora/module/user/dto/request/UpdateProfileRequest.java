@@ -57,7 +57,7 @@ public class UpdateProfileRequest {
     @Size(max = 50, message = "Club membership ID must not exceed 50 characters")
     private String clubMembershipId;
 
-    // ==================== SENIOR_KUPPI Specific Fields ====================
+    // ==================== KUPPI_STUDENT Specific Fields ====================
 
     private Set<String> kuppiSubjects;
 

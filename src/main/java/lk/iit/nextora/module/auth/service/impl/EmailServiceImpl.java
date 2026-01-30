@@ -42,6 +42,7 @@ public class EmailServiceImpl implements EmailService {
     private String verificationEmailTemplate;
     private String passwordResetEmailTemplate;
     private String accountActivatedEmailTemplate;
+    private String accountCredentialsEmailTemplate;
 
     @PostConstruct
     public void loadTemplates() {
@@ -49,6 +50,7 @@ public class EmailServiceImpl implements EmailService {
             verificationEmailTemplate = loadTemplate("classpath:templates/email/verification-email.html");
             passwordResetEmailTemplate = loadTemplate("classpath:templates/email/password-reset-email.html");
             accountActivatedEmailTemplate = loadTemplate("classpath:templates/email/account-activated-email.html");
+            accountCredentialsEmailTemplate = loadTemplate("classpath:templates/email/account-credentials-email.html");
             log.info("Email templates loaded successfully");
         } catch (IOException e) {
             log.error("Failed to load email templates: {}", e.getMessage());
@@ -95,6 +97,16 @@ public class EmailServiceImpl implements EmailService {
         log.info("Account activation confirmation email sent to: {}", maskEmail(user.getEmail()));
     }
 
+    @Override
+    @Async
+    public void sendAccountCredentialsEmail(String toEmail, String firstName, String loginEmail, String temporaryPassword) {
+        String subject = "Your Nextora Account Has Been Created";
+        String htmlContent = buildAccountCredentialsEmailHtml(firstName, loginEmail, temporaryPassword);
+
+        sendHtmlEmail(toEmail, subject, htmlContent);
+        log.info("Account credentials email sent to: {}", maskEmail(toEmail));
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -130,6 +142,15 @@ public class EmailServiceImpl implements EmailService {
         String loginUrl = frontendUrl + "/login";
         return accountActivatedEmailTemplate
                 .replace("{{firstName}}", firstName)
+                .replace("{{loginUrl}}", loginUrl);
+    }
+
+    private String buildAccountCredentialsEmailHtml(String firstName, String loginEmail, String temporaryPassword) {
+        String loginUrl = frontendUrl + "/login";
+        return accountCredentialsEmailTemplate
+                .replace("{{firstName}}", firstName)
+                .replace("{{loginEmail}}", loginEmail)
+                .replace("{{temporaryPassword}}", temporaryPassword)
                 .replace("{{loginUrl}}", loginUrl);
     }
 

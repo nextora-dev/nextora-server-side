@@ -35,7 +35,6 @@ public interface AuthMapper {
     @Mapping(target = "tokenType", constant = "Bearer")
     @Mapping(target = "roleSpecificData", ignore = true)
     @Mapping(target = "message", ignore = true)
-    @Mapping(target = "emailVerified", ignore = true)
     AuthResponse toAuthResponse(BaseUser user, String accessToken, String refreshToken, Date expiresIn);
 
     /**
@@ -80,7 +79,31 @@ public interface AuthMapper {
         response.setExpiresIn(null);
         response.setTokenType(null);
         response.setMessage(message);
-        response.setEmailVerified(false);
+        return response;
+    }
+
+    /**
+     * Build AuthResponse for password change required (limited access token, no refresh token)
+     *
+     * @param user        the user entity
+     * @param accessToken limited JWT access token for password change
+     * @param message     message for the user
+     * @return AuthResponse DTO with limited token
+     */
+    default AuthResponse toPasswordChangeRequiredResponse(BaseUser user, String accessToken, String message) {
+        AuthResponse response = new AuthResponse();
+        response.setUserId(user.getId());
+        response.setEmail(user.getEmail());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setRole(user.getRole());
+        response.setUserType(user.getUserType());
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(null); // No refresh token until password is changed
+        response.setExpiresIn(null);
+        response.setTokenType("Bearer");
+        response.setMessage(message);
+        response.setPasswordChangeRequired(true);
         return response;
     }
 }
