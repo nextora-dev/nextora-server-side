@@ -11,7 +11,6 @@ import lk.iit.nextora.common.util.ValidationUtils;
 import lk.iit.nextora.config.security.SecurityService;
 import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
 import lk.iit.nextora.module.auth.dto.request.*;
-import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.mapper.AuthMapper;
@@ -69,7 +68,7 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
         BaseUser user = mapToEntity(request);
         user.setPassword(passwordEncoder.encode(tempPassword));
         user.setRole(request.getRole());
-        user.setStatus(UserStatus.ACTIVE);
+        user.setStatus(UserStatus.PASSWORD_CHANGE_REQUIRED);
 
         entityManager.persist(user);
         entityManager.flush();
@@ -88,38 +87,6 @@ public class AdminUserManagementServiceImpl implements AdminUserManagementServic
                 .message("User created successfully. Credentials sent to " + user.getEmail())
                 .roleSpecificData(userResponseMapper.extractRoleSpecificData(user))
                 .build();
-    }
-
-    @Override
-    public AuthResponse changePasswordOnFirstLogin(FirstTimePasswordChangeRequest request) {
-        BaseUser user = securityService.getCurrentUser()
-                .orElseThrow(() -> new BadRequestException("User not authenticated"));
-
-//        if (user.getStatus() != UserStatus.PASSWORD_CHANGE_REQUIRED) {
-//            throw new BadRequestException("Password change is not required for this account");
-//        }
-
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BadRequestException("Current password is incorrect");
-        }
-
-        ValidationUtils.requireEquals(request.getNewPassword(), request.getConfirmPassword(), "New passwords do not match");
-
-        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
-            throw new BadRequestException("New password must be different from current password");
-        }
-
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setStatus(UserStatus.ACTIVE);
-        entityManager.merge(user);
-
-        log.info("Password changed successfully for user: {}", StringUtils.maskEmail(user.getEmail()));
-
-        String accessToken = tokenProvider.generateAccessToken(user);
-        String refreshToken = tokenProvider.generateRefreshToken(user);
-
-        return authMapper.toAuthResponseWithRoleData(user, accessToken, refreshToken,
-                tokenProvider.getAccessTokenExpiryDate(), userResponseMapper.extractRoleSpecificData(user));
     }
 
     private void validateAdminAccess() {

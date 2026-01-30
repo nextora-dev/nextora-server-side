@@ -59,201 +59,77 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     // ==================== LOGIN ====================
 
-//    @Override
-//    public AuthResponse login(LoginRequest request) {
-//        // Validate input
-//        ValidationUtils.requireValidEmail(request.getEmail(), "Email");
-//        ValidationUtils.requireNonBlank(request.getPassword(), "Password");
-//        ValidationUtils.requireNonNull(request.getRole(), "Role");
-//
-//        log.info("Login attempt for: {} as role: {}", StringUtils.maskEmail(request.getEmail()), request.getRole());
-//
-//        // Check if user exists
-//        BaseUser user = userLookupService
-//                .findUserByEmailAndRole(request.getEmail(), request.getRole())
-//                .orElse(null);
-//
-//        if (user != null) {
-//            // Check if password change is required (first login)
-//            if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(user.getStatus())) {
-//                log.info("Password change required for user: {}", StringUtils.maskEmail(request.getEmail()));
-//                // We still need to verify password first before allowing password change
-//            }
-//
-//            // Check if account is suspended
-//            if (UserStatus.SUSPENDED.equals(user.getStatus())) {
-//                LocalDateTime lastFailedAt = user.getLastFailedLoginAt();
-//                boolean isNewDay = lastFailedAt == null ||
-//                        !lastFailedAt.toLocalDate().equals(LocalDateTime.now().toLocalDate());
-//
-//                if (isNewDay) {
-//                    loginAttemptService.resetFailedAttempts(user.getId());
-//                    user = userLookupService.findUserByEmailAndRole(request.getEmail(), request.getRole())
-//                            .orElse(null);
-//                    log.info("Account auto-unlocked for new day: {}", StringUtils.maskEmail(request.getEmail()));
-//                } else {
-//                    log.warn("Login attempt for suspended account: {}", StringUtils.maskEmail(request.getEmail()));
-//                    throw new BadRequestException(
-//                            "Your account has been suspended due to multiple failed login attempts today. " +
-//                                    "Please try again tomorrow or contact an administrator to reactivate your account."
-//                    );
-//                }
-//            }
-//        }
-//
-//        try {
-//            // Authenticate credentials
-//            Authentication authentication = authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(
-//                            request.getEmail(),
-//                            request.getPassword()
-//                    )
-//            );
-//
-//            if (user == null) {
-//                throw new BadRequestException(
-//                        "No account found with email " + StringUtils.maskEmail(request.getEmail()) +
-//                                " for role " + request.getRole().getDisplayName()
-//                );
-//            }
-//
-//            // Verify user is active or requires password change
-//            if (!user.isActive() && user.getStatus() != UserStatus.PASSWORD_CHANGE_REQUIRED) {
-//                throw new BadRequestException("Account is inactive");
-//            }
-//
-//            // Reset failed login attempts on successful login
-//            if (user.getFailedLoginAttempts() != null && user.getFailedLoginAttempts() > 0) {
-//                loginAttemptService.resetFailedAttempts(user.getId());
-//                log.info("Reset failed login attempts for user: {}", StringUtils.maskEmail(user.getEmail()));
-//            }
-//
-//            // Check if password change is required
-//            if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(user.getStatus())) {
-//                log.info("User {} requires password change on first login", StringUtils.maskEmail(user.getEmail()));
-//
-//                // Generate limited access token for password change only
-//                String accessToken = tokenProvider.generateAccessToken(user);
-//
-//                return authMapper.toPasswordChangeRequiredResponse(
-//                        user,
-//                        accessToken,
-//                        "Password change required. Please change your password to continue."
-//                );
-//            }
-//
-//            // Generate tokens
-//            String accessToken = tokenProvider.generateAccessToken(user);
-//            String refreshToken = tokenProvider.generateRefreshToken(user);
-//
-//            log.info("User logged in successfully: {} - {}",
-//                    StringUtils.maskEmail(user.getEmail()), user.getUserType());
-//
-//            return authMapper.toAuthResponseWithRoleData(
-//                    user,
-//                    accessToken,
-//                    refreshToken,
-//                    tokenProvider.getAccessTokenExpiryDate(),
-//                    userResponseMapper.extractRoleSpecificData(user)
-//            );
-//
-//        } catch (AuthenticationException ex) {
-//            log.error("Authentication failed for: {}", StringUtils.maskEmail(request.getEmail()));
-//
-//            if (user != null) {
-//                boolean suspended = loginAttemptService.recordFailedAttempt(user.getId(), user.getRole());
-//                if (suspended) {
-//                    throw new BadRequestException(
-//                            "Your account has been suspended due to 5 failed login attempts today. " +
-//                                    "Please try again tomorrow or contact an administrator to reactivate your account."
-//                    );
-//                }
-//            }
-//
-//            throw new BadRequestException("Invalid email or password");
-//        }
-//    }
-
     @Override
     public AuthResponse login(LoginRequest request) {
-        // Validate input
+
         ValidationUtils.requireValidEmail(request.getEmail(), "Email");
         ValidationUtils.requireNonBlank(request.getPassword(), "Password");
         ValidationUtils.requireNonNull(request.getRole(), "Role");
 
-        log.info("Login attempt for: {} as role: {}", StringUtils.maskEmail(request.getEmail()), request.getRole());
+        log.info(
+                "Login attempt for: {} as role: {}",
+                StringUtils.maskEmail(request.getEmail()),
+                request.getRole()
+        );
 
-        // Check if user exists
         BaseUser user = userLookupService
                 .findUserByEmailAndRole(request.getEmail(), request.getRole())
-                .orElse(null);
+                .orElseThrow(() -> new BadRequestException(
+                        "No account found with email " +
+                                StringUtils.maskEmail(request.getEmail()) +
+                                " for role " + request.getRole().getDisplayName()
+                ));
 
-        if (user == null) {
-            throw new BadRequestException(
-                    "No account found with email " + StringUtils.maskEmail(request.getEmail()) +
-                            " for role " + request.getRole().getDisplayName()
-            );
-        }
-
-        // Check if account is suspended
+        // 🚫 Suspended account handling
         if (UserStatus.SUSPENDED.equals(user.getStatus())) {
+
             LocalDateTime lastFailedAt = user.getLastFailedLoginAt();
             boolean isNewDay = lastFailedAt == null ||
-                    !lastFailedAt.toLocalDate().equals(LocalDateTime.now().toLocalDate());
+                    !lastFailedAt.toLocalDate().equals(LocalDate.now());
 
-            if (isNewDay) {
-                loginAttemptService.resetFailedAttempts(user.getId());
-                user = userLookupService.findUserByEmailAndRole(request.getEmail(), request.getRole())
-                        .orElse(null);
-                log.info("Account auto-unlocked for new day: {}", StringUtils.maskEmail(request.getEmail()));
-            } else {
-                log.warn("Login attempt for suspended account: {}", StringUtils.maskEmail(request.getEmail()));
+            if (!isNewDay) {
                 throw new BadRequestException(
                         "Your account has been suspended due to multiple failed login attempts today. " +
-                                "Please try again tomorrow or contact an administrator to reactivate your account."
+                                "Please try again tomorrow or contact an administrator."
                 );
             }
+
+            loginAttemptService.resetFailedAttempts(user.getId());
+            log.info("Account auto-unlocked for new day: {}", StringUtils.maskEmail(user.getEmail()));
         }
 
-        // Check if account is inactive (but allow PASSWORD_CHANGE_REQUIRED status)
-//        if (!user.isActive() && user.getStatus() != UserStatus.PASSWORD_CHANGE_REQUIRED) {
-//            throw new BadRequestException("Account is inactive. Please contact an administrator.");
-//        }
+        // 🚫 Inactive account (PASSWORD_CHANGE_REQUIRED is allowed)
+        if (!user.isActive() && user.getStatus() != UserStatus.PASSWORD_CHANGE_REQUIRED) {
+            throw new BadRequestException("Account is inactive. Please contact an administrator.");
+        }
 
         try {
-            // Authenticate credentials
-            Authentication authentication = authenticationManager.authenticate(
+            // ✅ Authenticate (email + password)
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword()
                     )
             );
 
-            // Reset failed login attempts on successful authentication
-            if (user.getFailedLoginAttempts() != null && user.getFailedLoginAttempts() > 0) {
-                loginAttemptService.resetFailedAttempts(user.getId());
-                log.info("Reset failed login attempts for user: {}", StringUtils.maskEmail(user.getEmail()));
+            // ✅ Reset failed attempts
+            loginAttemptService.resetFailedAttempts(user.getId());
+
+            // 🔐 FIRST LOGIN → FORCE PASSWORD CHANGE
+            if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(user.getStatus())) {
+
+                String accessToken = tokenProvider.generateAccessToken(user);
+
+                return authMapper.toPasswordChangeRequiredResponse(
+                        user,
+                        accessToken,
+                        "Password change required. Please change your password to continue."
+                );
             }
 
-            // Check if password change is required (first login after admin creation)
-//            if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(user.getStatus())) {
-//                log.info("User {} requires password change on first login", StringUtils.maskEmail(user.getEmail()));
-//
-//                String accessToken = tokenProvider.generateAccessToken(user);
-//
-//                return authMapper.toPasswordChangeRequiredResponse(
-//                        user,
-//                        accessToken,
-//                        "Password change required. Please change your password to continue."
-//                );
-//            }
-
-            // Generate tokens for normal login
+            // ✅ Normal login
             String accessToken = tokenProvider.generateAccessToken(user);
             String refreshToken = tokenProvider.generateRefreshToken(user);
-
-            log.info("User logged in successfully: {} - {}",
-                    StringUtils.maskEmail(user.getEmail()), user.getUserType());
 
             return authMapper.toAuthResponseWithRoleData(
                     user,
@@ -264,20 +140,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             );
 
         } catch (AuthenticationException ex) {
-            log.error("Authentication failed for: {}", StringUtils.maskEmail(request.getEmail()));
 
-            boolean suspended = loginAttemptService.recordFailedAttempt(user.getId(), user.getRole());
+            boolean suspended = loginAttemptService.recordFailedAttempt(
+                    user.getId(),
+                    user.getRole()
+            );
+
             if (suspended) {
                 throw new BadRequestException(
-                        "Your account has been suspended due to 5 failed login attempts today. " +
-                                "Please try again tomorrow or contact an administrator to reactivate your account."
+                        "Your account has been suspended due to 5 failed login attempts today."
                 );
             }
 
             throw new BadRequestException("Invalid email or password");
         }
     }
-
 
     // ==================== PRIVATE HELPER METHODS ====================
 

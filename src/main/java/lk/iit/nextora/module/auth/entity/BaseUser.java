@@ -141,7 +141,9 @@ public abstract class BaseUser extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserStatus.ACTIVE.equals(status);
+        // Allow users with PASSWORD_CHANGE_REQUIRED status to log in
+        // so they can change their password on first login
+        return UserStatus.ACTIVE.equals(status) || UserStatus.PASSWORD_CHANGE_REQUIRED.equals(status);
     }
 
     public String getFullName() {

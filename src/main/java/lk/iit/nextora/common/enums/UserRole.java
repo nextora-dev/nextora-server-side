@@ -42,7 +42,8 @@ public enum UserRole {
                     Permission.CANDIDATE_NOMINATE,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
-                    Permission.CLUB_MEMBERSHIP_VIEW
+                    Permission.CLUB_MEMBERSHIP_VIEW,
+                    Permission.USER_RESET_PASSWORD
             )),
 
 
@@ -70,7 +71,9 @@ public enum UserRole {
 
                     // Voting statistics permissions
                     Permission.VOTE_VIEW_STATISTICS,
-                    Permission.VOTE_VIEW_RESULTS
+                    Permission.VOTE_VIEW_RESULTS,
+                    Permission.USER_RESET_PASSWORD,
+                    Permission.USER_UPDATE
             )),
 
     // ==================== ACADEMIC_STAFF (includes Lecturer permissions) ====================
@@ -91,7 +94,8 @@ public enum UserRole {
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_READ
+                    Permission.LOST_FOUND_READ,
+                    Permission.USER_RESET_PASSWORD
             ));
 
     private final String displayName;

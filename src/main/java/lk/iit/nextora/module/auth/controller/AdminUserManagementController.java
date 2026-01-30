@@ -36,17 +36,4 @@ public class AdminUserManagementController {
         UserCreatedResponse response = adminUserManagementService.createUser(request);
         return ApiResponse.success("User created successfully", response);
     }
-
-    @PostMapping("/change-password-first-login")
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(
-            summary = "Change password on first login",
-            description = "Users with PASSWORD_CHANGE_REQUIRED status must change their password. " +
-                    "After successful password change, user status changes to ACTIVE and tokens are returned."
-    )
-    public ApiResponse<AuthResponse> changePasswordOnFirstLogin(
-            @Valid @RequestBody FirstTimePasswordChangeRequest request) {
-        AuthResponse response = adminUserManagementService.changePasswordOnFirstLogin(request);
-        return ApiResponse.success("Password changed successfully", response);
-    }
 }
