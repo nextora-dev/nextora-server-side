@@ -3,7 +3,6 @@ package lk.iit.nextora.module.auth.service.impl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lk.iit.nextora.common.enums.StudentRoleType;
-import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.util.StringUtils;
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -80,7 +78,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                                 " for role " + request.getRole().getDisplayName()
                 ));
 
-        // 🚫 Suspended account handling
+        // Suspended account handling
         if (UserStatus.SUSPENDED.equals(user.getStatus())) {
 
             LocalDateTime lastFailedAt = user.getLastFailedLoginAt();
@@ -98,13 +96,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.info("Account auto-unlocked for new day: {}", StringUtils.maskEmail(user.getEmail()));
         }
 
-        // 🚫 Inactive account (PASSWORD_CHANGE_REQUIRED is allowed)
+        // Inactive account (PASSWORD_CHANGE_REQUIRED is allowed)
         if (!user.isActive() && user.getStatus() != UserStatus.PASSWORD_CHANGE_REQUIRED) {
             throw new BadRequestException("Account is inactive. Please contact an administrator.");
         }
 
         try {
-            // ✅ Authenticate (email + password)
+            // Authenticate (email + password)
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
@@ -112,10 +110,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     )
             );
 
-            // ✅ Reset failed attempts
+            // Reset failed attempts
             loginAttemptService.resetFailedAttempts(user.getId());
 
-            // 🔐 FIRST LOGIN → FORCE PASSWORD CHANGE
+            // FIRST LOGIN → FORCE PASSWORD CHANGE
             if (UserStatus.PASSWORD_CHANGE_REQUIRED.equals(user.getStatus())) {
 
                 String accessToken = tokenProvider.generateAccessToken(user);
@@ -127,7 +125,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 );
             }
 
-            // ✅ Normal login
+            // Normal login
             String accessToken = tokenProvider.generateAccessToken(user);
             String refreshToken = tokenProvider.generateRefreshToken(user);
 
@@ -221,7 +219,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-
     // --- Academic Staff ---
     private BaseUser validateAndMapAcademicStaff(RegisterRequest request) {
         if (!(request instanceof AcademicStaffRegisterRequest staffRequest)) {
@@ -308,32 +305,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         superAdmin.setFirstName(superAdminRequest.getFirstName());
         superAdmin.setLastName(superAdminRequest.getLastName());
         return superAdmin;
-    }
-
-    private void logPostRegistration(BaseUser user) {
-        if (user instanceof Student student) {
-            log.info("Student registered successfully: {} - {} [Sub-Role: {}]",
-                    student.getStudentId(),
-                    StringUtils.maskEmail(student.getEmail()),
-                    student.getStudentRoleDisplayName());
-        } else if (user instanceof AcademicStaff staff) {
-            log.info("Academic Staff registered successfully: {} - {}",
-                    staff.getEmployeeId(), staff.getEmail());
-        } else if (user instanceof NonAcademicStaff staff) {
-            log.info("Non-Academic Staff registered successfully: {} - {}",
-                    staff.getEmployeeId(), staff.getEmail());
-        } else if (user instanceof Admin admin) {
-            log.info("Admin registered successfully: {} - {}",
-                    admin.getAdminId(), admin.getEmail());
-        } else if (user instanceof SuperAdmin superAdmin) {
-            log.info("Super Admin registered successfully: {} - {}",
-                    superAdmin.getSuperAdminId(), superAdmin.getEmail());
-        } else {
-            log.info("User registered: {}", StringUtils.maskEmail(user.getEmail()));
-        }
-    }
-
-    private boolean isAdminRole(UserRole role) {
-        return UserRole.ROLE_ADMIN.equals(role) || UserRole.ROLE_SUPER_ADMIN.equals(role);
     }
 }

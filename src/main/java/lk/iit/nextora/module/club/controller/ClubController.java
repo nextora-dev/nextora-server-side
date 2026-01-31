@@ -26,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
  * Controller for Club management operations
  */
 @RestController
-@RequestMapping(ApiConstants.CLUB_MODULE)
+@RequestMapping(ApiConstants.CLUBS)
 @RequiredArgsConstructor
 @Tag(name = "Club Management", description = "Club and membership management endpoints")
 public class ClubController {

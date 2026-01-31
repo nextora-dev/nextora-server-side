@@ -1,5 +1,7 @@
 package lk.iit.nextora.module.user.service;
 
+import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
+import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
@@ -20,8 +22,6 @@ public interface UserService {
 
     List<UserSummaryResponse> getAllUsers();
 
-    UserProfileResponse createUser(UpdateProfileRequest request);
-
     UserProfileResponse createAdminUser(CreateAdminRequest request);
 
     UserProfileResponse updateUserById(Long id, UpdateProfileRequest request);
@@ -37,5 +37,7 @@ public interface UserService {
     void resetUserPassword(Long id);
 
     void unlockUser(Long id);
+
+    UserCreatedResponse createUser(AdminCreateUserRequest request);
 }
 

@@ -144,7 +144,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session updated successfully", response);
     }
 
-    @PostMapping(ApiConstants.KUPPI_SESSION_BY_ID + ApiConstants.KUPPI_CANCEL)
+    @PostMapping(ApiConstants.KUPPI_CANCEL)
     @Operation(summary = "Cancel session", description = "Cancel own Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:CANCEL')")
     public ApiResponse<Void> cancelSession(
@@ -154,7 +154,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Session cancelled successfully");
     }
 
-    @PostMapping(ApiConstants.KUPPI_SESSION_BY_ID + ApiConstants.KUPPI_RESCHEDULE)
+    @PostMapping(ApiConstants.KUPPI_RESCHEDULE)
     @Operation(summary = "Reschedule session", description = "Reschedule own Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:RESCHEDULE')")
     public ApiResponse<KuppiSessionResponse> rescheduleSession(
@@ -186,7 +186,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Your sessions retrieved successfully", response);
     }
 
-    @GetMapping(ApiConstants.KUPPI_MY + ApiConstants.KUPPI_ANALYTICS)
+    @GetMapping( ApiConstants.KUPPI_ANALYTICS)
     @Operation(summary = "Get my analytics", description = "Get analytics for own sessions and notes")
     @PreAuthorize("hasAuthority('KUPPI:VIEW_ANALYTICS')")
     public ApiResponse<KuppiAnalyticsResponse> getMyAnalytics() {

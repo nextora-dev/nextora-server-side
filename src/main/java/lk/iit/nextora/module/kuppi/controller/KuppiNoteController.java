@@ -66,7 +66,7 @@ public class KuppiNoteController {
         return ApiResponse.success("Note retrieved successfully", response);
     }
 
-    @GetMapping(ApiConstants.KUPPI_NOTE_BY_ID + ApiConstants.KUPPI_DOWNLOAD)
+    @GetMapping(ApiConstants.KUPPI_DOWNLOAD)
     @Operation(summary = "Download note", description = "Download a note (if allowed)")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DOWNLOAD')")
     public ApiResponse<KuppiNoteResponse> downloadNote(@PathVariable Long noteId) {

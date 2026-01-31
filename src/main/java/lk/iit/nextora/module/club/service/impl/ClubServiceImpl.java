@@ -21,10 +21,6 @@ import lk.iit.nextora.module.club.mapper.ClubMapper;
 import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.club.service.ClubService;
-import lk.iit.nextora.module.voting.dto.request.NominateCandidateRequest;
-import lk.iit.nextora.module.voting.dto.response.CandidateResponse;
-import lk.iit.nextora.module.voting.entity.Candidate;
-import lk.iit.nextora.module.voting.entity.Election;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static lk.iit.nextora.common.util.FileUtils.MAX_IMAGE_SIZE;
