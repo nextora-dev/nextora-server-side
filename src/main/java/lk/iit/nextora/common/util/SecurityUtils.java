@@ -1,5 +1,6 @@
 package lk.iit.nextora.common.util;
 
+import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,7 +11,7 @@ import java.util.Optional;
 /**
  * Utility class for security-related operations.
  * All methods are static - no instantiation needed.
- *
+ * <p>
  * Usage:
  * <pre>
  * Optional<String> email = SecurityUtils.getCurrentUserEmail();
@@ -213,8 +214,7 @@ public final class SecurityUtils {
      * Checks for both KUPPI_STUDENT (new) and SENIOR_KUPPI (deprecated) for backward compatibility
      */
     public static boolean isKuppiStudent() {
-        return hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.KUPPI_STUDENT)
-                || hasStudentRoleType(lk.iit.nextora.common.enums.StudentRoleType.SENIOR_KUPPI);
+        return hasStudentRoleType(StudentRoleType.KUPPI_STUDENT);
     }
 
     /**

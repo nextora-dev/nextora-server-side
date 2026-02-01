@@ -2,7 +2,6 @@ package lk.iit.nextora.module.kuppi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;

@@ -7,17 +7,13 @@ import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
-import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
-import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * REST Controller for user profile management
