@@ -7,14 +7,14 @@ import java.util.Set;
 /**
  * Sub-roles for students within the ROLE_STUDENT main role.
  * A student can have multiple sub-roles which are additive (cumulative).
- *
+ * <p>
  * Student Role Structure (Cumulative):
  * - Base Role: NORMAL → Default role for all students
  * - Additional Capabilities (Added Gradually):
  *   - CLUB_MEMBER → When student joins a club
  *   - BATCH_REP → When appointed as Batch Representative
  *   - KUPPI_STUDENT → When approved to participate/host Kuppi sessions
- *
+ * <p>
  * Roles are NEVER removed automatically - they are additive.
  * Admin approval is required for: BATCH_REP, KUPPI_STUDENT
  */

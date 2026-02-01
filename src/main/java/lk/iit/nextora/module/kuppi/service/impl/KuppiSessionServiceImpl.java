@@ -3,7 +3,6 @@ package lk.iit.nextora.module.kuppi.service.impl;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.KuppiSessionStatus;
 import lk.iit.nextora.common.enums.KuppiSessionType;
-import lk.iit.nextora.common.enums.StudentRoleType;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
