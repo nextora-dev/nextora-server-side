@@ -138,3 +138,10 @@ management:
     web:
       exposure:
         include: health
+
+# Firebase Configuration for Push Notifications
+firebase:
+  enabled: ${FIREBASE_ENABLED:false}
+  service-account:
+    path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+

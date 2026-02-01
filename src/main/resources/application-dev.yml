@@ -60,3 +60,15 @@ logging:
     root: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Firebase Configuration (disabled by default in dev)
+# To enable: set FIREBASE_ENABLED=true and provide service account path
+firebase:
+  enabled: ${FIREBASE_ENABLED:false}
+  service-account:
+    path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+  token-cleanup:
+    enabled: true
+    days-old: 30
+    cron: "0 0 3 * * *"
+

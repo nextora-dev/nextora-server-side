@@ -124,7 +124,12 @@ public enum Permission {
     LOST_FOUND_CREATE("LOST_FOUND:CREATE", "Create lost/found items", "LOST_FOUND", "CREATE", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_READ("LOST_FOUND:READ", "View lost/found items", "LOST_FOUND", "READ", PermissionCategory.LOST_AND_FOUND),
     LOST_FOUND_UPDATE("LOST_FOUND:UPDATE", "Update lost/found items", "LOST_FOUND", "UPDATE", PermissionCategory.LOST_AND_FOUND),
-    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND);
+    LOST_FOUND_DELETE("LOST_FOUND:DELETE", "Delete lost/found items", "LOST_FOUND", "DELETE", PermissionCategory.LOST_AND_FOUND),
+
+    // ==================== PUSH NOTIFICATIONS ====================
+    PUSH_SEND("PUSH:SEND", "Send push notifications", "PUSH", "SEND", PermissionCategory.PUSH_NOTIFICATION),
+    PUSH_SEND_BROADCAST("PUSH:SEND_BROADCAST", "Send broadcast push notifications to all users", "PUSH", "SEND_BROADCAST", PermissionCategory.PUSH_NOTIFICATION),
+    PUSH_MANAGE("PUSH:MANAGE", "Manage push notification settings and tokens", "PUSH", "MANAGE", PermissionCategory.PUSH_NOTIFICATION);
 
     private final String permission;
     private final String description;
@@ -144,7 +149,8 @@ public enum Permission {
         EVENT_MANAGEMENT("Event Management"),
         COMMUNICATION("Communication"),
         LOST_AND_FOUND("Lost and Found"),
-        VOTING_MANAGEMENT("Voting Management");
+        VOTING_MANAGEMENT("Voting Management"),
+        PUSH_NOTIFICATION("Push Notification");
 
         private final String displayName;
 
