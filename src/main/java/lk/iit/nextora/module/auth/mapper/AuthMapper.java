@@ -4,7 +4,6 @@ import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.dto.response.ForgotPasswordResponse;
-import lk.iit.nextora.module.auth.dto.response.VerifyResetTokenResponse;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -63,29 +62,6 @@ public interface AuthMapper {
     }
 
     /**
-     * Build AuthResponse for pending verification (no tokens)
-     *
-     * @param user    the user entity
-     * @param message message for the user
-     * @return AuthResponse DTO without tokens
-     */
-    default AuthResponse toPendingVerificationResponse(BaseUser user, String message) {
-        AuthResponse response = new AuthResponse();
-        response.setUserId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setRole(user.getRole());
-        response.setUserType(user.getUserType());
-        response.setAccessToken(null);
-        response.setRefreshToken(null);
-        response.setExpiresIn(null);
-        response.setTokenType(null);
-        response.setMessage(message);
-        return response;
-    }
-
-    /**
      * Build AuthResponse for password change required (limited access token, no refresh token)
      *
      * @param user        the user entity
@@ -124,37 +100,6 @@ public interface AuthMapper {
                 .message("Password reset link sent to your email. Please check your inbox.")
                 .maskedEmail(StringUtils.maskEmail(user.getEmail()))
                 .expiryMinutes(expiryMinutes)
-                .build();
-    }
-
-    /**
-     * Build VerifyResetTokenResponse for valid token
-     *
-     * @param email            user's email
-     * @param remainingMinutes remaining token validity in minutes
-     * @return VerifyResetTokenResponse DTO
-     */
-    default VerifyResetTokenResponse toValidTokenResponse(String email, Long remainingMinutes) {
-        return VerifyResetTokenResponse.builder()
-                .valid(true)
-                .message("Token is valid. You can now reset your password.")
-                .maskedEmail(StringUtils.maskEmail(email))
-                .remainingMinutes(remainingMinutes)
-                .build();
-    }
-
-    /**
-     * Build VerifyResetTokenResponse for invalid token
-     *
-     * @param message error message
-     * @return VerifyResetTokenResponse DTO
-     */
-    default VerifyResetTokenResponse toInvalidTokenResponse(String message) {
-        return VerifyResetTokenResponse.builder()
-                .valid(false)
-                .message(message)
-                .maskedEmail(null)
-                .remainingMinutes(null)
                 .build();
     }
 }

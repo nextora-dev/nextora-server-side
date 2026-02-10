@@ -1,10 +1,10 @@
-package lk.iit.nextora.module.auth.service.impl;
+package lk.iit.nextora.infrastructure.notification.email.service.impl;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lk.iit.nextora.infrastructure.notification.email.service.EmailService;
 import lk.iit.nextora.module.auth.entity.BaseUser;
-import lk.iit.nextora.module.auth.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +18,14 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Email Service Implementation
+ *
+ * Handles all email sending operations including:
+ * - Password reset emails
+ * - Account credentials emails
+ * - Template loading and caching
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,21 +43,18 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.base-url:http://localhost:8081}")
     private String baseUrl;
 
-    @Value("${app.frontend-url:https://nextora.lk}")
+//    @Value("${app.frontend-url:https://nextora.lk}")
+    @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
     // Cached templates
-    private String verificationEmailTemplate;
     private String passwordResetEmailTemplate;
-    private String accountActivatedEmailTemplate;
     private String accountCredentialsEmailTemplate;
 
     @PostConstruct
     public void loadTemplates() {
         try {
-            verificationEmailTemplate = loadTemplate("classpath:templates/email/verification-email.html");
             passwordResetEmailTemplate = loadTemplate("classpath:templates/email/password-reset-email.html");
-            accountActivatedEmailTemplate = loadTemplate("classpath:templates/email/account-activated-email.html");
             accountCredentialsEmailTemplate = loadTemplate("classpath:templates/email/account-credentials-email.html");
             log.info("Email templates loaded successfully");
         } catch (IOException e) {
@@ -63,17 +68,6 @@ public class EmailServiceImpl implements EmailService {
         return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
     }
 
-    @Override
-    @Async
-    public void sendVerificationEmail(BaseUser user, String token) {
-        String verificationLink = baseUrl + "/api/v1/auth/verify-email?token=" + token;
-
-        String subject = "Verify Your Email - Nextora";
-        String htmlContent = buildVerificationEmailHtml(user.getFirstName(), verificationLink);
-
-        sendHtmlEmail(user.getEmail(), subject, htmlContent);
-        log.info("Verification email sent to: {}", maskEmail(user.getEmail()));
-    }
 
     @Override
     @Async
@@ -85,16 +79,6 @@ public class EmailServiceImpl implements EmailService {
 
         sendHtmlEmail(user.getEmail(), subject, htmlContent);
         log.info("Password reset email sent to: {}", maskEmail(user.getEmail()));
-    }
-
-    @Override
-    @Async
-    public void sendAccountActivatedEmail(BaseUser user) {
-        String subject = "Account Activated - Nextora";
-        String htmlContent = buildAccountActivatedEmailHtml(user.getFirstName());
-
-        sendHtmlEmail(user.getEmail(), subject, htmlContent);
-        log.info("Account activation confirmation email sent to: {}", maskEmail(user.getEmail()));
     }
 
     @Override
@@ -126,24 +110,11 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private String buildVerificationEmailHtml(String firstName, String verificationLink) {
-        return verificationEmailTemplate
-                .replace("{{firstName}}", firstName)
-                .replace("{{verificationLink}}", verificationLink);
-    }
-
     private String buildPasswordResetEmailHtml(String firstName, String resetLink, String token) {
         return passwordResetEmailTemplate
                 .replace("{{firstName}}", firstName)
                 .replace("{{resetLink}}", resetLink)
                 .replace("{{token}}", token);
-    }
-
-    private String buildAccountActivatedEmailHtml(String firstName) {
-        String loginUrl = frontendUrl + "/login";
-        return accountActivatedEmailTemplate
-                .replace("{{firstName}}", firstName)
-                .replace("{{loginUrl}}", loginUrl);
     }
 
     private String buildAccountCredentialsEmailHtml(String firstName, String loginEmail, String temporaryPassword) {
@@ -166,3 +137,4 @@ public class EmailServiceImpl implements EmailService {
         return email.charAt(0) + "***" + email.substring(atIndex - 1);
     }
 }
+

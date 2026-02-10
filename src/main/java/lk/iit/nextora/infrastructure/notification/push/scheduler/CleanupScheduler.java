@@ -2,6 +2,7 @@ package lk.iit.nextora.infrastructure.notification.push.scheduler;
 
 import lk.iit.nextora.infrastructure.notification.push.service.FcmTokenService;
 import lk.iit.nextora.infrastructure.notification.push.service.NotificationHistoryService;
+import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,6 +25,7 @@ public class CleanupScheduler {
 
     private final FcmTokenService fcmTokenService;
     private final NotificationHistoryService notificationHistoryService;
+    private final AuthenticationService authenticationService;
 
     /**
      * Clean up inactive FCM tokens.
@@ -54,6 +56,22 @@ public class CleanupScheduler {
             log.info("Notification history cleanup completed: {} notifications deleted", deleted);
         } catch (Exception e) {
             log.error("Notification history cleanup failed", e);
+        }
+    }
+
+    /**
+     * Clean up expired password reset tokens.
+     * Runs every day at 2:30 AM.
+     */
+    @Scheduled(cron = "0 30 2 * * ?", zone = "UTC")
+    public void cleanupExpiredPasswordResetTokens() {
+        log.info("Starting password reset token cleanup job");
+
+        try {
+            authenticationService.cleanupExpiredTokens();
+            log.info("Password reset token cleanup completed");
+        } catch (Exception e) {
+            log.error("Password reset token cleanup failed", e);
         }
     }
 

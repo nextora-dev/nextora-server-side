@@ -10,10 +10,8 @@ import lk.iit.nextora.config.security.jwt.JwtBlacklistService;
 import lk.iit.nextora.module.auth.dto.request.ForgotPasswordRequest;
 import lk.iit.nextora.module.auth.dto.request.LoginRequest;
 import lk.iit.nextora.module.auth.dto.request.ResetPasswordRequest;
-import lk.iit.nextora.module.auth.dto.request.VerifyResetTokenRequest;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.dto.response.ForgotPasswordResponse;
-import lk.iit.nextora.module.auth.dto.response.VerifyResetTokenResponse;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -70,18 +68,6 @@ public class AuthController {
     )
     public ApiResponse<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         ForgotPasswordResponse response = authenticationService.initiatePasswordReset(request);
-        return ApiResponse.success(response.getMessage(), response);
-    }
-
-    @PostMapping(ApiConstants.AUTH_VERIFY_RESET_TOKEN)
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(
-            summary = "Verify password reset token",
-            description = "Verify that the password reset token from email is valid. " +
-                    "Call this before allowing user to enter new password."
-    )
-    public ApiResponse<VerifyResetTokenResponse> verifyResetToken(@Valid @RequestBody VerifyResetTokenRequest request) {
-        VerifyResetTokenResponse response = authenticationService.verifyResetToken(request);
         return ApiResponse.success(response.getMessage(), response);
     }
 
