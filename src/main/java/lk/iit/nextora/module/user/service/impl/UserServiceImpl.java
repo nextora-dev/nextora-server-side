@@ -25,7 +25,7 @@ import lk.iit.nextora.module.auth.repository.AcademicStaffRepository;
 import lk.iit.nextora.module.auth.repository.AdminRepository;
 import lk.iit.nextora.module.auth.repository.NonAcademicStaffRepository;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
-import lk.iit.nextora.module.auth.service.EmailService;
+import lk.iit.nextora.infrastructure.notification.email.service.EmailService;
 import lk.iit.nextora.module.auth.service.UserLookupService;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;

@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.auth.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -30,9 +31,11 @@ public class ResetPasswordRequest {
     )
     @Schema(description = "New password (min 8 chars, must include uppercase, lowercase, digit, and special char)",
             example = "NewSecure@123")
+    @JsonAlias({"password", "new_password"})
     private String newPassword;
 
     @NotBlank(message = "Confirm password is required")
     @Schema(description = "Confirm new password - must match newPassword", example = "NewSecure@123")
+    @JsonAlias({"confirm_password", "passwordConfirm", "confirmNewPassword"})
     private String confirmPassword;
 }

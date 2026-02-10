@@ -12,14 +12,13 @@ import lk.iit.nextora.config.security.jwt.JwtTokenProvider;
 import lk.iit.nextora.module.auth.dto.request.*;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
 import lk.iit.nextora.module.auth.dto.response.ForgotPasswordResponse;
-import lk.iit.nextora.module.auth.dto.response.VerifyResetTokenResponse;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.mapper.AuthMapper;
 import lk.iit.nextora.module.auth.mapper.UserMapper;
 import lk.iit.nextora.module.auth.mapper.UserResponseMapper;
 import lk.iit.nextora.module.auth.repository.*;
 import lk.iit.nextora.module.auth.service.AuthenticationService;
-import lk.iit.nextora.module.auth.service.EmailService;
+import lk.iit.nextora.infrastructure.notification.email.service.EmailService;
 import lk.iit.nextora.module.auth.service.LoginAttemptService;
 import lk.iit.nextora.module.auth.service.UserLookupService;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -60,7 +58,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AdminRepository adminRepository;
     private final SuperAdminRepository superAdminRepository;
 
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
     private final PasswordResetTokenRepository tokenRepository;
 
@@ -347,12 +344,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         // Check for spam prevention - limit active tokens
-        long activeTokenCount = tokenRepository.countValidTokensForUser(user.getId(), LocalDateTime.now());
-        if (activeTokenCount >= MAX_ACTIVE_TOKENS) {
-            throw new BadRequestException(
-                    "Too many password reset requests. Please check your email or wait for the previous tokens to expire."
-            );
-        }
+//        long activeTokenCount = tokenRepository.countValidTokensForUser(user.getId(), LocalDateTime.now());
+//        if (activeTokenCount >= MAX_ACTIVE_TOKENS) {
+//            throw new BadRequestException(
+//                    "Too many password reset requests. Please check your email or wait for the previous tokens to expire."
+//            );
+//        }
+        // Invalidate any existing valid tokens for this user before creating a new one
+        tokenRepository.invalidateAllTokensForUser(user.getId(), LocalDateTime.now());
 
         // Create new password reset token
         PasswordResetToken resetToken = new PasswordResetToken(user);
@@ -366,33 +365,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return authMapper.toForgotPasswordResponse(user, TOKEN_EXPIRY_MINUTES);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public VerifyResetTokenResponse verifyResetToken(VerifyResetTokenRequest request) {
-        log.debug("Verifying password reset token");
-
-        PasswordResetToken token = tokenRepository.findByToken(request.getToken())
-                .orElse(null);
-
-        if (token == null) {
-            return authMapper.toInvalidTokenResponse("Invalid or expired token. Please request a new password reset.");
-        }
-
-        if (token.isUsed()) {
-            return authMapper.toInvalidTokenResponse("This token has already been used. Please request a new password reset.");
-        }
-
-        if (token.isExpired()) {
-            return authMapper.toInvalidTokenResponse("This token has expired. Please request a new password reset.");
-        }
-
-        return authMapper.toValidTokenResponse(token.getUser().getEmail(), token.getRemainingMinutes());
-    }
 
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
         log.info("Processing password reset");
+
+        // Validate passwords are provided
+        if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+            throw new BadRequestException("New password is required");
+        }
+        if (request.getConfirmPassword() == null || request.getConfirmPassword().isBlank()) {
+            throw new BadRequestException("Confirm password is required");
+        }
 
         // Validate passwords match
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
