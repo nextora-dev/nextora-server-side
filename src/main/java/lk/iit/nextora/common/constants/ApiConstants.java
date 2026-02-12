@@ -58,6 +58,7 @@ public final class ApiConstants {
     public static final String ADMIN_USER = "/admin";
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
     public static final String USER_RESET_PASSWORD = USER_BY_ID + "/reset-password";
+    public static final String USER_PERMANENT_DELETE = USER_BY_ID + "/permanent";
 
     // Kuppi endpoints
     public static final String KUPPI_SESSIONS = KUPPI + "/sessions";

@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -12,8 +13,10 @@ import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST Controller for user profile management
@@ -34,23 +37,36 @@ public class UserController {
     @PreAuthorize("hasAuthority('USER:READ')")
     @Operation(
             summary = "Get current user profile",
-            description = "Retrieve the authenticated user's profile information"
+            description = "Retrieve the authenticated user's profile information including profile picture URL"
     )
     public ApiResponse<UserProfileResponse> getCurrentUserProfile() {
         UserProfileResponse profile = userService.getCurrentUserProfile();
         return ApiResponse.success("Profile retrieved successfully", profile);
     }
 
-    @PutMapping(ApiConstants.USER_ME)
+    @PutMapping(value = ApiConstants.USER_ME, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:UPDATE')")
     @Operation(
-            summary = "Update current user profile",
-            description = "Update the authenticated user's profile information"
+            summary = "Update current user profile with optional profile picture",
+            description = "Update the authenticated user's profile information. Optionally upload a new profile picture (JPEG, PNG, GIF, WebP, max 5MB) or set deleteProfilePicture=true to remove existing picture."
     )
     public ApiResponse<UserProfileResponse> updateCurrentUserProfile(
-            @Valid @RequestBody UpdateProfileRequest request) {
-        UserProfileResponse profile = userService.updateCurrentUserProfile(request);
+            @Parameter(description = "First name") @RequestParam(value = "firstName", required = false) String firstName,
+            @Parameter(description = "Last name") @RequestParam(value = "lastName", required = false) String lastName,
+            @Parameter(description = "Phone number") @RequestParam(value = "phone", required = false) String phone,
+            @Parameter(description = "Address") @RequestParam(value = "address", required = false) String address,
+            @Parameter(description = "Profile picture file (JPEG, PNG, GIF, WebP). Max 5MB") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
+            @Parameter(description = "Set to true to delete existing profile picture") @RequestParam(value = "deleteProfilePicture", required = false, defaultValue = "false") Boolean deleteProfilePicture) {
+
+        UpdateProfileRequest request = UpdateProfileRequest.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .phone(phone)
+                .address(address)
+                .build();
+
+        UserProfileResponse profile = userService.updateCurrentUserProfile(request, profilePicture, deleteProfilePicture);
         return ApiResponse.success("Profile updated successfully", profile);
     }
 

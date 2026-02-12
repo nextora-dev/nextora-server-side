@@ -10,15 +10,21 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Service
 public class S3Service {
 
     private static final Logger log = LoggerFactory.getLogger(S3Service.class);
+    private static final Duration PRESIGNED_URL_DURATION = Duration.ofHours(24); // URL valid for 24 hours
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     /**
      * -- GETTER --
@@ -33,8 +39,9 @@ public class S3Service {
     @Value("${aws.s3.region}")
     private String region;
 
-    public S3Service(S3Client s3Client) {
+    public S3Service(S3Client s3Client, S3Presigner s3Presigner) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
     }
 
     /**
@@ -143,6 +150,36 @@ public class S3Service {
      */
     public String getPublicUrl(String key) {
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+    }
+
+    /**
+     * Generate a pre-signed URL for temporary access to a private S3 object
+     *
+     * @param key The S3 key (path) of the file
+     * @return A pre-signed URL valid for 24 hours
+     */
+    public String getPresignedUrl(String key) {
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(PRESIGNED_URL_DURATION)
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            String url = presignedRequest.url().toString();
+
+            log.debug("Generated pre-signed URL for key: {}", key);
+            return url;
+        } catch (Exception e) {
+            log.error("Failed to generate pre-signed URL for key: {}", key, e);
+            // Fallback to direct URL
+            return getPublicUrl(key);
+        }
     }
 
     /**
