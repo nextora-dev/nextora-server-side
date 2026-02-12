@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,18 +16,20 @@ import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 /**
- * REST Controller for user profile management
+ * REST Controller for admin user management
  */
 @RestController
 @RequestMapping(ApiConstants.USER_ADMIN)
 @RequiredArgsConstructor
-@Tag(name = "User Management", description = "User profile and management endpoints")
+@Tag(name = "Admin User Management", description = "Admin endpoints for user management")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminUserManagementController {
 
@@ -65,24 +68,37 @@ public class AdminUserManagementController {
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
     @Operation(
             summary = "Get user by ID",
-            description = "Retrieve a specific user by ID (Admin only)"
+            description = "Retrieve a specific user by ID including profile picture URL (Admin only)"
     )
     public ApiResponse<UserProfileResponse> getUserById(@PathVariable Long id) {
         UserProfileResponse profile = userService.getUserById(id);
         return ApiResponse.success("User retrieved successfully", profile);
     }
 
-    @PutMapping(ApiConstants.USER_BY_ID)
+    @PutMapping(value = ApiConstants.USER_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_UPDATE')")
     @Operation(
-            summary = "Update user by ID",
-            description = "Update a specific user by ID (Admin only)"
+            summary = "Update user by ID with optional profile picture",
+            description = "Update a specific user by ID (Admin only). Optionally upload a new profile picture or set deleteProfilePicture=true to remove existing picture."
     )
     public ApiResponse<UserProfileResponse> updateUserById(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateProfileRequest request) {
-        UserProfileResponse profile = userService.updateUserById(id, request);
+            @Parameter(description = "First name") @RequestParam(value = "firstName", required = false) String firstName,
+            @Parameter(description = "Last name") @RequestParam(value = "lastName", required = false) String lastName,
+            @Parameter(description = "Phone number") @RequestParam(value = "phone", required = false) String phone,
+            @Parameter(description = "Address") @RequestParam(value = "address", required = false) String address,
+            @Parameter(description = "Profile picture file (JPEG, PNG, GIF, WebP). Max 5MB") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
+            @Parameter(description = "Set to true to delete existing profile picture") @RequestParam(value = "deleteProfilePicture", required = false, defaultValue = "false") Boolean deleteProfilePicture) {
+
+        UpdateProfileRequest request = UpdateProfileRequest.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .phone(phone)
+                .address(address)
+                .build();
+
+        UserProfileResponse profile = userService.updateUserById(id, request, profilePicture, deleteProfilePicture);
         return ApiResponse.success("User updated successfully", profile);
     }
 
@@ -142,12 +158,14 @@ public class AdminUserManagementController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_DELETE')")
     @Operation(
-            summary = "Delete user",
-            description = "Delete (disable) a user by ID (Super Admin only)"
+            summary = "Soft delete user",
+            description = "Soft delete a user by ID (Admin/Super Admin). " +
+                    "This will disable the account, remove profile picture from storage, and mark user as deleted. " +
+                    "The user can be restored later using the restore endpoint."
     )
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ApiResponse.success("User deleted successfully", null);
+        return ApiResponse.success("User soft deleted successfully", null);
     }
 
     @PutMapping(ApiConstants.USER_RESTORE)
@@ -155,7 +173,8 @@ public class AdminUserManagementController {
     @PreAuthorize("hasAuthority('USER:RESTORE')")
     @Operation(
             summary = "Restore user",
-            description = "Restore a deleted user by ID (Super Admin only)"
+            description = "Restore a soft-deleted user by ID (Super Admin only). " +
+                    "Note: Profile picture will need to be re-uploaded by the user."
     )
     public ApiResponse<Void> restoreUser(@PathVariable Long id) {
         userService.restoreUser(id);
@@ -167,11 +186,25 @@ public class AdminUserManagementController {
     @PreAuthorize("hasAuthority('USER:RESET_PASSWORD')")
     @Operation(
             summary = "Reset user password",
-            description = "Reset a user's password (Super Admin only)"
+            description = "Reset a user's password and send new credentials via email (Super Admin only)"
     )
     public ApiResponse<Void> resetUserPassword(@PathVariable Long id) {
         userService.resetUserPassword(id);
         return ApiResponse.success("Password reset email sent successfully", null);
+    }
+
+    @DeleteMapping(ApiConstants.USER_PERMANENT_DELETE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:PERMANENT_DELETE')")
+    @Operation(
+            summary = "Permanently delete user",
+            description = "DANGER: Permanently delete a user from the database (Super Admin only). " +
+                    "This action is IRREVERSIBLE and will remove all user data including profile picture. " +
+                    "Super Admin accounts cannot be permanently deleted."
+    )
+    public ApiResponse<Void> permanentlyDeleteUser(@PathVariable Long id) {
+        userService.permanentlyDeleteUser(id);
+        return ApiResponse.success("User permanently deleted", null);
     }
 }
 

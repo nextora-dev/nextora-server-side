@@ -8,9 +8,11 @@ import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
+import lk.iit.nextora.common.util.FileUtils;
 import lk.iit.nextora.common.util.SecurityUtils;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.common.util.ValidationUtils;
+import lk.iit.nextora.config.S3.S3Service;
 import lk.iit.nextora.config.redis.CacheService;
 import lk.iit.nextora.config.redis.RedisConfig.CacheNames;
 import lk.iit.nextora.config.security.SecurityService;
@@ -42,6 +44,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -82,8 +85,11 @@ public class UserServiceImpl implements UserService {
     private final StudentRepository studentRepository;
     private final AcademicStaffRepository academicStaffRepository;
     private final NonAcademicStaffRepository nonAcademicStaffRepository;
+    private final S3Service s3Service;
 
     private static final String ALLOWED_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%";
+    private static final String PROFILE_PICTURES_FOLDER = "profile-pictures";
+    private static final long MAX_PROFILE_PICTURE_SIZE = 5 * 1024 * 1024; // 5 MB
     private static final int TEMP_PASSWORD_LENGTH = 12;
 
     @Override
@@ -105,7 +111,7 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#result.id"),
             @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
     })
-    public UserProfileResponse updateCurrentUserProfile(UpdateProfileRequest request) {
+    public UserProfileResponse updateCurrentUserProfile(UpdateProfileRequest request, MultipartFile profilePicture, Boolean deleteProfilePicture) {
         BaseUser currentUser = getCurrentAuthenticatedUser();
         log.info("Updating profile for user: {}", StringUtils.maskEmail(currentUser.getEmail()));
 
@@ -114,6 +120,9 @@ public class UserServiceImpl implements UserService {
 
         // Update role-specific fields based on user type
         updateRoleSpecificFields(currentUser, request);
+
+        // Handle profile picture
+        handleProfilePictureUpdate(currentUser, profilePicture, deleteProfilePicture);
 
         entityManager.merge(currentUser);
         entityManager.flush();
@@ -356,12 +365,12 @@ public class UserServiceImpl implements UserService {
     })
     public void deleteUser(Long id) {
         ValidationUtils.requireNonNull(id, "User ID");
-        log.info("Deleting user with ID: {}", id);
+        log.info("Soft deleting user with ID: {}", id);
 
-        // Check if current user is super admin
+        // Check if current user is admin or super admin
         ValidationUtils.requireTrue(
-                SecurityUtils.isSuperAdmin(),
-                "Only super admin can delete users"
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can delete users"
         );
 
         BaseUser user = entityManager.find(BaseUser.class, id);
@@ -369,8 +378,18 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("User not found", "id", id);
         }
 
-        // Soft delete - just disable the account
-//        user.setEnabled(false);
+        // Prevent deleting yourself
+        Long currentUserId = securityService.getCurrentUserId();
+        if (user.getId().equals(currentUserId)) {
+            throw new BadRequestException("Cannot delete your own account using admin endpoint. Use the user self-delete endpoint instead.");
+        }
+
+        // Delete profile picture from S3 if exists
+        deleteExistingProfilePicture(user);
+        user.setProfilePictureUrl(null);
+        user.setProfilePictureKey(null);
+
+        // Soft delete - disable the account
         user.setIsActive(false);
         user.setIsDeleted(true);
         user.setStatus(UserStatus.DELETED);
@@ -380,7 +399,7 @@ public class UserServiceImpl implements UserService {
         // Evict all caches for this user
         cacheService.evictAllUserCaches(id);
 
-        log.info("User deleted (disabled) successfully: {}", StringUtils.maskEmail(user.getEmail()));
+        log.info("User soft deleted successfully: {} (ID: {})", StringUtils.maskEmail(user.getEmail()), id);
     }
 
     @Override
@@ -513,7 +532,7 @@ public class UserServiceImpl implements UserService {
             @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
             @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
     })
-    public UserProfileResponse updateUserById(Long id, UpdateProfileRequest request) {
+    public UserProfileResponse updateUserById(Long id, UpdateProfileRequest request, MultipartFile profilePicture, Boolean deleteProfilePicture) {
         ValidationUtils.requireNonNull(id, "User ID");
         log.info("Updating user with ID: {}", id);
 
@@ -533,6 +552,9 @@ public class UserServiceImpl implements UserService {
 
         // Update role-specific fields based on user type
         updateRoleSpecificFields(user, request);
+
+        // Handle profile picture
+        handleProfilePictureUpdate(user, profilePicture, deleteProfilePicture);
 
         entityManager.merge(user);
         entityManager.flush();
@@ -836,6 +858,141 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("Failed to send credentials email to: {}", StringUtils.maskEmail(user.getEmail()), e);
         }
+    }
+
+    // ==================== Profile Picture Helper Methods ====================
+
+    /**
+     * Handle profile picture update - upload new or delete existing
+     *
+     * @param user                 The user entity to update
+     * @param profilePicture       Optional new profile picture file
+     * @param deleteProfilePicture If true, delete existing profile picture
+     */
+    private void handleProfilePictureUpdate(BaseUser user, MultipartFile profilePicture, Boolean deleteProfilePicture) {
+        // Handle delete request
+        if (Boolean.TRUE.equals(deleteProfilePicture)) {
+            if (user.getProfilePictureUrl() != null && !user.getProfilePictureUrl().isEmpty()) {
+                deleteExistingProfilePicture(user);
+                user.setProfilePictureUrl(null);
+                user.setProfilePictureKey(null);
+                log.info("Profile picture deleted for user: {}", StringUtils.maskEmail(user.getEmail()));
+            }
+            return;
+        }
+
+        // Handle upload request
+        if (profilePicture != null && !profilePicture.isEmpty()) {
+            // Validate file
+            validateProfilePictureFile(profilePicture);
+
+            // Delete existing profile picture from S3 if exists
+            deleteExistingProfilePicture(user);
+
+            // Upload new profile picture to S3
+            String s3Key = s3Service.uploadFile(profilePicture, PROFILE_PICTURES_FOLDER);
+            String fileUrl = s3Service.getPublicUrl(s3Key);
+
+            // Update user entity
+            user.setProfilePictureUrl(fileUrl);
+            user.setProfilePictureKey(s3Key);
+
+            log.info("Profile picture uploaded for user: {}", StringUtils.maskEmail(user.getEmail()));
+        }
+    }
+
+    /**
+     * Validate profile picture file
+     */
+    private void validateProfilePictureFile(MultipartFile file) {
+        // Validate file size
+        if (file.getSize() > MAX_PROFILE_PICTURE_SIZE) {
+            throw new BadRequestException("Profile picture size must not exceed 5 MB");
+        }
+
+        // Validate file type - only images allowed
+        String contentType = file.getContentType();
+        if (contentType == null || !FileUtils.isImageFile(file)) {
+            throw new BadRequestException("Invalid file type. Only image files (JPEG, PNG, GIF, WebP) are allowed");
+        }
+
+        // Additional validation for file extension
+        String extension = FileUtils.getExtension(file);
+        if (!FileUtils.IMAGE_EXTENSIONS.contains(extension)) {
+            throw new BadRequestException("Invalid file extension. Allowed: " + String.join(", ", FileUtils.IMAGE_EXTENSIONS));
+        }
+
+        log.debug("Profile picture validation passed - Size: {} bytes, Type: {}", file.getSize(), contentType);
+    }
+
+    /**
+     * Delete existing profile picture from S3 if exists
+     */
+    private void deleteExistingProfilePicture(BaseUser user) {
+        if (user.getProfilePictureKey() != null && !user.getProfilePictureKey().isEmpty()) {
+            try {
+                if (s3Service.fileExists(user.getProfilePictureKey())) {
+                    s3Service.deleteFile(user.getProfilePictureKey());
+                    log.debug("Deleted existing profile picture from S3: {}", user.getProfilePictureKey());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to delete existing profile picture from S3: {}", e.getMessage());
+                // Continue even if delete fails
+            }
+        }
+    }
+
+
+    // ==================== Super Admin Permanent Delete Operations ====================
+
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheNames.USER_PROFILE_CACHE, key = "#id"),
+            @CacheEvict(value = CacheNames.USERS_LIST_CACHE, allEntries = true)
+    })
+    public void permanentlyDeleteUser(Long id) {
+        ValidationUtils.requireNonNull(id, "User ID");
+        log.warn("PERMANENT DELETE requested for user ID: {}", id);
+
+        // Only super admin can permanently delete
+        ValidationUtils.requireTrue(
+                SecurityUtils.isSuperAdmin(),
+                "Only Super Admin can permanently delete users"
+        );
+
+        BaseUser user = entityManager.find(BaseUser.class, id);
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found", "id", id);
+        }
+
+        // Prevent deleting yourself
+        Long currentUserId = securityService.getCurrentUserId();
+        if (user.getId().equals(currentUserId)) {
+            throw new BadRequestException("Cannot permanently delete your own account");
+        }
+
+        // Prevent deleting other super admins
+        if (user.getRole() != null && user.getRole().name().equals("ROLE_SUPER_ADMIN")) {
+            throw new BadRequestException("Cannot permanently delete Super Admin accounts");
+        }
+
+        String userEmail = user.getEmail();
+        Long userId = user.getId();
+
+        // Delete profile picture from S3 if exists
+        deleteExistingProfilePicture(user);
+
+        // Permanently delete from database
+        entityManager.remove(user);
+        entityManager.flush();
+
+        // Evict all caches for this user
+        cacheService.evictAllUserCaches(userId);
+
+        log.warn("User PERMANENTLY DELETED: {} (ID: {}) by Super Admin: {}",
+                StringUtils.maskEmail(userEmail), userId,
+                StringUtils.maskEmail(securityService.getCurrentUserEmail()));
     }
 }
 

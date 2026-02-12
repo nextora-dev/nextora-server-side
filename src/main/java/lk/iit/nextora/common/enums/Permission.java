@@ -18,6 +18,7 @@ public enum Permission {
     USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_DELETE("USER:ADMIN_DELETE", "Admin delete any user", "USER", "ADMIN_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
+    USER_PERMANENT_DELETE("USER:PERMANENT_DELETE", "Permanently delete users from database", "USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
 
     // ==================== STUDENT ROLE MANAGEMENT ====================

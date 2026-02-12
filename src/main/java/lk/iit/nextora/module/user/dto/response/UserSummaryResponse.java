@@ -18,6 +18,7 @@ public class UserSummaryResponse {
     private Long id;
     private String email;
     private String fullName;
+    private String profilePictureUrl;
     private UserRole role;
     private String userType;
     private Boolean active;
