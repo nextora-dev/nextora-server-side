@@ -1,20 +1,32 @@
 package lk.iit.nextora.module.user.service;
 
 import lk.iit.nextora.common.dto.PagedResponse;
+import lk.iit.nextora.common.enums.UserRole;
+import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
+import lk.iit.nextora.module.user.dto.response.UserStatsSummaryResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 
 public interface UserService {
 
     UserProfileResponse getCurrentUserProfile();
+
+    /**
+     * Get user statistics summary including total users and counts by status/role
+     * (Admin/Super Admin operation)
+     *
+     * @return User statistics summary
+     */
+    UserStatsSummaryResponse getUserStatsSummary();
 
     /**
      * Update current user profile with optional profile picture
@@ -32,6 +44,25 @@ public interface UserService {
     UserProfileResponse getUserById(Long id);
 
     PagedResponse<UserSummaryResponse> getAllUsers(Pageable pageable);
+
+    /**
+     * Search users by email or name (Admin/Super Admin operation)
+     *
+     * @param keyword  Search keyword to match against email, firstName, or lastName
+     * @param pageable Pagination information
+     * @return Paginated list of matching users
+     */
+    PagedResponse<UserSummaryResponse> searchUsers(String keyword, Pageable pageable);
+
+    /**
+     * Filter users by role and/or status (Admin/Super Admin operation)
+     *
+     * @param roles    List of roles to filter by (optional)
+     * @param statuses List of statuses to filter by (optional)
+     * @param pageable Pagination information
+     * @return Paginated list of filtered users
+     */
+    PagedResponse<UserSummaryResponse> filterUsers(List<UserRole> roles, List<UserStatus> statuses, Pageable pageable);
 
     UserProfileResponse createAdminUser(CreateAdminRequest request);
 

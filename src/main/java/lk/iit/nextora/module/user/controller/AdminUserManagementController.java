@@ -8,11 +8,14 @@ import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
+import lk.iit.nextora.common.enums.UserRole;
+import lk.iit.nextora.common.enums.UserStatus;
 import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
+import lk.iit.nextora.module.user.dto.response.UserStatsSummaryResponse;
 import lk.iit.nextora.module.user.dto.response.UserSummaryResponse;
 import lk.iit.nextora.module.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * REST Controller for admin user management
@@ -56,6 +60,19 @@ public class AdminUserManagementController {
         return ApiResponse.success("User created successfully", response);
     }
 
+    @GetMapping(ApiConstants.ADMIN_USER_STATS)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Get user statistics summary",
+            description = "Retrieve user statistics including total users, counts by status (Active, Deactivated, Suspended, Deleted, Password Change Required) " +
+                    "and counts by role (Students, Admins, Super Admins, Academic Staff, Non-Academic Staff). Admin/Super Admin only."
+    )
+    public ApiResponse<UserStatsSummaryResponse> getUserStatsSummary() {
+        UserStatsSummaryResponse stats = userService.getUserStatsSummary();
+        return ApiResponse.success("User statistics retrieved successfully", stats);
+    }
+
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
@@ -73,6 +90,52 @@ public class AdminUserManagementController {
         Pageable pageable = PageRequest.of(page, size, sort);
         PagedResponse<UserSummaryResponse> users = userService.getAllUsers(pageable);
         return ApiResponse.success("Users retrieved successfully", users);
+    }
+
+    @GetMapping(ApiConstants.ADMIN_USER_SEARCH)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Search users",
+            description = "Search users by email, first name, last name, or full name (Admin/Super Admin only)"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> searchUsers(
+            @Parameter(description = "Search keyword (email, first name, last name, or full name)")
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.searchUsers(keyword, pageable);
+        return ApiResponse.success("Users search completed successfully", users);
+    }
+
+    @GetMapping(ApiConstants.ADMIN_USER_FILTER)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
+    @Operation(
+            summary = "Filter users",
+            description = "Filter users by role and/or status (Admin/Super Admin only). " +
+                    "Available roles: ROLE_STUDENT, ROLE_ADMIN, ROLE_SUPER_ADMIN, ROLE_ACADEMIC_STAFF, ROLE_NON_ACADEMIC_STAFF. " +
+                    "Available statuses: ACTIVE, DEACTIVATE, SUSPENDED, DELETED, PASSWORD_CHANGE_REQUIRED"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> filterUsers(
+            @Parameter(description = "Filter by roles (can specify multiple)")
+            @RequestParam(required = false) List<UserRole> roles,
+            @Parameter(description = "Filter by statuses (can specify multiple)")
+            @RequestParam(required = false) List<UserStatus> statuses,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.filterUsers(roles, statuses, pageable);
+        return ApiResponse.success("Users filtered successfully", users);
     }
 
     @GetMapping(ApiConstants.USER_BY_ID)

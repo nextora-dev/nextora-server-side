@@ -8,7 +8,6 @@ public enum UserStatus {
     DEACTIVATE("Deactivate"),
     SUSPENDED("Suspended"),
     DELETED("Deleted"),
-    PENDING_VERIFICATION("Pending_Verification"),
     PASSWORD_CHANGE_REQUIRED("Password_Change_Required");
 
     private final String displayName;

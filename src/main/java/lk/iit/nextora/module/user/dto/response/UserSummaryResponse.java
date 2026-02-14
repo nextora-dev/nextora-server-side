@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.user.dto.response;
 
 import lk.iit.nextora.common.enums.UserRole;
+import lk.iit.nextora.common.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +23,6 @@ public class UserSummaryResponse {
     private UserRole role;
     private String userType;
     private Boolean active;
+    private UserStatus status;
 }
 

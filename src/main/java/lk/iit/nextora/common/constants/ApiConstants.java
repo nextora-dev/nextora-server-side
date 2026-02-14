@@ -37,6 +37,9 @@ public final class ApiConstants {
     public static final String USER_ADMIN = ADMIN + "/user";
     public static final String ADMIN_CREATE_USER = "";
     public static final String ADMIN_CHANGE_PASSWORD_FIRST_LOGIN = "/change-password-first-login";
+    public static final String ADMIN_USER_SEARCH = "/search";
+    public static final String ADMIN_USER_FILTER = "/filter";
+    public static final String ADMIN_USER_STATS = "/stats";
 
     // User endpoints
 

@@ -27,6 +27,7 @@ public interface UserProfileMapper {
      */
     @Mapping(target = "fullName", expression = "java(user.getFullName())")
     @Mapping(target = "active", expression = "java(user.isActive())")
+    @Mapping(target = "status", source = "status")
     UserSummaryResponse toSummaryResponse(BaseUser user);
 
     /**
