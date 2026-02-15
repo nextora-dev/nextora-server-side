@@ -15,6 +15,7 @@ public enum Permission {
     USER_DEACTIVATE("USER:DEACTIVATE", "Deactivate user accounts", "USER", "DEACTIVATE", PermissionCategory.USER_MANAGEMENT),
     USER_SUSPEND("USER:SUSPEND", "Suspend user accounts", "USER", "SUSPEND", PermissionCategory.USER_MANAGEMENT),
     USER_RESET_PASSWORD("USER:RESET_PASSWORD", "Reset user passwords", "USER", "RESET_PASSWORD", PermissionCategory.USER_MANAGEMENT),
+
     USER_ADMIN_CREATE("USER:ADMIN_CREATE", "Create admin users", "USER", "ADMIN_CREATE", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),

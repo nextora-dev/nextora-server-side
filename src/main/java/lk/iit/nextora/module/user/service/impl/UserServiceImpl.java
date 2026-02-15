@@ -628,10 +628,10 @@ public class UserServiceImpl implements UserService {
         ValidationUtils.requireNonNull(id, "User ID");
         log.info("Restoring user with ID: {}", id);
 
-        // Check if current user is super admin
+        // Check if current user is admin or super admin
         ValidationUtils.requireTrue(
-                SecurityUtils.isSuperAdmin(),
-                "Only super admin can restore users"
+                SecurityUtils.isAdmin() || SecurityUtils.isSuperAdmin(),
+                "Only admin can delete users"
         );
 
         BaseUser user = entityManager.find(BaseUser.class, id);
