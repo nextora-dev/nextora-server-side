@@ -7,6 +7,7 @@ import lk.iit.nextora.common.constants.ApiConstants;
 import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.module.event.dto.request.UpdateEventRequest;
+import lk.iit.nextora.module.event.dto.response.EventPlatformStatsResponse;
 import lk.iit.nextora.module.event.dto.response.EventResponse;
 import lk.iit.nextora.module.event.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class EventAdminController {
 
     @GetMapping
     @Operation(summary = "Get all events", description = "Admin: Get all events including drafts")
-    @PreAuthorize("hasAuthority('EVENT:ADMIN')")
+    @PreAuthorize("hasAuthority('EVENT:ADMIN_UPDATE')")
     public ApiResponse<PagedResponse<EventResponse>> getAllEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -48,7 +49,7 @@ public class EventAdminController {
 
     @PutMapping("/{eventId}")
     @Operation(summary = "Admin update event", description = "Admin: Update any event")
-    @PreAuthorize("hasAuthority('EVENT:ADMIN')")
+    @PreAuthorize("hasAuthority('EVENT:ADMIN_UPDATE')")
     public ApiResponse<EventResponse> adminUpdateEvent(
             @PathVariable Long eventId,
             @Valid @RequestBody UpdateEventRequest request) {
@@ -58,18 +59,28 @@ public class EventAdminController {
 
     @DeleteMapping("/{eventId}")
     @Operation(summary = "Delete event", description = "Admin: Soft delete an event")
-    @PreAuthorize("hasAuthority('EVENT:ADMIN')")
+    @PreAuthorize("hasAuthority('EVENT:ADMIN_DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteEvent(@PathVariable Long eventId) {
         eventService.adminDeleteEvent(eventId);
         return ApiResponse.success("Event deleted successfully", null);
     }
 
+    // ==================== Platform Statistics ====================
+
+    @GetMapping(ApiConstants.EVENT_STATS)
+    @Operation(summary = "Get platform statistics", description = "Admin: Get event platform usage statistics")
+    @PreAuthorize("hasAuthority('EVENT:VIEW_STATS')")
+    public ApiResponse<EventPlatformStatsResponse> getPlatformStats() {
+        EventPlatformStatsResponse response = eventService.getPlatformStats();
+        return ApiResponse.success("Platform statistics retrieved successfully", response);
+    }
+
     // ==================== Super Admin Endpoints ====================
 
     @DeleteMapping("/{eventId}/permanent")
     @Operation(summary = "Permanently delete event", description = "Super Admin: Permanently delete an event")
-    @PreAuthorize("hasAuthority('EVENT:SUPER_ADMIN')")
+    @PreAuthorize("hasAuthority('EVENT:PERMANENT_DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> permanentlyDeleteEvent(@PathVariable Long eventId) {
         eventService.permanentlyDeleteEvent(eventId);
