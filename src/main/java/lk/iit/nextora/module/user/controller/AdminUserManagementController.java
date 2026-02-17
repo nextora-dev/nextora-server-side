@@ -88,6 +88,25 @@ public class AdminUserManagementController {
         return ApiResponse.success("Users retrieved successfully", users);
     }
 
+    @GetMapping(ApiConstants.USER_GET_ADMINS)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:SUPER_ADMIN_READ')")
+    @Operation(
+            summary = "Get all admins",
+            description = "Retrieve all admins with pagination (Admin only)"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllAdmins(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.getAllAdmins(pageable);
+        return ApiResponse.success("Admins retrieved successfully", users);
+    }
+
     @GetMapping(ApiConstants.ADMIN_USER_SEARCH)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")

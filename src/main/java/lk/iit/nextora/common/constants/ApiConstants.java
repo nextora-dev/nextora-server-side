@@ -60,9 +60,12 @@ public final class ApiConstants {
 
     // User endpoints -admin
     public static final String ADMIN_USER = "/admin";
+    public static final String SUPER_ADMIN_USER = "/super-admin";
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
     public static final String USER_RESET_PASSWORD = USER_BY_ID + "/reset-password";
     public static final String USER_PERMANENT_DELETE = USER_BY_ID + "/permanent";
+
+    public static final String USER_GET_ADMINS = "/get-admins";
 
     // Kuppi endpoints
     public static final String KUPPI_SESSIONS = KUPPI + "/sessions";
@@ -81,8 +84,6 @@ public final class ApiConstants {
     public static final String KUPPI_FEEDBACK = "/feedback";
     public static final String KUPPI_APPROVE = "/approve";
     public static final String KUPPI_REJECT = "/reject";
-
-
 
     public static final String KUPPI_SESSION_BY_ID = "/{sessionId}";
     public static final String KUPPI_SEARCH_SUBJECT = "/search/subject";

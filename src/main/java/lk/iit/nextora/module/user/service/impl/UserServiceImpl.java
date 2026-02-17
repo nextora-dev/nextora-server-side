@@ -427,19 +427,64 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = CacheNames.USERS_LIST_CACHE, key = "'page_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.empty")
+    @Cacheable(value = CacheNames.USERS_LIST_CACHE, key = "'admins_page_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.empty")
     public PagedResponse<UserSummaryResponse> getAllUsers(Pageable pageable) {
-        log.debug("Fetching all users with pagination - page: {}, size: {} (cache miss)",
+        log.debug("Fetching all users (Admin and Super Admin) with pagination - page: {}, size: {} (cache miss)",
                 pageable.getPageNumber(), pageable.getPageSize());
 
-        // Get total count
+        List<UserRole> roles = List.of(UserRole.ROLE_STUDENT, UserRole.ROLE_ACADEMIC_STAFF, UserRole.ROLE_NON_ACADEMIC_STAFF);
+
+        // Get total count for roles only
         Long totalElements = entityManager
-                .createQuery("SELECT COUNT(u) FROM BaseUser u", Long.class)
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role IN :roles", Long.class)
+                .setParameter("roles", roles)
                 .getSingleResult();
 
-        // Get paginated results
+        // Get paginated results for admin roles only
         List<BaseUser> users = entityManager
-                .createQuery("SELECT u FROM BaseUser u ORDER BY u.createdAt DESC", BaseUser.class)
+                .createQuery("SELECT u FROM BaseUser u WHERE u.role IN :roles ORDER BY u.createdAt DESC", BaseUser.class)
+                .setParameter("roles", roles)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        List<UserSummaryResponse> content = users.stream()
+                .map(userProfileMapper::toSummaryResponse)
+                .collect(Collectors.toList());
+
+        Page<UserSummaryResponse> page = new PageImpl<>(content, pageable, totalElements);
+
+        return PagedResponse.<UserSummaryResponse>builder()
+                .content(content)
+                .pageNumber(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .empty(page.isEmpty())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = CacheNames.USERS_LIST_CACHE, key = "'all_admins_page_' + #pageable.pageNumber + '_' + #pageable.pageSize", unless = "#result.empty")
+    public PagedResponse<UserSummaryResponse> getAllAdmins(Pageable pageable) {
+        log.debug("Fetching all admins with pagination - page: {}, size: {} (cache miss)",
+                pageable.getPageNumber(), pageable.getPageSize());
+
+        List<UserRole> adminRoles = List.of(UserRole.ROLE_ADMIN, UserRole.ROLE_SUPER_ADMIN);
+
+        // Get total count for admin roles only
+        Long totalElements = entityManager
+                .createQuery("SELECT COUNT(u) FROM BaseUser u WHERE u.role IN :roles", Long.class)
+                .setParameter("roles", adminRoles)
+                .getSingleResult();
+
+        // Get paginated results for admin roles only
+        List<BaseUser> users = entityManager
+                .createQuery("SELECT u FROM BaseUser u WHERE u.role IN :roles ORDER BY u.createdAt DESC", BaseUser.class)
+                .setParameter("roles", adminRoles)
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();

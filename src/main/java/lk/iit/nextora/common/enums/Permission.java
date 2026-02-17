@@ -18,6 +18,7 @@ public enum Permission {
 
     USER_ADMIN_CREATE("USER:ADMIN_CREATE", "Create admin users", "USER", "ADMIN_CREATE", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
+    USER_SUPER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_DELETE("USER:ADMIN_DELETE", "Admin delete any user", "USER", "ADMIN_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
