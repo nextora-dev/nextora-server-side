@@ -73,10 +73,10 @@ public class AdminUserManagementController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('USER:ADMIN_READ')")
     @Operation(
-            summary = "Get all users",
-            description = "Retrieve all users with pagination (Admin only)"
+            summary = "Get all normal users",
+            description = "Retrieve all normal users with pagination (Admin only)"
     )
-    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllUsers(
+    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllNormalUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -84,27 +84,8 @@ public class AdminUserManagementController {
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
-        PagedResponse<UserSummaryResponse> users = userService.getAllUsers(pageable);
-        return ApiResponse.success("Users retrieved successfully", users);
-    }
-
-    @GetMapping(ApiConstants.USER_GET_ADMINS)
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('USER:SUPER_ADMIN_READ')")
-    @Operation(
-            summary = "Get all admins",
-            description = "Retrieve all admins with pagination (Admin only)"
-    )
-    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllAdmins(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
-        Pageable pageable = PageRequest.of(page, size, sort);
-        PagedResponse<UserSummaryResponse> users = userService.getAllAdmins(pageable);
-        return ApiResponse.success("Admins retrieved successfully", users);
+        PagedResponse<UserSummaryResponse> users = userService.getAllNormalUsers(pageable);
+        return ApiResponse.success("Normal users retrieved successfully", users);
     }
 
     @GetMapping(ApiConstants.ADMIN_USER_SEARCH)
@@ -301,6 +282,25 @@ public class AdminUserManagementController {
     public ApiResponse<Void> permanentlyDeleteUser(@PathVariable Long id) {
         userService.permanentlyDeleteUser(id);
         return ApiResponse.success("User permanently deleted", null);
+    }
+
+    @GetMapping(ApiConstants.USER_GET_ALL_USERS)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('USER:SUPER_ADMIN_READ')")
+    @Operation(
+            summary = "Get all users",
+            description = "Retrieve all users with pagination (Super Admin only)"
+    )
+    public ApiResponse<PagedResponse<UserSummaryResponse>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<UserSummaryResponse> users = userService.getAllUsers(pageable);
+        return ApiResponse.success("Admins retrieved successfully", users);
     }
 }
 

@@ -132,6 +132,12 @@ public enum UserRole {
         adminPermissions.remove(Permission.USER_SUPER_ADMIN_READ);
         adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+        // Admin user management permissions - Super Admin exclusive
+        adminPermissions.remove(Permission.ADMIN_USER_READ);
+        adminPermissions.remove(Permission.ADMIN_USER_UPDATE);
+        adminPermissions.remove(Permission.ADMIN_USER_SOFT_DELETE);
+        adminPermissions.remove(Permission.ADMIN_USER_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.ADMIN_USER_RESTORE);
         return adminPermissions;
     }
 

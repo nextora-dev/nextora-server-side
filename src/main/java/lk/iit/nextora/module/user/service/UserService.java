@@ -7,6 +7,7 @@ import lk.iit.nextora.module.auth.dto.request.AdminCreateUserRequest;
 import lk.iit.nextora.module.auth.dto.response.UserCreatedResponse;
 import lk.iit.nextora.module.user.dto.request.ChangePasswordRequest;
 import lk.iit.nextora.module.user.dto.request.CreateAdminRequest;
+import lk.iit.nextora.module.user.dto.request.UpdateAdminRequest;
 import lk.iit.nextora.module.user.dto.request.UpdateProfileRequest;
 import lk.iit.nextora.module.user.dto.response.UserProfileResponse;
 import lk.iit.nextora.module.user.dto.response.UserStatsSummaryResponse;
@@ -26,12 +27,11 @@ public interface UserService {
 
     void changePassword(ChangePasswordRequest request);
 
-
     UserProfileResponse getUserById(Long id);
 
-    PagedResponse<UserSummaryResponse> getAllUsers(Pageable pageable);
+    PagedResponse<UserSummaryResponse> getAllNormalUsers(Pageable pageable);
 
-    PagedResponse<UserSummaryResponse> getAllAdmins(Pageable pageable);
+    PagedResponse<UserSummaryResponse> getAllUsers(Pageable pageable);
 
     PagedResponse<UserSummaryResponse> searchUsers(String keyword, Pageable pageable);
 
@@ -58,5 +58,49 @@ public interface UserService {
     UserCreatedResponse createUser(AdminCreateUserRequest request);
 
     void permanentlyDeleteUser(Long id);
+
+    // ==================== Admin User Management by Super Admin ====================
+
+    /**
+     * Get all admin users (Super Admin only)
+     * @param pageable Pagination information
+     * @return Paginated list of admin users
+     */
+    PagedResponse<UserSummaryResponse> getAllAdminUsers(Pageable pageable);
+
+    /**
+     * Get admin user by ID (Super Admin only)
+     * @param adminId The ID of the admin user
+     * @return Admin user profile
+     */
+    UserProfileResponse getAdminUserById(Long adminId);
+
+    /**
+     * Update admin user (Super Admin only)
+     * @param adminId The ID of the admin user to update
+     * @param request The update request containing new admin details
+     * @return Updated admin profile
+     */
+    UserProfileResponse updateAdminUser(Long adminId, UpdateAdminRequest request);
+
+    /**
+     * Soft delete admin user (Super Admin only)
+     * Sets status to DELETED and isActive to false
+     * @param adminId The ID of the admin user to soft delete
+     */
+    void softDeleteAdminUser(Long adminId);
+
+    /**
+     * Permanently delete admin user from database (Super Admin only)
+     * This action is IRREVERSIBLE
+     * @param adminId The ID of the admin user to permanently delete
+     */
+    void permanentlyDeleteAdminUser(Long adminId);
+
+    /**
+     * Restore a soft-deleted admin user (Super Admin only)
+     * @param adminId The ID of the admin user to restore
+     */
+    void restoreAdminUser(Long adminId);
 }
 

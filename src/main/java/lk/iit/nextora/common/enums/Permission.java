@@ -17,13 +17,20 @@ public enum Permission {
     USER_RESET_PASSWORD("USER:RESET_PASSWORD", "Reset user passwords", "USER", "RESET_PASSWORD", PermissionCategory.USER_MANAGEMENT),
 
     USER_ADMIN_CREATE("USER:ADMIN_CREATE", "Create admin users", "USER", "ADMIN_CREATE", PermissionCategory.USER_MANAGEMENT),
-    USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
-    USER_SUPER_ADMIN_READ("USER:ADMIN_READ", "Admin view all user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
+    USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all normal user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
+    USER_SUPER_ADMIN_READ("USER:SUPER_ADMIN_READ", "Super Admin view all user profiles", "USER", "SUPER_ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),
     USER_ADMIN_DELETE("USER:ADMIN_DELETE", "Admin delete any user", "USER", "ADMIN_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
     USER_PERMANENT_DELETE("USER:PERMANENT_DELETE", "Permanently delete users from database", "USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
+
+    // Super Admin exclusive permissions for managing Admin users
+    ADMIN_USER_READ("ADMIN_USER:READ", "Super Admin read all admin users", "ADMIN_USER", "READ", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_UPDATE("ADMIN_USER:UPDATE", "Super Admin update admin users", "ADMIN_USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_SOFT_DELETE("ADMIN_USER:SOFT_DELETE", "Super Admin soft delete admin users", "ADMIN_USER", "SOFT_DELETE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_PERMANENT_DELETE("ADMIN_USER:PERMANENT_DELETE", "Super Admin permanently delete admin users", "ADMIN_USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_RESTORE("ADMIN_USER:RESTORE", "Super Admin restore deleted admin users", "ADMIN_USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
 
     // ==================== STUDENT ROLE MANAGEMENT ====================
     STUDENT_ROLE_ADD("STUDENT_ROLE:ADD", "Add roles to students", "STUDENT_ROLE", "ADD", PermissionCategory.USER_MANAGEMENT),
