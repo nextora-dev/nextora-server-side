@@ -32,7 +32,11 @@ public enum StudentRoleType {
                     Permission.KUPPI_FEEDBACK,
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH
+                    Permission.KUPPI_NOTE_SEARCH,
+                    // Kuppi Application - students can apply to become Kuppi Students
+                    Permission.KUPPI_APPLICATION_SUBMIT,
+                    Permission.KUPPI_APPLICATION_VIEW_OWN,
+                    Permission.KUPPI_APPLICATION_CANCEL
             )),
 
     // ==================== CLUB MEMBER ====================

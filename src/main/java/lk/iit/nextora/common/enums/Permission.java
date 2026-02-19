@@ -68,6 +68,17 @@ public enum Permission {
     KUPPI_NOTE_ADMIN_DELETE("KUPPI_NOTE:ADMIN_DELETE", "Admin delete any kuppi note", "KUPPI_NOTE", "ADMIN_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
     KUPPI_NOTE_PERMANENT_DELETE("KUPPI_NOTE:PERMANENT_DELETE", "Permanently delete kuppi notes", "KUPPI_NOTE", "PERMANENT_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
 
+    // ==================== KUPPI APPLICATION ====================
+    KUPPI_APPLICATION_SUBMIT("KUPPI_APPLICATION:SUBMIT", "Submit kuppi student application", "KUPPI_APPLICATION", "SUBMIT", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_VIEW_OWN("KUPPI_APPLICATION:VIEW_OWN", "View own kuppi applications", "KUPPI_APPLICATION", "VIEW_OWN", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_CANCEL("KUPPI_APPLICATION:CANCEL", "Cancel own kuppi application", "KUPPI_APPLICATION", "CANCEL", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_VIEW_ALL("KUPPI_APPLICATION:VIEW_ALL", "View all kuppi applications", "KUPPI_APPLICATION", "VIEW_ALL", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_APPROVE("KUPPI_APPLICATION:APPROVE", "Approve kuppi applications", "KUPPI_APPLICATION", "APPROVE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_REJECT("KUPPI_APPLICATION:REJECT", "Reject kuppi applications", "KUPPI_APPLICATION", "REJECT", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_STATS("KUPPI_APPLICATION:STATS", "View kuppi application statistics", "KUPPI_APPLICATION", "STATS", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_REVOKE("KUPPI_APPLICATION:REVOKE", "Revoke kuppi student role", "KUPPI_APPLICATION", "REVOKE", PermissionCategory.KUPPI_MANAGEMENT),
+    KUPPI_APPLICATION_PERMANENT_DELETE("KUPPI_APPLICATION:PERMANENT_DELETE", "Permanently delete kuppi applications", "KUPPI_APPLICATION", "PERMANENT_DELETE", PermissionCategory.KUPPI_MANAGEMENT),
+
     // ==================== CLUB MANAGEMENT ====================
     CLUB_CREATE("CLUB:CREATE", "Create clubs", "CLUB", "CREATE", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_READ("CLUB:READ", "View clubs", "CLUB", "READ", PermissionCategory.CLUB_MANAGEMENT),

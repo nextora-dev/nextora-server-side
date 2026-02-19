@@ -86,6 +86,12 @@ public enum UserRole {
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
 
+                    // Kuppi Application - Academic Staff can approve/reject applications
+                    Permission.KUPPI_APPLICATION_VIEW_ALL,
+                    Permission.KUPPI_APPLICATION_APPROVE,
+                    Permission.KUPPI_APPLICATION_REJECT,
+                    Permission.KUPPI_APPLICATION_STATS,
+
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,
 

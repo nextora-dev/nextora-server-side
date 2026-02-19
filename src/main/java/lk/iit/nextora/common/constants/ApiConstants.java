@@ -123,6 +123,25 @@ public final class ApiConstants {
     public static final String KUPPI_NOTE_UPDATE_UPLOAD = "/{noteId}/upload";
 
     public static final String KUPPI_DOWNLOAD = KUPPI_NOTE_BY_ID + "/download";
+
+    // Kuppi Application endpoints (Students applying to become Kuppi Students)
+    public static final String KUPPI_APPLICATIONS = KUPPI + "/applications";
+    public static final String KUPPI_APPLICATION_BY_ID = "/{applicationId}";
+    public static final String KUPPI_APPLICATION_MY = "/my";
+    public static final String KUPPI_APPLICATION_ACTIVE = "/active";
+    public static final String KUPPI_APPLICATION_CAN_APPLY = "/can-apply";
+    public static final String KUPPI_APPLICATION_IS_KUPPI_STUDENT = "/is-kuppi-student";
+
+    // Kuppi Application Admin endpoints
+    public static final String KUPPI_ADMIN_APPLICATIONS = KUPPI_ADMIN + "/applications";
+    public static final String KUPPI_ADMIN_APPLICATION_BY_ID = "/{applicationId}";
+    public static final String KUPPI_ADMIN_APPLICATION_APPROVE = "/{applicationId}/approve";
+    public static final String KUPPI_ADMIN_APPLICATION_REJECT = "/{applicationId}/reject";
+    public static final String KUPPI_ADMIN_APPLICATION_UNDER_REVIEW = "/{applicationId}/under-review";
+    public static final String KUPPI_ADMIN_APPLICATION_STATS = "/stats";
+    public static final String KUPPI_ADMIN_APPLICATION_REVOKE = "/revoke/{studentId}";
+    public static final String KUPPI_ADMIN_APPLICATION_PERMANENT = "/{applicationId}/permanent";
+
     // ==================== Club & Voting Endpoints ====================
 
     // Clubs (voting module - for elections)
