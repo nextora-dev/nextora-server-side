@@ -42,8 +42,7 @@ public enum UserRole {
                     Permission.CANDIDATE_NOMINATE,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
-                    Permission.CLUB_MEMBERSHIP_VIEW,
-                    Permission.USER_RESET_PASSWORD
+                    Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
 
@@ -51,6 +50,7 @@ public enum UserRole {
     ROLE_NON_ACADEMIC_STAFF("Non_Academic_Staff", "Non-academic staff access to system functions", true,
             Set.of(
                     Permission.USER_READ,
+                    Permission.USER_UPDATE,
                     Permission.CLUB_READ,
                     Permission.CLUB_CREATE,
                     Permission.CLUB_UPDATE,
@@ -71,9 +71,7 @@ public enum UserRole {
 
                     // Voting statistics permissions
                     Permission.VOTE_VIEW_STATISTICS,
-                    Permission.VOTE_VIEW_RESULTS,
-                    Permission.USER_RESET_PASSWORD,
-                    Permission.USER_UPDATE
+                    Permission.VOTE_VIEW_RESULTS
             )),
 
     // ==================== ACADEMIC_STAFF (includes Lecturer permissions) ====================
@@ -98,8 +96,7 @@ public enum UserRole {
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_READ,
-                    Permission.USER_RESET_PASSWORD
+                    Permission.LOST_FOUND_READ
             ));
 
     private final String displayName;
@@ -128,11 +125,15 @@ public enum UserRole {
         // Remove super admin exclusive permissions
         adminPermissions.remove(Permission.ELECTION_SUPER_ADMIN);
         adminPermissions.remove(Permission.ELECTION_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.USER_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.USER_SUPER_ADMIN_READ);
         adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+
+        // Normal user management - Super Admin exclusive (restore & permanent delete)
+        adminPermissions.remove(Permission.NORMAL_USER_RESTORE);
+        adminPermissions.remove(Permission.NORMAL_USER_PERMANENT_DELETE);
+
         // Admin user management permissions - Super Admin exclusive
+        adminPermissions.remove(Permission.ADMIN_USER_CREATE);
         adminPermissions.remove(Permission.ADMIN_USER_READ);
         adminPermissions.remove(Permission.ADMIN_USER_UPDATE);
         adminPermissions.remove(Permission.ADMIN_USER_SOFT_DELETE);

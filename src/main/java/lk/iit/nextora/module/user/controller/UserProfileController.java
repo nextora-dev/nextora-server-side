@@ -29,7 +29,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @Tag(name = "User Management", description = "User profile and management endpoints")
 @SecurityRequirement(name = "bearerAuth")
-public class UserController {
+public class UserProfileController {
 
     private final UserService userService;
 

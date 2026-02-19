@@ -14,6 +14,7 @@ public final class ApiConstants {
     public static final String API_VERSION = "/v1";
     public static final String API_V1 = API_BASE + API_VERSION;
     public static final String ADMIN = API_V1 + "/admin" ;
+    public static final String SUPER_ADMIN = API_V1 + "/super-admin" ;
     public static final String AUTH = API_V1 + "/auth";
     public static final String KUPPI = API_V1 + "/kuppi";
     public static final String USER = API_V1 + "/user";
@@ -35,6 +36,7 @@ public final class ApiConstants {
 
     // Admin User Management endpoints
     public static final String USER_ADMIN = ADMIN + "/user";
+    public static final String USER_SUPER_ADMIN = SUPER_ADMIN + "/user";
     public static final String ADMIN_CREATE_USER = "";
     public static final String ADMIN_CHANGE_PASSWORD_FIRST_LOGIN = "/change-password-first-login";
     public static final String ADMIN_USER_SEARCH = "/search";
@@ -60,12 +62,9 @@ public final class ApiConstants {
 
     // User endpoints -admin
     public static final String ADMIN_USER = "/admin";
-    public static final String SUPER_ADMIN_USER = "/super-admin";
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
     public static final String USER_RESET_PASSWORD = USER_BY_ID + "/reset-password";
     public static final String USER_PERMANENT_DELETE = USER_BY_ID + "/permanent";
-
-    public static final String USER_GET_ALL_USERS = "/get-all-users";
 
     // Admin User Management by Super Admin
     public static final String ADMIN_USER_MANAGEMENT = ADMIN + "/admin-users";
@@ -73,6 +72,12 @@ public final class ApiConstants {
     public static final String ADMIN_USER_SOFT_DELETE = ADMIN_USER_BY_ID + "/soft-delete";
     public static final String ADMIN_USER_PERMANENT_DELETE = ADMIN_USER_BY_ID + "/permanent";
     public static final String ADMIN_USER_RESTORE = ADMIN_USER_BY_ID + "/restore";
+
+    // Normal User Management by Super Admin (restore and permanent delete)
+    public static final String NORMAL_USER = "/normal";
+    public static final String NORMAL_USER_BY_ID = NORMAL_USER + "/{userId}";
+    public static final String NORMAL_USER_RESTORE = NORMAL_USER_BY_ID + "/restore";
+    public static final String NORMAL_USER_PERMANENT_DELETE = NORMAL_USER_BY_ID + "/permanent";
 
     // Kuppi endpoints
     public static final String KUPPI_SESSIONS = KUPPI + "/sessions";

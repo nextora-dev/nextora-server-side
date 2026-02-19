@@ -6,31 +6,30 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Permission {
-    // ==================== USER MANAGEMENT ====================
-    USER_CREATE("USER:CREATE", "Create new users", "USER", "CREATE", PermissionCategory.USER_MANAGEMENT),
-    USER_READ("USER:READ", "View user profiles", "USER", "READ", PermissionCategory.USER_MANAGEMENT),
-    USER_UPDATE("USER:UPDATE", "Modify user information", "USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
-    USER_DELETE("USER:DELETE", "Delete user accounts", "USER", "DELETE", PermissionCategory.USER_MANAGEMENT),
-    USER_ACTIVATE("USER:ACTIVATE", "Activate users", "USER", "ACTIVATE", PermissionCategory.USER_MANAGEMENT),
-    USER_DEACTIVATE("USER:DEACTIVATE", "Deactivate user accounts", "USER", "DEACTIVATE", PermissionCategory.USER_MANAGEMENT),
-    USER_SUSPEND("USER:SUSPEND", "Suspend user accounts", "USER", "SUSPEND", PermissionCategory.USER_MANAGEMENT),
-    USER_RESET_PASSWORD("USER:RESET_PASSWORD", "Reset user passwords", "USER", "RESET_PASSWORD", PermissionCategory.USER_MANAGEMENT),
+    // ==================== USER SELF MANAGEMENT (Any authenticated user for their own profile) ====================
+    USER_READ("USER:READ", "View own user profile", "USER", "READ", PermissionCategory.USER_MANAGEMENT),
+    USER_UPDATE("USER:UPDATE", "Update own user profile", "USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
 
-    USER_ADMIN_CREATE("USER:ADMIN_CREATE", "Create admin users", "USER", "ADMIN_CREATE", PermissionCategory.USER_MANAGEMENT),
-    USER_ADMIN_READ("USER:ADMIN_READ", "Admin view all normal user profiles", "USER", "ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
-    USER_SUPER_ADMIN_READ("USER:SUPER_ADMIN_READ", "Super Admin view all user profiles", "USER", "SUPER_ADMIN_READ", PermissionCategory.USER_MANAGEMENT),
-    USER_ADMIN_UPDATE("USER:ADMIN_UPDATE", "Admin update any user", "USER", "ADMIN_UPDATE", PermissionCategory.USER_MANAGEMENT),
-    USER_ADMIN_DELETE("USER:ADMIN_DELETE", "Admin delete any user", "USER", "ADMIN_DELETE", PermissionCategory.USER_MANAGEMENT),
-    USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
-    USER_PERMANENT_DELETE("USER:PERMANENT_DELETE", "Permanently delete users from database", "USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
-    USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
+    // ==================== NORMAL USER MANAGEMENT (Admin manages Student, Academic Staff, Non-Academic Staff) ====================
+    NORMAL_USER_CREATE("NORMAL_USER:CREATE", "Create normal users (Student, Academic Staff, Non-Academic Staff)", "NORMAL_USER", "CREATE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_READ("NORMAL_USER:READ", "View normal user profiles", "NORMAL_USER", "READ", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_UPDATE("NORMAL_USER:UPDATE", "Update normal user information", "NORMAL_USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_DELETE("NORMAL_USER:DELETE", "Soft delete normal user accounts", "NORMAL_USER", "DELETE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_ACTIVATE("NORMAL_USER:ACTIVATE", "Activate normal users", "NORMAL_USER", "ACTIVATE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_DEACTIVATE("NORMAL_USER:DEACTIVATE", "Deactivate normal user accounts", "NORMAL_USER", "DEACTIVATE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_SUSPEND("NORMAL_USER:SUSPEND", "Suspend normal user accounts", "NORMAL_USER", "SUSPEND", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_UNLOCK("NORMAL_USER:UNLOCK", "Unlock suspended normal user accounts", "NORMAL_USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_RESET_PASSWORD("NORMAL_USER:RESET_PASSWORD", "Reset normal user passwords", "NORMAL_USER", "RESET_PASSWORD", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_RESTORE("NORMAL_USER:RESTORE", "Restore deleted normal users", "NORMAL_USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
+    NORMAL_USER_PERMANENT_DELETE("NORMAL_USER:PERMANENT_DELETE", "Permanently delete normal users from database", "NORMAL_USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
 
-    // Super Admin exclusive permissions for managing Admin users
-    ADMIN_USER_READ("ADMIN_USER:READ", "Super Admin read all admin users", "ADMIN_USER", "READ", PermissionCategory.USER_MANAGEMENT),
-    ADMIN_USER_UPDATE("ADMIN_USER:UPDATE", "Super Admin update admin users", "ADMIN_USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
-    ADMIN_USER_SOFT_DELETE("ADMIN_USER:SOFT_DELETE", "Super Admin soft delete admin users", "ADMIN_USER", "SOFT_DELETE", PermissionCategory.USER_MANAGEMENT),
-    ADMIN_USER_PERMANENT_DELETE("ADMIN_USER:PERMANENT_DELETE", "Super Admin permanently delete admin users", "ADMIN_USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
-    ADMIN_USER_RESTORE("ADMIN_USER:RESTORE", "Super Admin restore deleted admin users", "ADMIN_USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
+    // ==================== ADMIN USER MANAGEMENT (Super Admin manages Admin users) ====================
+    ADMIN_USER_CREATE("ADMIN_USER:CREATE", "Create admin users", "ADMIN_USER", "CREATE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_READ("ADMIN_USER:READ", "View admin user profiles", "ADMIN_USER", "READ", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_UPDATE("ADMIN_USER:UPDATE", "Update admin user information", "ADMIN_USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_SOFT_DELETE("ADMIN_USER:SOFT_DELETE", "Soft delete admin users", "ADMIN_USER", "SOFT_DELETE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_PERMANENT_DELETE("ADMIN_USER:PERMANENT_DELETE", "Permanently delete admin users", "ADMIN_USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
+    ADMIN_USER_RESTORE("ADMIN_USER:RESTORE", "Restore deleted admin users", "ADMIN_USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
 
     // ==================== STUDENT ROLE MANAGEMENT ====================
     STUDENT_ROLE_ADD("STUDENT_ROLE:ADD", "Add roles to students", "STUDENT_ROLE", "ADD", PermissionCategory.USER_MANAGEMENT),
