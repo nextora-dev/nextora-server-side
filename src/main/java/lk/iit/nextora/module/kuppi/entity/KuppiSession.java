@@ -74,9 +74,14 @@ public class KuppiSession extends BaseEntity {
     @Builder.Default
     private Set<KuppiNote> notes = new HashSet<>();
 
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<KuppiReview> reviews = new HashSet<>();
+
     public boolean isJoinable() {
         LocalDateTime now = LocalDateTime.now();
-        return now.isBefore(scheduledEndTime) && status == KuppiSessionStatus.SCHEDULED;
+        return now.isBefore(scheduledEndTime) &&
+               (status == KuppiSessionStatus.SCHEDULED || status == KuppiSessionStatus.LIVE);
     }
 
     public void incrementViewCount() {

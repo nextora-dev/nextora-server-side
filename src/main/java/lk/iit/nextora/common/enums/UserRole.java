@@ -21,13 +21,16 @@ public enum UserRole {
             Set.of(
                     Permission.USER_READ,
                     Permission.USER_UPDATE,
+
                     Permission.KUPPI_READ,
                     Permission.KUPPI_JOIN,
                     Permission.KUPPI_LEAVE,
                     Permission.KUPPI_FEEDBACK,
+                    
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
+
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,
                     Permission.EVENT_READ,
@@ -85,6 +88,12 @@ public enum UserRole {
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
+
+                    // Kuppi Application - Academic Staff can approve/reject applications
+                    Permission.KUPPI_APPLICATION_VIEW_ALL,
+                    Permission.KUPPI_APPLICATION_APPROVE,
+                    Permission.KUPPI_APPLICATION_REJECT,
+                    Permission.KUPPI_APPLICATION_STATS,
 
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,

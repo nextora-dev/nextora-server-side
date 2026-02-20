@@ -32,7 +32,7 @@ public class KuppiSessionController {
 
     private final KuppiSessionService sessionService;
 
-    // ==================== Public/Normal Student Endpoints ====================
+    // ==================== Normal Student Endpoints ====================
 
     @GetMapping
     @Operation(summary = "Get all sessions", description = "View all approved Kuppi sessions")
@@ -121,7 +121,6 @@ public class KuppiSessionController {
         PagedResponse<KuppiSessionResponse> response = sessionService.getUpcomingSessions(pageable);
         return ApiResponse.success("Upcoming sessions retrieved successfully", response);
     }
-
 
     // ==================== Kuppi Student Endpoints ====================
 

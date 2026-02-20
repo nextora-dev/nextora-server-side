@@ -78,10 +78,56 @@ public interface KuppiSessionRepository extends JpaRepository<KuppiSession, Long
     // Count by status
     long countByStatusAndIsDeletedFalse(KuppiSessionStatus status);
 
+    // Count by host and status
+    long countByHostIdAndStatusAndIsDeletedFalse(Long hostId, KuppiSessionStatus status);
+
     // Analytics - total views for a host
     @Query("SELECT SUM(k.viewCount) FROM KuppiSession k WHERE k.host.id = :hostId AND k.isDeleted = false")
     Long getTotalViewsByHost(@Param("hostId") Long hostId);
 
+    // Find recent sessions by host (limit by pageable)
+    @Query("SELECT k FROM KuppiSession k WHERE k.host.id = :hostId AND k.isDeleted = false " +
+           "ORDER BY k.scheduledStartTime DESC")
+    List<KuppiSession> findRecentSessionsByHost(@Param("hostId") Long hostId, Pageable pageable);
+
+    // Find upcoming sessions by host
+    @Query("SELECT k FROM KuppiSession k WHERE k.host.id = :hostId " +
+           "AND k.scheduledStartTime > :now AND k.status = :status AND k.isDeleted = false " +
+           "ORDER BY k.scheduledStartTime ASC")
+    List<KuppiSession> findUpcomingSessionsByHost(@Param("hostId") Long hostId,
+                                                   @Param("now") LocalDateTime now,
+                                                   @Param("status") KuppiSessionStatus status,
+                                                   Pageable pageable);
+
     // Find pending approval sessions (for admin)
     Page<KuppiSession> findByStatusAndIsDeletedFalseOrderByCreatedAtDesc(KuppiSessionStatus status, Pageable pageable);
+
+    // ==================== Status Transition Queries ====================
+
+    /**
+     * Find SCHEDULED sessions that should be LIVE (current time is between start and end time)
+     */
+    @Query("SELECT k FROM KuppiSession k WHERE k.status = :scheduledStatus " +
+           "AND k.scheduledStartTime <= :now AND k.scheduledEndTime > :now " +
+           "AND k.isDeleted = false")
+    List<KuppiSession> findSessionsToGoLive(@Param("scheduledStatus") KuppiSessionStatus scheduledStatus,
+                                             @Param("now") LocalDateTime now);
+
+    /**
+     * Find LIVE sessions that should be COMPLETED (current time is past end time)
+     */
+    @Query("SELECT k FROM KuppiSession k WHERE k.status = :liveStatus " +
+           "AND k.scheduledEndTime <= :now " +
+           "AND k.isDeleted = false")
+    List<KuppiSession> findSessionsToComplete(@Param("liveStatus") KuppiSessionStatus liveStatus,
+                                               @Param("now") LocalDateTime now);
+
+    /**
+     * Find SCHEDULED sessions that were missed (start and end time both passed, but never went LIVE)
+     */
+    @Query("SELECT k FROM KuppiSession k WHERE k.status = :scheduledStatus " +
+           "AND k.scheduledEndTime <= :now " +
+           "AND k.isDeleted = false")
+    List<KuppiSession> findMissedScheduledSessions(@Param("scheduledStatus") KuppiSessionStatus scheduledStatus,
+                                                    @Param("now") LocalDateTime now);
 }

@@ -325,4 +325,141 @@ public class KuppiNotificationService {
             );
         }
     }
+
+    /**
+     * Send notification when a Kuppi session goes LIVE.
+     * Notifies all students that the session is now active.
+     *
+     * @param sessionId The ID of the live session
+     * @param title The session title
+     * @param subject The session subject
+     * @param liveLink The link to join the session
+     * @return CompletableFuture with notification response
+     */
+    @Async("pushNotificationExecutor")
+    public CompletableFuture<NotificationResponse> notifyKuppiSessionLive(
+            Long sessionId,
+            String title,
+            String subject,
+            String liveLink
+    ) {
+        if (!pushNotificationService.isEnabled()) {
+            log.debug("Push notifications disabled - skipping session live notification");
+            return CompletableFuture.completedFuture(
+                    NotificationResponse.builder()
+                            .message("Push notifications are disabled")
+                            .successCount(0)
+                            .failureCount(0)
+                            .totalAttempted(0)
+                            .build()
+            );
+        }
+
+        String notificationTitle = "🔴 Kuppi Session is LIVE Now!";
+        String notificationBody = String.format(
+                "%s - %s\nJoin now and start learning!",
+                title,
+                subject
+        );
+
+        Map<String, String> data = new HashMap<>();
+        data.put("type", "KUPPI_SESSION_LIVE");
+        data.put("sessionId", String.valueOf(sessionId));
+        data.put("liveLink", liveLink);
+        data.put("clickAction", "/kuppi/sessions/" + sessionId);
+
+        log.info("Sending live notification for Kuppi session: id={}", sessionId);
+
+        try {
+            NotificationResponse response = pushNotificationService.sendToRole(
+                    UserRole.ROLE_STUDENT,
+                    notificationTitle,
+                    notificationBody,
+                    data
+            );
+
+            log.info("Kuppi session live notification sent: success={}, failed={}",
+                    response.getSuccessCount(), response.getFailureCount());
+
+            return CompletableFuture.completedFuture(response);
+        } catch (Exception e) {
+            log.error("Failed to send Kuppi session live notification: sessionId={}, error={}",
+                    sessionId, e.getMessage());
+            return CompletableFuture.completedFuture(
+                    NotificationResponse.builder()
+                            .message("Failed to send notification: " + e.getMessage())
+                            .successCount(0)
+                            .failureCount(0)
+                            .totalAttempted(0)
+                            .build()
+            );
+        }
+    }
+
+    /**
+     * Send notification when a Kuppi session is completed.
+     * Notifies students that the session has ended.
+     *
+     * @param sessionId The ID of the completed session
+     * @param title The session title
+     * @param subject The session subject
+     * @return CompletableFuture with notification response
+     */
+    @Async("pushNotificationExecutor")
+    public CompletableFuture<NotificationResponse> notifyKuppiSessionCompleted(
+            Long sessionId,
+            String title,
+            String subject
+    ) {
+        if (!pushNotificationService.isEnabled()) {
+            log.debug("Push notifications disabled - skipping session completed notification");
+            return CompletableFuture.completedFuture(
+                    NotificationResponse.builder()
+                            .message("Push notifications are disabled")
+                            .successCount(0)
+                            .failureCount(0)
+                            .totalAttempted(0)
+                            .build()
+            );
+        }
+
+        String notificationTitle = "✅ Kuppi Session Completed";
+        String notificationBody = String.format(
+                "%s - %s has ended.\nThank you for participating!",
+                title,
+                subject
+        );
+
+        Map<String, String> data = new HashMap<>();
+        data.put("type", "KUPPI_SESSION_COMPLETED");
+        data.put("sessionId", String.valueOf(sessionId));
+        data.put("clickAction", "/kuppi/sessions/" + sessionId);
+
+        log.info("Sending completion notification for Kuppi session: id={}", sessionId);
+
+        try {
+            NotificationResponse response = pushNotificationService.sendToRole(
+                    UserRole.ROLE_STUDENT,
+                    notificationTitle,
+                    notificationBody,
+                    data
+            );
+
+            log.info("Kuppi session completion notification sent: success={}, failed={}",
+                    response.getSuccessCount(), response.getFailureCount());
+
+            return CompletableFuture.completedFuture(response);
+        } catch (Exception e) {
+            log.error("Failed to send Kuppi session completion notification: sessionId={}, error={}",
+                    sessionId, e.getMessage());
+            return CompletableFuture.completedFuture(
+                    NotificationResponse.builder()
+                            .message("Failed to send notification: " + e.getMessage())
+                            .successCount(0)
+                            .failureCount(0)
+                            .totalAttempted(0)
+                            .build()
+            );
+        }
+    }
 }
