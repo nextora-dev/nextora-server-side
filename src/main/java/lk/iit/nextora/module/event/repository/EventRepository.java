@@ -191,4 +191,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         */
        @Query("SELECT COUNT(e) FROM Event e WHERE e.createdAt BETWEEN :start AND :end AND e.isDeleted = false")
        long countByCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+       /**
+        * Count all upcoming events (platform-wide)
+        */
+       @Query("SELECT COUNT(e) FROM Event e WHERE e.startAt > :now AND e.status = 'PUBLISHED' AND e.isDeleted = false")
+       long countUpcomingEvents(@Param("now") LocalDateTime now);
+
+       /**
+        * Count distinct new creators this month
+        */
+       @Query("SELECT COUNT(DISTINCT e.createdBy.id) FROM Event e WHERE e.createdAt BETWEEN :start AND :end AND e.isDeleted = false")
+       long countNewCreatorsThisMonth(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }
