@@ -13,7 +13,7 @@ import lk.iit.nextora.module.kuppi.dto.request.UpdateKuppiSessionRequest;
 import lk.iit.nextora.module.kuppi.dto.response.*;
 import lk.iit.nextora.module.kuppi.service.KuppiApplicationService;
 import lk.iit.nextora.module.kuppi.service.KuppiNoteService;
-import lk.iit.nextora.module.kuppi.service.KuppiReviewService;
+
 import lk.iit.nextora.module.kuppi.service.KuppiSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +32,7 @@ public class KuppiAdminController {
     private final KuppiSessionService sessionService;
     private final KuppiNoteService noteService;
     private final KuppiApplicationService applicationService;
-    private final KuppiReviewService reviewService;
+
 
     // ==================== Session Management ====================
 
@@ -249,27 +249,7 @@ public class KuppiAdminController {
         return ApiResponse.success("Application marked as under review", response);
     }
 
-    // ==================== Review Management ====================
 
-    @GetMapping("/reviews")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('KUPPI:ADMIN_READ')")
-    @Operation(summary = "Get all reviews", description = "Get all reviews for admin")
-    public ApiResponse<PagedResponse<KuppiReviewResponse>> getAllReviews(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return ApiResponse.success("Reviews retrieved", reviewService.getAllReviews(pageable));
-    }
-
-    @DeleteMapping("/reviews/{reviewId}")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAuthority('KUPPI:ADMIN_DELETE')")
-    @Operation(summary = "Delete review", description = "Admin delete a review")
-    public ApiResponse<Void> adminDeleteReview(@PathVariable Long reviewId) {
-        reviewService.adminDeleteReview(reviewId);
-        return ApiResponse.success("Review deleted");
-    }
 
     // ==================== Platform Statistics ====================
 
