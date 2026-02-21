@@ -83,7 +83,7 @@ public final class ApiConstants {
     // Kuppi endpoints
     public static final String KUPPI_SESSIONS = KUPPI + "/sessions";
     public static final String KUPPI_NOTES = KUPPI + "/notes";
-    public static final String KUPPI_REVIEWS = KUPPI + "/reviews";
+
 
     public static final String KUPPI_COMMENTS = "/comments";
     public static final String KUPPI_PARTICIPANTS = "/participants";
@@ -99,15 +99,7 @@ public final class ApiConstants {
     public static final String KUPPI_APPROVE = "/approve";
     public static final String KUPPI_REJECT = "/reject";
 
-    // Kuppi Review endpoints
-    public static final String KUPPI_REVIEW_BY_ID = "/{reviewId}";
-    public static final String KUPPI_REVIEW_SESSION = "/session/{sessionId}";
-    public static final String KUPPI_REVIEW_SESSION_SUMMARY = "/session/{sessionId}/summary";
-    public static final String KUPPI_REVIEW_TUTOR = "/tutor/{tutorId}";
-    public static final String KUPPI_REVIEW_TUTOR_STATS = "/tutor/{tutorId}/stats";
-    public static final String KUPPI_REVIEW_CAN_REVIEW = "/can-review/{sessionId}";
-    public static final String KUPPI_REVIEW_TUTOR_RESPONSE = "/{reviewId}/tutor-response";
-    public static final String KUPPI_REVIEW_MY_HOSTED = "/my-hosted";
+
 
     public static final String KUPPI_SESSION_BY_ID = "/{sessionId}";
     public static final String KUPPI_SEARCH_SUBJECT = "/search/subject";
@@ -127,10 +119,7 @@ public final class ApiConstants {
     public static final String KUPPI_ADMIN_NOTES_BY_ID = "/notes/{noteId}";
     public static final String KUPPI_ADMIN_NOTES_PERMANENT = "/notes/{noteId}/permanent";
 
-    // Kuppi Admin Reviews endpoints
-    public static final String KUPPI_ADMIN_REVIEWS = KUPPI_ADMIN + "/reviews";
-    public static final String KUPPI_ADMIN_REVIEW_BY_ID = "/{reviewId}";
-    public static final String KUPPI_ADMIN_REVIEW_PERMANENT = "/{reviewId}/permanent";
+
 
     // Kuppi Notes endpoints
     public static final String KUPPI_NOTE_BY_ID = "/{noteId}";

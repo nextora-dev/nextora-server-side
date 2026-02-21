@@ -149,8 +149,22 @@ public class KuppiSessionServiceImpl implements KuppiSessionService {
         validateSessionOwnership(session, currentUserId);
 
         // Validate schedule if changed
-        if (request.getScheduledStartTime() != null && request.getScheduledEndTime() != null) {
-            validateSchedule(request.getScheduledStartTime(), request.getScheduledEndTime());
+        if (request.getScheduledStartTime() != null || request.getScheduledEndTime() != null) {
+            LocalDateTime newStart = request.getScheduledStartTime() != null
+                    ? request.getScheduledStartTime() : session.getScheduledStartTime();
+            LocalDateTime newEnd = request.getScheduledEndTime() != null
+                    ? request.getScheduledEndTime() : session.getScheduledEndTime();
+
+            if (newStart.isAfter(newEnd)) {
+                throw new BadRequestException("Start time must be before end time");
+            }
+
+            // Only validate future constraint if start time is actually being changed to a new value
+            boolean startTimeChanged = request.getScheduledStartTime() != null
+                    && !request.getScheduledStartTime().equals(session.getScheduledStartTime());
+            if (startTimeChanged && newStart.isBefore(LocalDateTime.now())) {
+                throw new BadRequestException("Start time must be in the future");
+            }
         }
 
         kuppiMapper.updateSessionFromRequest(request, session);
