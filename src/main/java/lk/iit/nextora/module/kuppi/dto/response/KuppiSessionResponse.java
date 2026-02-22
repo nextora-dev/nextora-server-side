@@ -32,10 +32,8 @@ public class KuppiSessionResponse {
     private String meetingPlatform;
     private Long viewCount;
 
-    // Host details
-    private Long hostId;
-    private String hostName;
-    private String hostEmail;
+    // Full host object (for richer responses)
+    private KuppiStudentResponse host;
 
     // Metadata
     private LocalDateTime createdAt;
@@ -48,4 +46,3 @@ public class KuppiSessionResponse {
     // Session notes
     private List<KuppiNoteResponse> notes;
 }
-
