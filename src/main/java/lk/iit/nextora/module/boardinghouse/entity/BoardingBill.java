@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "boarding_bills")
+@Table(name = "boarding_bill")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class BoardingBill {
 
     @Id
@@ -17,9 +17,8 @@ public class BoardingBill {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private BoardingBillType billType;
 
-    @Column(nullable = false)
-    private Boolean included; // true = included in rent, false = pay separately
+    private Boolean included;
+
 }
