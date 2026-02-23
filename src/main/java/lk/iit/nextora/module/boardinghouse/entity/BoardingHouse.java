@@ -3,35 +3,55 @@ package lk.iit.nextora.module.boardinghouse.entity;
 import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "boarding_houses")
+@Table(name = "boarding_house")
 @Getter
 @Setter
-@SuperBuilder
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BoardingHouse extends BaseEntity {
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 500)
-    private String address;
+    private String description;
 
     @Column(nullable = false)
     private Double monthlyRent;
 
     @Column(nullable = false)
-    private Integer roomsAvailable;
+    private Boolean keyMoneyRequired;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BoardingGenderType genderType;
 
     @Column(nullable = false)
-    private Boolean isAvailable;
-
-    @Column(length = 1000)
-    private String description;
+    private Boolean withFood;
 
     @Column(nullable = false)
-    private Long ownerId; // Later can be FK, now simple
+    private Boolean withFurniture;
+
+    //  Location entity
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id")
+    private BoardingLocation location;
+
+    //  Contact entity
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "contact_id")
+    private BoardingContact contact;
+
+    //  Water Bill entity
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "water_bill_id")
+    private BoardingBill waterBill;
+
+    //  Electricity Bill entity
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "electricity_bill_id")
+    private BoardingBill electricityBill;
+
 }
