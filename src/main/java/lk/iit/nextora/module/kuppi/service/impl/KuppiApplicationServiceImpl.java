@@ -392,5 +392,3 @@ public class KuppiApplicationServiceImpl implements KuppiApplicationService {
     }
 }
 
-
-

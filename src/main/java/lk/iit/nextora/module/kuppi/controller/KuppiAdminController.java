@@ -47,7 +47,7 @@ public class KuppiAdminController {
     }
 
     @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_BY_ID)
-    @Operation(summary = "Remove session", description = "Soft delete any Kuppi session")
+    @Operation(summary = "Delete session", description = "Soft delete any Kuppi session")
     @PreAuthorize("hasAuthority('KUPPI:ADMIN_DELETE')")
     public ApiResponse<Void> adminDeleteSession(@PathVariable Long sessionId) {
         sessionService.adminDeleteSession(sessionId);
@@ -249,7 +249,14 @@ public class KuppiAdminController {
         return ApiResponse.success("Application marked as under review", response);
     }
 
-
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_APPLICATION_PERMANENT)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('KUPPI_APPLICATION:PERMANENT_DELETE')")
+    @Operation(summary = "Permanently delete application", description = "Permanently delete a Kuppi application (Super Admin only)")
+    public ApiResponse<Void> permanentlyDeleteApplication(@PathVariable Long applicationId) {
+        applicationService.permanentlyDeleteApplication(applicationId);
+        return ApiResponse.success("Application permanently deleted");
+    }
 
     // ==================== Platform Statistics ====================
 

@@ -113,4 +113,3 @@ public interface KuppiApplicationService {
      */
     void revokeKuppiStudentRole(Long studentId, String reason);
 }
-
