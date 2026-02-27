@@ -69,18 +69,6 @@ public interface KuppiNoteService {
      */
     PagedResponse<KuppiNoteResponse> getMyNotes(Pageable pageable);
 
-    // ==================== Admin Operations ====================
-
-    /**
-     * Edit any note (admin override)
-     */
-    KuppiNoteResponse adminUpdateNote(Long noteId, UpdateKuppiNoteRequest request);
-
-    /**
-     * Remove/delete any note
-     */
-    void adminDeleteNote(Long noteId);
-
     // ==================== Super Admin Operations ====================
 
     /**

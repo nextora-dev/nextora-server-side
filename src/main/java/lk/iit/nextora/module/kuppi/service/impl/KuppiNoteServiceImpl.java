@@ -277,21 +277,6 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
 
     @Override
     @Transactional
-    public void adminDeleteNote(Long noteId) {
-        Long currentUserId = securityService.getCurrentUserId();
-        KuppiNote note = findNoteById(noteId);
-
-        // delete associated file from S3 (best-effort)
-        deleteFileIfExists(note);
-
-        note.softDelete();
-        noteRepository.save(note);
-
-        log.info("Note {} soft deleted by admin {}", noteId, currentUserId);
-    }
-
-    @Override
-    @Transactional
     public void permanentlyDeleteNote(Long noteId) {
         Long currentUserId = securityService.getCurrentUserId();
         KuppiNote note = noteRepository.findById(noteId)
@@ -309,22 +294,6 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
         Long currentUserId = securityService.getCurrentUserId();
         Page<KuppiNote> notes = noteRepository.findByUploadedByIdAndIsDeletedFalse(currentUserId, pageable);
         return toPagedResponse(notes);
-    }
-
-    @Override
-    @Transactional
-    public KuppiNoteResponse adminUpdateNote(Long noteId, UpdateKuppiNoteRequest request) {
-        Long currentUserId = securityService.getCurrentUserId();
-        KuppiNote note = noteRepository.findByIdWithDetails(noteId)
-                .orElseThrow(() -> new ResourceNotFoundException("KuppiNote", "id", noteId));
-
-        // Admin can update allowed fields using mapper (title, description, allowDownload, etc.)
-        kuppiMapper.updateNoteFromRequest(request, note);
-
-        // Save and return updated note
-        note = noteRepository.save(note);
-        log.info("Note {} updated by admin {}", noteId, currentUserId);
-        return kuppiMapper.toResponse(note);
     }
 
     // ==================== Helper Methods ====================

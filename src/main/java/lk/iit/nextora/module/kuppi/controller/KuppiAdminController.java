@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.kuppi.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lk.iit.nextora.common.constants.ApiConstants;
@@ -8,8 +9,6 @@ import lk.iit.nextora.common.dto.ApiResponse;
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.KuppiApplicationStatus;
 import lk.iit.nextora.module.kuppi.dto.request.ReviewKuppiApplicationRequest;
-import lk.iit.nextora.module.kuppi.dto.request.UpdateKuppiNoteRequest;
-import lk.iit.nextora.module.kuppi.dto.request.UpdateKuppiSessionRequest;
 import lk.iit.nextora.module.kuppi.dto.response.*;
 import lk.iit.nextora.module.kuppi.service.KuppiApplicationService;
 import lk.iit.nextora.module.kuppi.service.KuppiNoteService;
@@ -32,63 +31,6 @@ public class KuppiAdminController {
     private final KuppiSessionService sessionService;
     private final KuppiNoteService noteService;
     private final KuppiApplicationService applicationService;
-
-
-    // ==================== Session Management ====================
-
-    @PutMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_BY_ID)
-    @Operation(summary = "Edit session", description = "Edit any Kuppi session (admin override)")
-    @PreAuthorize("hasAuthority('KUPPI:ADMIN_UPDATE')")
-    public ApiResponse<KuppiSessionResponse> adminUpdateSession(
-            @PathVariable Long sessionId,
-            @Valid @RequestBody UpdateKuppiSessionRequest request) {
-        KuppiSessionResponse response = sessionService.adminUpdateSession(sessionId, request);
-        return ApiResponse.success("Session updated successfully", response);
-    }
-
-    @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_BY_ID)
-    @Operation(summary = "Delete session", description = "Soft delete any Kuppi session")
-    @PreAuthorize("hasAuthority('KUPPI:ADMIN_DELETE')")
-    public ApiResponse<Void> adminDeleteSession(@PathVariable Long sessionId) {
-        sessionService.adminDeleteSession(sessionId);
-        return ApiResponse.success("Session removed successfully");
-    }
-
-    @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_PERMANENT)
-    @Operation(summary = "Permanently delete session", description = "Permanently delete a Kuppi session (Super Admin only)")
-    @PreAuthorize("hasAuthority('KUPPI:PERMANENT_DELETE')")
-    public ApiResponse<Void> permanentlyDeleteSession(@PathVariable Long sessionId) {
-        sessionService.permanentlyDeleteSession(sessionId);
-        return ApiResponse.success("Session permanently deleted");
-    }
-
-    // ==================== Note Management ====================
-
-    @PutMapping(ApiConstants.KUPPI_ADMIN_NOTES_BY_ID)
-    @Operation(summary = "Edit note", description = "Edit any note (admin override)")
-    @PreAuthorize("hasAuthority('KUPPI_NOTE:ADMIN_UPDATE')")
-    public ApiResponse<KuppiNoteResponse> adminUpdateNote(
-            @PathVariable Long noteId,
-            @Valid @RequestBody UpdateKuppiNoteRequest request) {
-        KuppiNoteResponse response = noteService.adminUpdateNote(noteId, request);
-        return ApiResponse.success("Note updated successfully", response);
-    }
-
-    @DeleteMapping(ApiConstants.KUPPI_ADMIN_NOTES_BY_ID)
-    @Operation(summary = "Remove note", description = "Soft delete any note")
-    @PreAuthorize("hasAuthority('KUPPI_NOTE:ADMIN_DELETE')")
-    public ApiResponse<Void> adminDeleteNote(@PathVariable Long noteId) {
-        noteService.adminDeleteNote(noteId);
-        return ApiResponse.success("Note removed successfully");
-    }
-
-    @DeleteMapping(ApiConstants.KUPPI_ADMIN_NOTES_PERMANENT)
-    @Operation(summary = "Permanently delete note", description = "Permanently delete a note (Super Admin only)")
-    @PreAuthorize("hasAuthority('KUPPI_NOTE:PERMANENT_DELETE')")
-    public ApiResponse<Void> permanentlyDeleteNote(@PathVariable Long noteId) {
-        noteService.permanentlyDeleteNote(noteId);
-        return ApiResponse.success("Note permanently deleted");
-    }
 
     // ==================== Application Management ====================
 
@@ -249,6 +191,18 @@ public class KuppiAdminController {
         return ApiResponse.success("Application marked as under review", response);
     }
 
+    // ==================== Platform Statistics ====================
+
+    @GetMapping(ApiConstants.KUPPI_STATS)
+    @Operation(summary = "Get platform statistics", description = "Get Kuppi platform usage statistics")
+    @PreAuthorize("hasAuthority('KUPPI:VIEW_STATS')")
+    public ApiResponse<KuppiPlatformStatsResponse> getPlatformStats() {
+        KuppiPlatformStatsResponse response = sessionService.getPlatformStats();
+        return ApiResponse.success("Platform statistics retrieved successfully", response);
+    }
+
+    // ==================== Application Management (Super Admin only) ====================
+
     @DeleteMapping(ApiConstants.KUPPI_ADMIN_APPLICATION_PERMANENT)
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAuthority('KUPPI_APPLICATION:PERMANENT_DELETE')")
@@ -258,13 +212,41 @@ public class KuppiAdminController {
         return ApiResponse.success("Application permanently deleted");
     }
 
-    // ==================== Platform Statistics ====================
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_APPLICATION_REVOKE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAuthority('KUPPI_APPLICATION:REVOKE')")
+    @Operation(
+            summary = "Revoke Kuppi Student role",
+            description = "Revoke the Kuppi Student role from a student. " +
+                    "The student will no longer be able to create sessions or upload notes. " +
+                    "Super Admin only."
+    )
+    public ApiResponse<Void> revokeKuppiStudentRole(
+            @PathVariable Long studentId,
+            @Parameter(description = "Reason for revocation") @RequestParam String reason) {
 
-    @GetMapping(ApiConstants.KUPPI_STATS)
-    @Operation(summary = "Get platform statistics", description = "Get Kuppi platform usage statistics")
-    @PreAuthorize("hasAuthority('KUPPI:VIEW_STATS')")
-    public ApiResponse<KuppiPlatformStatsResponse> getPlatformStats() {
-        KuppiPlatformStatsResponse response = sessionService.getPlatformStats();
-        return ApiResponse.success("Platform statistics retrieved successfully", response);
+        applicationService.revokeKuppiStudentRole(studentId, reason);
+        return ApiResponse.success("Kuppi Student role revoked successfully", null);
+    }
+
+    // ==================== Session Management (Super Admin only) ====================
+
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_SESSIONS_PERMANENT)
+    @Operation(summary = "Permanently delete session and files", description = "Permanently delete the session and remove all associated files and notes (super-admin)")
+    @PreAuthorize("hasAuthority('KUPPI:PERMANENT_DELETE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ApiResponse<Void> permanentlyDeleteSession(@PathVariable Long sessionId) {
+        sessionService.permanentlyDeleteSession(sessionId);
+        return ApiResponse.success("Session permanently deleted and files removed successfully");
+    }
+
+    // ==================== Note Management (Super Admin only) ====================
+
+    @DeleteMapping(ApiConstants.KUPPI_ADMIN_NOTES_PERMANENT)
+    @Operation(summary = "Permanently delete note", description = "Permanently delete a note (Super Admin only)")
+    @PreAuthorize("hasAuthority('KUPPI_NOTE:PERMANENT_DELETE')")
+    public ApiResponse<Void> permanentlyDeleteNote(@PathVariable Long noteId) {
+        noteService.permanentlyDeleteNote(noteId);
+        return ApiResponse.success("Note permanently deleted");
     }
 }
