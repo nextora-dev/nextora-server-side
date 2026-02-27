@@ -70,6 +70,19 @@ public class KuppiSession extends BaseEntity {
     @Column
     private LocalDateTime cancelledAt;
 
+    // File metadata for sessions (optional)
+    @Column(length = 500)
+    private String fileUrl;
+
+    @Column(length = 100)
+    private String fileName;
+
+    @Column
+    private Long fileSize;
+
+    @Column(length = 50)
+    private String fileType;
+
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<KuppiNote> notes = new HashSet<>();

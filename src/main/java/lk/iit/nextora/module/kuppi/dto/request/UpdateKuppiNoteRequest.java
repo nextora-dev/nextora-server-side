@@ -36,3 +36,4 @@ public class UpdateKuppiNoteRequest {
     private Boolean allowDownload;
 }
 
+

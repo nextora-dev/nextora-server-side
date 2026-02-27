@@ -40,3 +40,4 @@ public class UpdateKuppiSessionRequest {
     private String meetingPlatform;
 }
 
+

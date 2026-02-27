@@ -110,7 +110,6 @@ public final class ApiConstants {
 
     // Kuppi Admin endpoints
     public static final String KUPPI_ADMIN = ADMIN + "/kuppi";
-    public static final String KUPPI_SUPER_ADMIN = SUPER_ADMIN + "/kuppi";
 
     public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
     public static final String KUPPI_ADMIN_SESSIONS_BY_ID = "/sessions/{sessionId}";
