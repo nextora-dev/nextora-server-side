@@ -1,21 +1,54 @@
 package lk.iit.nextora.module.boardinghouse.mapper;
 
-import lk.iit.nextora.common.mapper.MapperConfiguration;
+import lk.iit.nextora.common.enums.Gender;
+import lk.iit.nextora.module.boardinghouse.dto.request.CreateBoardingHouseRequest;
 import lk.iit.nextora.module.boardinghouse.dto.response.BoardingHouseResponse;
 import lk.iit.nextora.module.boardinghouse.entity.BoardingHouse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
-@Mapper(config = MapperConfiguration.class)
-public interface BoardingHouseMapper {
+@Component
+public class BoardingHouseMapper {
 
-    @Mapping(target = "city", source = "location.city")
-    @Mapping(target = "address", source = "location.address")
-    @Mapping(target = "latitude", source = "location.latitude")
-    @Mapping(target = "longitude", source = "location.longitude")
-    @Mapping(target = "contactNumber1", source = "contact.contactNumber1")
-    @Mapping(target = "contactNumber2", source = "contact.contactNumber2")
-    @Mapping(target = "waterBillIncluded", source = "waterBill.included")
-    @Mapping(target = "electricityBillIncluded", source = "electricityBill.included")
-    BoardingHouseResponse toResponse(BoardingHouse house);
+    public BoardingHouse toEntity(CreateBoardingHouseRequest request) {
+
+        return BoardingHouse.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .price(request.getPrice())
+                .city(request.getCity())
+                .address(request.getAddress())
+                .gender(request.getGender())
+                .contactNumber1(request.getContactNumber1())
+                .contactNumber2(request.getContactNumber2())
+                .keyMoneyRequired(request.getKeyMoneyRequired())
+                .waterBillIncluded(request.getWaterBillIncluded())
+                .electricityBillIncluded(request.getElectricityBillIncluded())
+                .foodIncluded(request.getFoodIncluded())
+                .furnitureIncluded(request.getFurnitureIncluded())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .build();
+    }
+
+    public BoardingHouseResponse toResponse(BoardingHouse entity) {
+
+        return BoardingHouseResponse.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .description(entity.getDescription())
+                .price(entity.getPrice())
+                .city(entity.getCity())
+                .address(entity.getAddress())
+                .gender(entity.getGender().name())
+                .contactNumber1(entity.getContactNumber1())
+                .contactNumber2(entity.getContactNumber2())
+                .keyMoneyRequired(entity.getKeyMoneyRequired())
+                .waterBillIncluded(entity.getWaterBillIncluded())
+                .electricityBillIncluded(entity.getElectricityBillIncluded())
+                .foodIncluded(entity.getFoodIncluded())
+                .furnitureIncluded(entity.getFurnitureIncluded())
+                .latitude(entity.getLatitude())
+                .longitude(entity.getLongitude())
+                .build();
+    }
 }
