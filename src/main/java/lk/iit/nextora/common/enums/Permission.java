@@ -86,8 +86,17 @@ public enum Permission {
     CLUB_DELETE("CLUB:DELETE", "Delete clubs", "CLUB", "DELETE", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_MANAGE_MEMBERS("CLUB:MANAGE_MEMBERS", "Manage club members", "CLUB", "MANAGE_MEMBERS", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_POST("CLUB:POST", "Post club announcements", "CLUB", "POST", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_VIEW_STATS("CLUB:VIEW_STATS", "View club statistics", "CLUB", "VIEW_STATS", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_VIEW_ACTIVITY_LOG("CLUB:VIEW_ACTIVITY_LOG", "View club activity logs", "CLUB", "VIEW_ACTIVITY_LOG", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_MEMBERSHIP_MANAGE("CLUB_MEMBERSHIP:MANAGE", "Manage club memberships", "CLUB_MEMBERSHIP", "MANAGE", PermissionCategory.VOTING_MANAGEMENT),
     CLUB_MEMBERSHIP_VIEW("CLUB_MEMBERSHIP:VIEW", "View club memberships", "CLUB_MEMBERSHIP", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
+
+
+    // ==================== CLUB ANNOUNCEMENTS ====================
+    CLUB_ANNOUNCEMENT_CREATE("CLUB_ANNOUNCEMENT:CREATE", "Create club announcements", "CLUB_ANNOUNCEMENT", "CREATE", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_ANNOUNCEMENT_READ("CLUB_ANNOUNCEMENT:READ", "View club announcements", "CLUB_ANNOUNCEMENT", "READ", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_ANNOUNCEMENT_UPDATE("CLUB_ANNOUNCEMENT:UPDATE", "Update club announcements", "CLUB_ANNOUNCEMENT", "UPDATE", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_ANNOUNCEMENT_DELETE("CLUB_ANNOUNCEMENT:DELETE", "Delete club announcements", "CLUB_ANNOUNCEMENT", "DELETE", PermissionCategory.CLUB_MANAGEMENT),
 
     // ==================== VOTING/ELECTION MANAGEMENT ====================
     ELECTION_CREATE("ELECTION:CREATE", "Create elections", "ELECTION", "CREATE", PermissionCategory.VOTING_MANAGEMENT),

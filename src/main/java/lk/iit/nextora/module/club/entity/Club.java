@@ -5,10 +5,13 @@ import lk.iit.nextora.common.entity.BaseEntity;
 import lk.iit.nextora.common.enums.FacultyType;
 import lk.iit.nextora.module.auth.entity.AcademicStaff;
 import lk.iit.nextora.module.auth.entity.Student;
+import lk.iit.nextora.module.election.entity.Election;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Entity representing a club in the system.
@@ -71,10 +74,22 @@ public class Club extends BaseEntity {
     @Builder.Default
     private Boolean isRegistrationOpen = true;
 
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<Election> elections = new HashSet<>();
+
     /**
      * Check if club can accept new members
      */
     public boolean canAcceptMembers() {
         return isRegistrationOpen && getIsActive();
+    }
+
+    /**
+     * Check if club has any active elections (voting open)
+     */
+    public boolean hasActiveElection() {
+        return elections != null && elections.stream()
+                .anyMatch(e -> e.getStatus() == lk.iit.nextora.common.enums.ElectionStatus.VOTING_OPEN);
     }
 }

@@ -179,6 +179,40 @@ public final class ApiConstants {
     public static final String MEMBERSHIP_REJECT = "/memberships/{membershipId}/reject";
     public static final String MEMBERSHIP_SUSPEND = "/memberships/{membershipId}/suspend";
 
+    // Club membership extended endpoints
+    public static final String MEMBERSHIP_CHANGE_POSITION = "/memberships/{membershipId}/position";
+    public static final String MEMBERSHIP_BULK_APPROVE = "/{clubId}/memberships/bulk-approve";
+    public static final String CLUB_TOGGLE_REGISTRATION = "/{clubId}/toggle-registration";
+    public static final String CLUB_STATISTICS = "/{clubId}/statistics";
+
+    // Club-scoped election endpoints
+    public static final String CLUB_ELECTIONS = "/{clubId}/elections";
+    public static final String CLUB_ELECTIONS_ACTIVE = "/{clubId}/elections/active";
+    public static final String CLUB_ELECTIONS_UPCOMING = "/{clubId}/elections/upcoming";
+    public static final String CLUB_ELECTIONS_COMPLETED = "/{clubId}/elections/completed";
+
+
+    // ==================== Club Announcements Endpoints ====================
+    public static final String CLUB_ANNOUNCEMENTS = API_V1 + "/club/announcements";
+    public static final String CLUB_ANNOUNCEMENT_BY_ID = "/{announcementId}";
+    public static final String CLUB_ANNOUNCEMENTS_BY_CLUB = "/club/{clubId}";
+    public static final String CLUB_ANNOUNCEMENTS_PUBLIC = "/club/{clubId}/public";
+    public static final String CLUB_ANNOUNCEMENTS_PINNED = "/club/{clubId}/pinned";
+    public static final String CLUB_ANNOUNCEMENTS_SEARCH = "/search";
+    public static final String CLUB_ANNOUNCEMENT_PIN = "/{announcementId}/pin";
+    public static final String CLUB_ANNOUNCEMENT_UNPIN = "/{announcementId}/unpin";
+
+    // ==================== Club Admin Endpoints ====================
+    public static final String CLUB_ADMIN = ADMIN + "/club";
+    public static final String CLUB_ADMIN_ALL = "/all";
+    public static final String CLUB_ADMIN_BY_ID = "/{clubId}";
+    public static final String CLUB_ADMIN_STATS = "/stats";
+    public static final String CLUB_ADMIN_ACTIVITY_LOG = "/{clubId}/activity-log";
+    public static final String CLUB_ADMIN_MEMBERS_BY_POSITION = "/{clubId}/members/position/{position}";
+    public static final String CLUB_ADMIN_FORCE_SUSPEND = "/memberships/{membershipId}/force-suspend";
+    public static final String CLUB_ADMIN_FORCE_ACTIVATE = "/memberships/{membershipId}/force-activate";
+    public static final String CLUB_ADMIN_PLATFORM_STATS = "/platform-stats";
+
     // Election endpoints
 
     public static final String ELECTION_BY_ID = "/{electionId}";
