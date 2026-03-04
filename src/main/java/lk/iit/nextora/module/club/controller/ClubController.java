@@ -11,7 +11,10 @@ import lk.iit.nextora.module.club.dto.request.CreateClubRequest;
 import lk.iit.nextora.module.club.dto.request.JoinClubRequest;
 import lk.iit.nextora.module.club.dto.response.ClubMembershipResponse;
 import lk.iit.nextora.module.club.dto.response.ClubResponse;
+import lk.iit.nextora.module.club.dto.response.ClubStatisticsResponse;
 import lk.iit.nextora.module.club.service.ClubService;
+import lk.iit.nextora.module.election.dto.response.ElectionResponse;
+import lk.iit.nextora.module.election.service.ElectionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ClubController {
 
     private final ClubService clubService;
+    private final ElectionService electionService;
 
     // ==================== Club Endpoints ====================
 
@@ -286,5 +290,67 @@ public class ClubController {
             @RequestParam String reason) {
         clubService.suspendMembership(membershipId, reason);
         return ApiResponse.success("Membership suspended successfully", null);
+    }
+
+    // ==================== Statistics & Settings ====================
+
+    @GetMapping(ApiConstants.CLUB_STATISTICS)
+    @Operation(summary = "Get club statistics", description = "Get detailed statistics for a club")
+    @PreAuthorize("hasAuthority('CLUB:READ')")
+    public ApiResponse<ClubStatisticsResponse> getClubStatistics(@PathVariable Long clubId) {
+        ClubStatisticsResponse response = clubService.getClubStatistics(clubId);
+        return ApiResponse.success("Statistics retrieved successfully", response);
+    }
+
+    @PutMapping(ApiConstants.CLUB_TOGGLE_REGISTRATION)
+    @Operation(summary = "Toggle registration", description = "Toggle club registration open/closed (Club Admin)")
+    @PreAuthorize("hasAuthority('CLUB:UPDATE')")
+    public ApiResponse<ClubResponse> toggleRegistration(@PathVariable Long clubId) {
+        ClubResponse response = clubService.toggleRegistration(clubId);
+        return ApiResponse.success("Registration toggled successfully", response);
+    }
+
+    // ==================== Club-Scoped Election Endpoints ====================
+
+    @GetMapping(ApiConstants.CLUB_ELECTIONS)
+    @Operation(summary = "Get club elections", description = "Get all elections for a specific club")
+    @PreAuthorize("hasAuthority('ELECTION:READ')")
+    public ApiResponse<PagedResponse<ElectionResponse>> getClubElections(
+            @PathVariable Long clubId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        PagedResponse<ElectionResponse> response = electionService.getElectionsByClub(clubId, pageable);
+        return ApiResponse.success("Club elections retrieved successfully", response);
+    }
+
+    @GetMapping(ApiConstants.CLUB_ELECTIONS_ACTIVE)
+    @Operation(summary = "Get active club elections", description = "Get elections with active voting or nominations for a club")
+    @PreAuthorize("hasAuthority('ELECTION:READ')")
+    public ApiResponse<PagedResponse<ElectionResponse>> getActiveClubElections(
+            @PathVariable Long clubId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<ElectionResponse> response = electionService.getUpcomingElectionsByClub(clubId, pageable);
+        return ApiResponse.success("Active club elections retrieved successfully", response);
+    }
+
+    @GetMapping(ApiConstants.CLUB_ELECTIONS_UPCOMING)
+    @Operation(summary = "Get upcoming club elections", description = "Get upcoming elections for a specific club")
+    @PreAuthorize("hasAuthority('ELECTION:READ')")
+    public ApiResponse<PagedResponse<ElectionResponse>> getUpcomingClubElections(
+            @PathVariable Long clubId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        PagedResponse<ElectionResponse> response = electionService.getUpcomingElectionsByClub(clubId, pageable);
+        return ApiResponse.success("Upcoming club elections retrieved successfully", response);
     }
 }

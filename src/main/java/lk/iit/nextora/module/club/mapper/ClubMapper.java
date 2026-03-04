@@ -9,7 +9,7 @@ import org.mapstruct.*;
 import java.util.List;
 
 /**
- * MapStruct mapper for Voting module entities and DTOs
+ * MapStruct mapper for Club module entities and DTOs
  */
 @Mapper(config = MapperConfiguration.class)
 public interface ClubMapper {
@@ -60,4 +60,25 @@ public interface ClubMapper {
     ClubMembershipResponse toResponse(ClubMembership membership);
 
     List<ClubMembershipResponse> toMembershipResponseList(List<ClubMembership> memberships);
+
+
+    // ==================== Club Announcement Mappings ====================
+
+    @Mapping(target = "clubId", source = "club.id")
+    @Mapping(target = "clubCode", source = "club.clubCode")
+    @Mapping(target = "clubName", source = "club.name")
+    @Mapping(target = "authorId", source = "author.id")
+    @Mapping(target = "authorName", expression = "java(announcement.getAuthor() != null ? announcement.getAuthor().getFullName() : null)")
+    @Mapping(target = "authorEmail", source = "author.email")
+    ClubAnnouncementResponse toResponse(ClubAnnouncement announcement);
+
+    List<ClubAnnouncementResponse> toAnnouncementResponseList(List<ClubAnnouncement> announcements);
+
+    // ==================== Club Activity Log Mappings ====================
+
+    @Mapping(target = "clubId", source = "club.id")
+    @Mapping(target = "clubName", source = "club.name")
+    ClubActivityLogResponse toResponse(ClubActivityLog activityLog);
+
+    List<ClubActivityLogResponse> toActivityLogResponseList(List<ClubActivityLog> activityLogs);
 }

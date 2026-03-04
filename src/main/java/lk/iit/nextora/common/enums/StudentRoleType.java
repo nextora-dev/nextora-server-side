@@ -64,7 +64,17 @@ public enum StudentRoleType {
                     Permission.CLUB_MEMBERSHIP_VIEW,
                     Permission.CLUB_UPDATE,
 
-                    Permission.ELECTION_READ
+                    Permission.ELECTION_READ,
+
+
+                    // Club announcement permissions
+                    Permission.CLUB_ANNOUNCEMENT_CREATE,
+                    Permission.CLUB_ANNOUNCEMENT_READ,
+                    Permission.CLUB_ANNOUNCEMENT_UPDATE,
+
+                    // Club stats & activity
+                    Permission.CLUB_VIEW_STATS,
+                    Permission.CLUB_VIEW_ACTIVITY_LOG
             )),
 
     // ==================== BATCH REPRESENTATIVE ====================

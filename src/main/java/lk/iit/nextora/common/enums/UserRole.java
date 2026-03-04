@@ -45,7 +45,9 @@ public enum UserRole {
                     Permission.CANDIDATE_NOMINATE,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
-                    Permission.CLUB_MEMBERSHIP_VIEW
+                    Permission.CLUB_MEMBERSHIP_VIEW,
+                    // Club announcement read
+                    Permission.CLUB_ANNOUNCEMENT_READ
             )),
 
 
@@ -59,6 +61,15 @@ public enum UserRole {
                     Permission.CLUB_UPDATE,
                     Permission.CLUB_DELETE,
                     Permission.CLUB_MEMBERSHIP_MANAGE,
+                    Permission.CLUB_VIEW_STATS,
+                    Permission.CLUB_VIEW_ACTIVITY_LOG,
+
+
+                    // Club announcement management
+                    Permission.CLUB_ANNOUNCEMENT_CREATE,
+                    Permission.CLUB_ANNOUNCEMENT_READ,
+                    Permission.CLUB_ANNOUNCEMENT_UPDATE,
+                    Permission.CLUB_ANNOUNCEMENT_DELETE,
 
                     // Election management permissions
                     Permission.ELECTION_CREATE,

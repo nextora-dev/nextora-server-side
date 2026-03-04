@@ -15,12 +15,17 @@ import lk.iit.nextora.module.club.dto.request.CreateClubRequest;
 import lk.iit.nextora.module.club.dto.request.JoinClubRequest;
 import lk.iit.nextora.module.club.dto.response.ClubMembershipResponse;
 import lk.iit.nextora.module.club.dto.response.ClubResponse;
+import lk.iit.nextora.module.club.dto.response.ClubStatisticsResponse;
 import lk.iit.nextora.module.club.entity.Club;
+import lk.iit.nextora.module.club.entity.ClubActivityLog;
 import lk.iit.nextora.module.club.entity.ClubMembership;
 import lk.iit.nextora.module.club.mapper.ClubMapper;
+import lk.iit.nextora.module.club.repository.ClubAnnouncementRepository;
 import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
+import lk.iit.nextora.module.club.service.ClubActivityLogService;
 import lk.iit.nextora.module.club.service.ClubService;
+import lk.iit.nextora.module.election.repository.ElectionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static lk.iit.nextora.common.util.FileUtils.MAX_IMAGE_SIZE;
@@ -47,10 +55,13 @@ public class ClubServiceImpl implements ClubService {
 
     private final ClubRepository clubRepository;
     private final ClubMembershipRepository membershipRepository;
+    private final ClubAnnouncementRepository announcementRepository;
+    private final ElectionRepository electionRepository;
     private final StudentRepository studentRepository;
     private final AcademicStaffRepository academicStaffRepository;
     private final SecurityService securityService;
     private final ClubMapper clubMapper;
+    private final ClubActivityLogService activityLogService;
     private final lk.iit.nextora.config.S3.S3Service s3Service;
 
     // ==================== Club Management ====================
@@ -519,8 +530,157 @@ public class ClubServiceImpl implements ClubService {
     @Override
     public boolean canNominateInClub(Long clubId, Long memberId) {
         LocalDate today = LocalDate.now();
-        LocalDate eligibilityDate = today.minusMonths(3); // Member must have joined at least 3 months ago
+        LocalDate eligibilityDate = today.minusMonths(3);
         return membershipRepository.canNominateInClub(clubId, memberId, today, eligibilityDate);
+    }
+
+    // ==================== New Extended Features ====================
+
+    @Override
+    @Transactional
+    public ClubResponse toggleRegistration(Long clubId) {
+        Club club = findClubById(clubId);
+        validateClubAdminAccess(club);
+
+        boolean newState = !club.getIsRegistrationOpen();
+        club.setIsRegistrationOpen(newState);
+        club = clubRepository.save(club);
+
+        Long currentUserId = securityService.getCurrentUserId();
+        activityLogService.log(club,
+                newState ? ClubActivityLog.ActivityType.CLUB_REGISTRATION_OPENED : ClubActivityLog.ActivityType.CLUB_REGISTRATION_CLOSED,
+                "Registration " + (newState ? "opened" : "closed") + " for club " + club.getName(),
+                currentUserId, securityService.getCurrentUserEmail());
+
+        log.info("Club {} registration toggled to: {}", clubId, newState);
+        return enrichClubResponse(clubMapper.toResponse(club), clubId);
+    }
+
+    @Override
+    public ClubStatisticsResponse getClubStatistics(Long clubId) {
+        Club club = findClubById(clubId);
+        LocalDate today = LocalDate.now();
+
+        long totalMembers = membershipRepository.countActiveMembers(clubId, today);
+        long pendingApps = membershipRepository.findPendingApplications(clubId, org.springframework.data.domain.Pageable.unpaged()).getTotalElements();
+        long totalAnnouncements = announcementRepository.countByClubId(clubId);
+
+        // Real election statistics
+        long totalElections = electionRepository.countByClubIdAndIsDeletedFalse(clubId);
+        long activeElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.VOTING_OPEN)
+                + electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.NOMINATION_OPEN);
+        long completedElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.RESULTS_PUBLISHED);
+        long cancelledElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(clubId, ElectionStatus.CANCELLED);
+
+        return ClubStatisticsResponse.builder()
+                .clubId(club.getId())
+                .clubName(club.getName())
+                .clubCode(club.getClubCode())
+                .totalMembers(totalMembers)
+                .activeMembers(totalMembers)
+                .pendingApplications(pendingApps)
+                .suspendedMembers(0L)
+                .expiredMemberships(0L)
+                .totalElections(totalElections)
+                .activeElections(activeElections)
+                .completedElections(completedElections)
+                .cancelledElections(cancelledElections)
+                .totalCandidatesAllTime(0L)
+                .totalVotesCastAllTime(0L)
+                .generatedAt(LocalDateTime.now())
+                .message("Statistics generated successfully for club: " + club.getName())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public List<ClubMembershipResponse> bulkApproveMemberships(Long clubId, List<Long> membershipIds) {
+        log.info("Bulk approving {} memberships for club {}", membershipIds.size(), clubId);
+        Club club = findClubById(clubId);
+        validateMembershipApprovalAccess(club);
+
+        Long currentUserId = securityService.getCurrentUserId();
+        Student approver = null;
+        try {
+            approver = findStudentById(currentUserId);
+        } catch (ResourceNotFoundException e) {
+            log.info("Approver {} is not a student, proceeding with admin/staff approval", currentUserId);
+        }
+
+        List<ClubMembershipResponse> results = new ArrayList<>();
+        for (Long membershipId : membershipIds) {
+            try {
+                ClubMembership membership = findMembershipById(membershipId);
+                if (membership.getStatus() != ClubMembershipStatus.PENDING) {
+                    continue;
+                }
+                if (!membership.getClub().getId().equals(clubId)) {
+                    continue;
+                }
+
+                membership.approve(approver);
+                if (membership.getPosition() == null) {
+                    membership.setPosition(ClubPositionsType.GENERAL_MEMBER);
+                }
+                membership = membershipRepository.save(membership);
+
+                Student member = membership.getMember();
+                if (!member.hasRoleType(StudentRoleType.CLUB_MEMBER)) {
+                    member.addRoleType(StudentRoleType.CLUB_MEMBER);
+                    if (member.getClubPosition() == null) {
+                        member.setClubPosition(ClubPositionsType.GENERAL_MEMBER);
+                    }
+                    studentRepository.save(member);
+                }
+
+                results.add(clubMapper.toResponse(membership));
+            } catch (Exception e) {
+                log.warn("Failed to approve membership {}: {}", membershipId, e.getMessage());
+            }
+        }
+
+        activityLogService.log(club, ClubActivityLog.ActivityType.BULK_MEMBER_APPROVED,
+                "Bulk approved " + results.size() + " memberships",
+                currentUserId, securityService.getCurrentUserEmail());
+
+        log.info("Bulk approved {} memberships for club {}", results.size(), clubId);
+        return results;
+    }
+
+    @Override
+    @Transactional
+    public ClubMembershipResponse changeMemberPosition(Long membershipId, ClubPositionsType newPosition, String reason) {
+        log.info("Changing position of membership {} to {}", membershipId, newPosition);
+
+        ClubMembership membership = findMembershipById(membershipId);
+        Club club = membership.getClub();
+
+        // Only president or admin can change positions
+        validateClubAdminAccess(club);
+
+        if (membership.getStatus() != ClubMembershipStatus.ACTIVE) {
+            throw new BadRequestException("Only active members can have their position changed");
+        }
+
+        ClubPositionsType oldPosition = membership.getPosition();
+        membership.setPosition(newPosition);
+        membership.setRemarks(reason != null ? reason : "Position changed from " + oldPosition + " to " + newPosition);
+        membership = membershipRepository.save(membership);
+
+        // Update student's club position
+        Student member = membership.getMember();
+        member.setClubPosition(newPosition);
+        studentRepository.save(member);
+
+        Long currentUserId = securityService.getCurrentUserId();
+        activityLogService.log(club, ClubActivityLog.ActivityType.MEMBER_POSITION_CHANGED,
+                "Position changed from " + oldPosition + " to " + newPosition + " for " + member.getFullName(),
+                currentUserId, securityService.getCurrentUserEmail(),
+                member.getId(), member.getFullName(),
+                membershipId, "ClubMembership", null);
+
+        log.info("Position changed for membership {}: {} -> {}", membershipId, oldPosition, newPosition);
+        return clubMapper.toResponse(membership);
     }
 
     // ==================== Helper Methods ====================
@@ -594,8 +754,14 @@ public class ClubServiceImpl implements ClubService {
     private ClubResponse enrichClubResponse(ClubResponse response, Long clubId) {
         response.setTotalMembers((int) membershipRepository.countActiveMembers(clubId, LocalDate.now()));
         response.setActiveMembers((int) membershipRepository.countActiveMembers(clubId, LocalDate.now()));
-        // Elections are managed in voting module, so we don't count them here
-        response.setTotalElections(0);
+
+        // Real election statistics from Election module
+        response.setTotalElections((int) electionRepository.countByClubIdAndIsDeletedFalse(clubId));
+        long activeElections = electionRepository.countByClubIdAndStatusAndIsDeletedFalse(
+                clubId, ElectionStatus.VOTING_OPEN)
+                + electionRepository.countByClubIdAndStatusAndIsDeletedFalse(
+                clubId, ElectionStatus.NOMINATION_OPEN);
+        response.setActiveElections((int) activeElections);
         return response;
     }
 
