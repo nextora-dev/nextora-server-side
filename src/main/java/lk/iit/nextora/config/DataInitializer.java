@@ -1,5 +1,7 @@
 package lk.iit.nextora.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lk.iit.nextora.common.enums.*;
 import lk.iit.nextora.module.auth.entity.*;
 import lk.iit.nextora.module.auth.repository.*;
@@ -9,6 +11,8 @@ import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.election.entity.*;
 import lk.iit.nextora.module.election.repository.*;
+import lk.iit.nextora.module.intranet.entity.*;
+import lk.iit.nextora.module.intranet.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -18,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -34,6 +38,20 @@ public class DataInitializer implements CommandLineRunner {
     private final ElectionRepository electionRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // ── Intranet repositories ───────────────────────────────────────
+    private final StudentComplaintCategoryRepository complaintRepo;
+    private final AcademicCalendarRepository calendarRepo;
+    private final ProgramRepository programRepo;
+    private final FoundationCategoryRepository foundationRepo;
+    private final SruCategoryRepository sruRepo;
+    private final StudentPolicyRepository policyRepo;
+    private final MitigationFormRepository mitigationRepo;
+    private final StaffCategoryRepository staffRepo;
+    private final InfoCategoryRepository infoRepo;
+    private final ScheduleCategoryRepository scheduleRepo;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
@@ -47,6 +65,9 @@ public class DataInitializer implements CommandLineRunner {
         createClubs();
         createClubMemberships();
         createElections();
+
+        // ── Intranet content seeding ────────────────────────────────
+        seedIntranetContent();
 
         log.info("Data initialization completed successfully!");
     }
@@ -841,4 +862,586 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  INTRANET CONTENT SEEDING (moved from IntranetDataSeeder)
+    // ═══════════════════════════════════════════════════════════════════
+
+    private void seedIntranetContent() {
+        log.info("Checking intranet content tables for seed data...");
+        boolean needsReseed = isIntranetReseedRequired();
+        if (needsReseed) {
+            log.info("Incomplete or missing intranet data detected — clearing and re-seeding all tables...");
+            clearAllIntranetData();
+        }
+        seedScheduleCategories();
+        seedComplaints();
+        seedAcademicCalendars();
+        seedUndergraduatePrograms();
+        seedPostgraduatePrograms();
+        seedFoundationCategories();
+        seedSruCategories();
+        seedStudentPolicies();
+        seedMitigationForms();
+        seedStaffCategories();
+        seedInfoCategories();
+        log.info("Intranet content seed check complete.");
+    }
+
+    private boolean isIntranetReseedRequired() {
+        if (!calendarRepo.existsByUniversitySlugAndIsDeletedFalse("uow")) return true;
+        if (!calendarRepo.existsByUniversitySlugAndIsDeletedFalse("rgu")) return true;
+
+        for (String slug : List.of("orientation","temporary","assessments","annual-events")) {
+            if (!scheduleRepo.existsByCategorySlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        if (!complaintRepo.existsByCategorySlugAndIsDeletedFalse("academic-course-delivery")) return true;
+        if (!complaintRepo.existsByCategorySlugAndIsDeletedFalse("facility-and-support-system")) return true;
+
+        for (String slug : List.of("bsc-ai-ds","bsc-cs","beng-se","bsc-bda","bsc-bis","ba-bm","bsc-bc")) {
+            if (!programRepo.existsByProgramSlugAndProgramLevelAndIsDeletedFalse(slug, "UNDERGRADUATE")) return true;
+        }
+        for (String slug : List.of("msc-ase","msc-cs-f","msc-it","msc-bda","msc-ba","msc-fbm")) {
+            if (!programRepo.existsByProgramSlugAndProgramLevelAndIsDeletedFalse(slug, "POSTGRADUATE")) return true;
+        }
+
+        for (String slug : List.of("academic-calendar","program-specification","important-contact-details","time-table","assessment-schedule","lms-login-details","mitigating-circumstances-form")) {
+            if (!foundationRepo.existsByCategorySlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        if (sruRepo.findRootCategory().isEmpty()) return true;
+        if (!sruRepo.existsByCategorySlugAndIsDeletedFalse("help-desk-video-series")) return true;
+
+        for (String slug : List.of("participation-at-conferences","participation-at-competitions","code-of-conduct","club-policy","it-policy")) {
+            if (!policyRepo.existsByPolicySlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        for (String slug : List.of("uow-late-mitigation-circumstances-form","uow-mitigating-circumstances-form","uow-self-certification-claim-form","rgu-coursework-extension-form-self-certification","rgu-deferral-request-form-self-certification")) {
+            if (!mitigationRepo.existsByFormSlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        for (String slug : List.of("soc","common-info","mail-groups","doc-arch","contacts")) {
+            if (!staffRepo.existsByCategorySlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        for (String slug : List.of("course-details","houses","students-union","clubs-and-societies")) {
+            if (!infoRepo.existsByCategorySlugAndIsDeletedFalse(slug)) return true;
+        }
+
+        return false;
+    }
+
+    private void clearAllIntranetData() {
+        scheduleRepo.deleteAll();  scheduleRepo.flush();
+        calendarRepo.deleteAll();  calendarRepo.flush();
+        programRepo.deleteAll();   programRepo.flush();
+        foundationRepo.deleteAll(); foundationRepo.flush();
+        sruRepo.deleteAll();       sruRepo.flush();
+        policyRepo.deleteAll();    policyRepo.flush();
+        mitigationRepo.deleteAll(); mitigationRepo.flush();
+        complaintRepo.deleteAll(); complaintRepo.flush();
+        staffRepo.deleteAll();     staffRepo.flush();
+        infoRepo.deleteAll();      infoRepo.flush();
+        log.info("Cleared all intranet content tables for re-seeding.");
+    }
+
+    // ── Schedules ───────────────────────────────────────────────────
+    private void seedScheduleCategories() {
+        if (!scheduleRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByCategoryNameAsc().isEmpty()) return;
+        log.info("Seeding schedule categories...");
+
+        ScheduleCategory orientation = ScheduleCategory.builder()
+                .categoryName("Orientation").categorySlug("orientation")
+                .description("Orientation schedules for new students including welcome events and campus tours")
+                .build();
+        orientation.addEvent(ScheduleEvent.builder().eventName("New Student Welcome Ceremony").description("Welcome ceremony for all new undergraduate and postgraduate students").startDate("2026-02-10").endDate("2026-02-10").venue("IIT Main Auditorium").eventType("CEREMONY").isEventActive(true).build());
+        orientation.addEvent(ScheduleEvent.builder().eventName("Campus Tour - Day 1").description("Guided tour of IIT campus facilities including labs, library, and sports complex").startDate("2026-02-11").endDate("2026-02-11").venue("IIT Main Campus").eventType("TOUR").isEventActive(true).build());
+        orientation.addEvent(ScheduleEvent.builder().eventName("IT Systems Orientation").description("Introduction to LMS, student portal, email setup, and Wi-Fi access").startDate("2026-02-12").endDate("2026-02-12").venue("Lab 1 & Lab 2").eventType("WORKSHOP").isEventActive(true).build());
+        orientation.addEvent(ScheduleEvent.builder().eventName("Academic Policies Briefing").description("Overview of academic policies, assessment procedures, and student support services").startDate("2026-02-13").endDate("2026-02-13").venue("Lecture Hall A").eventType("BRIEFING").isEventActive(true).build());
+        orientation.addEvent(ScheduleEvent.builder().eventName("Club Fair & Networking").description("Meet student clubs and societies, sign up for activities").startDate("2026-02-14").endDate("2026-02-14").venue("IIT Sports Complex").eventType("SOCIAL").isEventActive(true).build());
+        scheduleRepo.save(orientation);
+
+        ScheduleCategory temporary = ScheduleCategory.builder()
+                .categoryName("Temporary").categorySlug("temporary")
+                .description("Temporary schedule changes, room changes, and one-time scheduling updates")
+                .build();
+        temporary.addEvent(ScheduleEvent.builder().eventName("Room Change - CS5001 Database Systems").description("CS5001 moved from Lab 2 to Lab 4 due to equipment maintenance").startDate("2026-03-04").endDate("2026-03-04").venue("Lab 4 (was Lab 2)").eventType("ROOM_CHANGE").isEventActive(true).build());
+        temporary.addEvent(ScheduleEvent.builder().eventName("Cancelled - FP004 Introduction to Business").description("Lecture cancelled due to lecturer illness. Replacement session on Friday").startDate("2026-03-03").endDate("2026-03-03").venue("N/A").eventType("CANCELLATION").isEventActive(true).build());
+        temporary.addEvent(ScheduleEvent.builder().eventName("Extra Tutorial - AI5001 Machine Learning").description("Additional revision tutorial before mid-term assessment").startDate("2026-03-07").endDate("2026-03-07").venue("Tutorial Room 3").eventType("EXTRA_SESSION").isEventActive(true).build());
+        scheduleRepo.save(temporary);
+
+        ScheduleCategory assessments = ScheduleCategory.builder()
+                .categoryName("Assessments").categorySlug("assessments")
+                .description("Assessment and examination schedules across all programmes")
+                .build();
+        assessments.addEvent(ScheduleEvent.builder().eventName("AI4002 Programming Fundamentals - Coursework 1 Deadline").description("Submit via LMS by 23:59. Late penalties apply.").startDate("2026-03-14").endDate("2026-03-14").venue("Online (LMS)").eventType("COURSEWORK_DEADLINE").isEventActive(true).build());
+        assessments.addEvent(ScheduleEvent.builder().eventName("CS4001 Introduction to CS - Mid-Term Test").description("Written test covering weeks 1-6 material. 1.5 hours.").startDate("2026-03-17").endDate("2026-03-17").venue("Exam Hall A").eventType("EXAM").isEventActive(true).build());
+        assessments.addEvent(ScheduleEvent.builder().eventName("SE4001 Intro to SE - Group Presentation").description("Group presentations for SDGP project milestone 1").startDate("2026-03-20").endDate("2026-03-21").venue("Seminar Room 1").eventType("PRESENTATION").isEventActive(true).build());
+        assessments.addEvent(ScheduleEvent.builder().eventName("BDA4001 Intro to Data Analytics - Lab Test").description("Practical lab test on Python data analysis. 2 hours.").startDate("2026-03-24").endDate("2026-03-24").venue("Lab 3").eventType("LAB_TEST").isEventActive(true).build());
+        assessments.addEvent(ScheduleEvent.builder().eventName("Semester 2 Final Examination Period").description("Final examinations for all semester 2 modules").startDate("2026-06-01").endDate("2026-06-19").venue("Exam Hall A & B").eventType("EXAM_PERIOD").isEventActive(true).build());
+        scheduleRepo.save(assessments);
+
+        ScheduleCategory annualEvents = ScheduleCategory.builder()
+                .categoryName("Annual Events").categorySlug("annual-events")
+                .description("Annual institutional events, ceremonies, and important dates")
+                .build();
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("IIT Hackathon 2026").description("Annual 24-hour hackathon open to all IIT students. Cash prizes for top 3 teams.").startDate("2026-03-15").endDate("2026-03-16").venue("IIT Main Auditorium & Labs").eventType("COMPETITION").isEventActive(true).build());
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("Career Fair 2026").description("Annual career fair with 50+ top IT and business companies in Sri Lanka").startDate("2026-04-10").endDate("2026-04-10").venue("IIT Sports Complex").eventType("CAREER").isEventActive(true).build());
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("IIT Sports Day").description("Inter-house sports competition. Track events, cricket, badminton, and football.").startDate("2026-05-02").endDate("2026-05-03").venue("IIT Sports Complex").eventType("SPORTS").isEventActive(true).build());
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("Annual Awards Ceremony").description("Recognition of academic excellence, club achievements, and outstanding contributions").startDate("2026-07-12").endDate("2026-07-12").venue("IIT Main Auditorium").eventType("CEREMONY").isEventActive(true).build());
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("Freshers' Welcome 2026").description("Welcome party for new intake students with entertainment and food").startDate("2026-09-20").endDate("2026-09-20").venue("IIT Sports Complex").eventType("SOCIAL").isEventActive(true).build());
+        annualEvents.addEvent(ScheduleEvent.builder().eventName("IIT Convocation 2026").description("Graduation ceremony for all completing students").startDate("2026-11-15").endDate("2026-11-15").venue("BMICH, Colombo").eventType("CEREMONY").isEventActive(true).build());
+        scheduleRepo.save(annualEvents);
+
+        log.info("Seeded 4 schedule categories with events.");
+    }
+
+    // ── Student Complaints ──────────────────────────────────────────
+    private void seedComplaints() {
+        if (!complaintRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByCategoryNameAsc().isEmpty()) return;
+        log.info("Seeding student complaint categories...");
+
+        complaintRepo.save(StudentComplaintCategory.builder()
+                .categoryName("Academic Course Delivery").categorySlug("academic-course-delivery")
+                .description("Submit complaints regarding academic course delivery including lecture quality, module content, assessment fairness, lecturer availability, and academic support.")
+                .formUrl("https://forms.example.com/academic-course-delivery")
+                .contactEmail("complaints.academic@iit.ac.lk").contactPhone("+94 11 234 5678")
+                .instructions("Please describe your complaint in detail. Include the module code, lecturer name, and specific dates if applicable. All complaints are handled confidentially.")
+                .responseTimeBusinessDays(5).build());
+
+        complaintRepo.save(StudentComplaintCategory.builder()
+                .categoryName("Facility and Support System").categorySlug("facility-and-support-system")
+                .description("Submit complaints regarding campus facilities, IT infrastructure, library services, lab equipment, Wi-Fi, student support systems, and general campus maintenance.")
+                .formUrl("https://forms.example.com/facility-support")
+                .contactEmail("complaints.facility@iit.ac.lk").contactPhone("+94 11 234 5679")
+                .instructions("Please specify the facility/service involved, the issue encountered, and the location. Attach photos if applicable.")
+                .responseTimeBusinessDays(3).build());
+
+        log.info("Seeded 2 student complaint categories.");
+    }
+
+    // ── Academic Calendars ──────────────────────────────────────────
+    private void seedAcademicCalendars() {
+        if (!calendarRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByUniversityNameAsc().isEmpty()) return;
+        log.info("Seeding academic calendars...");
+
+        AcademicCalendar uow = AcademicCalendar.builder().universityName("University of Wolverhampton (UoW)").universitySlug("uow").academicYear("2025/2026").calendarFileUrl("https://storage.example.com/calendars/uow-2025-2026.pdf").build();
+        uow.addEvent(CalendarEvent.builder().eventName("Semester 1 Start").startDate("2025-09-15").endDate("2025-09-15").eventType("SEMESTER_START").build());
+        uow.addEvent(CalendarEvent.builder().eventName("Mid-Semester Break").startDate("2025-11-03").endDate("2025-11-09").eventType("BREAK").build());
+        uow.addEvent(CalendarEvent.builder().eventName("Semester 1 Examinations").startDate("2026-01-12").endDate("2026-01-30").eventType("EXAM_PERIOD").build());
+        uow.addEvent(CalendarEvent.builder().eventName("Semester 2 Start").startDate("2026-02-10").endDate("2026-02-10").eventType("SEMESTER_START").build());
+        uow.addEvent(CalendarEvent.builder().eventName("Semester 2 Examinations").startDate("2026-06-01").endDate("2026-06-19").eventType("EXAM_PERIOD").build());
+        calendarRepo.save(uow);
+
+        AcademicCalendar rgu = AcademicCalendar.builder().universityName("Robert Gordon University (RGU)").universitySlug("rgu").academicYear("2025/2026").calendarFileUrl("https://storage.example.com/calendars/rgu-2025-2026.pdf").build();
+        rgu.addEvent(CalendarEvent.builder().eventName("Trimester 1 Start").startDate("2025-09-22").endDate("2025-09-22").eventType("SEMESTER_START").build());
+        rgu.addEvent(CalendarEvent.builder().eventName("Winter Break").startDate("2025-12-20").endDate("2026-01-05").eventType("BREAK").build());
+        rgu.addEvent(CalendarEvent.builder().eventName("Trimester 1 Examinations").startDate("2026-01-19").endDate("2026-02-06").eventType("EXAM_PERIOD").build());
+        rgu.addEvent(CalendarEvent.builder().eventName("Trimester 2 Start").startDate("2026-02-17").endDate("2026-02-17").eventType("SEMESTER_START").build());
+        rgu.addEvent(CalendarEvent.builder().eventName("Trimester 2 Examinations").startDate("2026-05-25").endDate("2026-06-12").eventType("EXAM_PERIOD").build());
+        calendarRepo.save(rgu);
+
+        log.info("Seeded 2 academic calendars with events.");
+    }
+
+    // ── Undergraduate Programs ──────────────────────────────────────
+    private void seedUndergraduatePrograms() {
+        if (!programRepo.findAllByProgramLevelAndIsDeletedFalseAndIsActiveTrueOrderByProgramNameAsc("UNDERGRADUATE").isEmpty()) return;
+        log.info("Seeding undergraduate programs...");
+
+        saveProgram("BSC_AI_DS", "BSc (Hons) Artificial Intelligence and Data Science", "bsc-ai-ds", "University of Wolverhampton", "3 years", 360, "UNDERGRADUATE",
+                "This programme provides a comprehensive foundation in Artificial Intelligence and Data Science, covering machine learning, deep learning, data mining, statistical analysis, and practical AI applications.",
+                "Completion of IIT Foundation Programme or equivalent qualification. Minimum 3 A/L passes including Mathematics.",
+                List.of("AI Engineer", "Data Scientist", "Machine Learning Engineer", "Business Intelligence Analyst", "Research Scientist"),
+                List.of(mod(1, 1, "AI4001", "Introduction to Artificial Intelligence", 20), mod(1, 1, "AI4002", "Programming Fundamentals with Python", 20), mod(1, 2, "AI4003", "Data Structures and Algorithms", 20), mod(2, 1, "AI5001", "Machine Learning", 20), mod(3, 1, "AI6001", "Deep Learning and Neural Networks", 20)),
+                "https://storage.example.com/specs/bsc-ai-ds-spec.pdf", "https://storage.example.com/handbooks/bsc-ai-ds-handbook.pdf");
+
+        saveProgram("BSC_CS", "BSc (Hons) Computer Science", "bsc-cs", "University of Wolverhampton", "3 years", 360, "UNDERGRADUATE",
+                "A comprehensive programme covering core computer science principles, software development, and emerging technologies.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes including Mathematics.",
+                List.of("Software Developer", "Systems Architect", "DevOps Engineer", "Technical Consultant"),
+                List.of(mod(1, 1, "CS4001", "Programming Fundamentals", 20), mod(1, 1, "CS4002", "Computer Architecture", 20), mod(1, 1, "CS4003", "Discrete Mathematics", 20), mod(1, 2, "CS4004", "Object-Oriented Programming", 20), mod(1, 2, "CS4005", "Databases", 20), mod(1, 2, "CS4006", "Web Technologies", 20)),
+                "https://storage.example.com/specs/bsc-cs-spec.pdf", "https://storage.example.com/handbooks/bsc-cs-handbook.pdf");
+
+        saveProgram("BENG_SE", "BEng (Hons) Software Engineering", "beng-se", "University of Wolverhampton", "3 years", 360, "UNDERGRADUATE",
+                "A practical engineering programme focused on designing, building, and maintaining large-scale software systems.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes including Mathematics.",
+                List.of("Software Engineer", "Full-Stack Developer", "QA Engineer", "Technical Lead"),
+                List.of(mod(1, 1, "SE4001", "Software Engineering Principles", 20), mod(1, 1, "SE4002", "Programming I", 20), mod(1, 2, "SE4003", "Requirements Engineering", 20), mod(1, 2, "SE4004", "Data Structures & Algorithms", 20)),
+                "https://storage.example.com/specs/beng-se-spec.pdf", "https://storage.example.com/handbooks/beng-se-handbook.pdf");
+
+        saveProgram("BSC_BDA", "BSc (Hons) Big Data Analytics", "bsc-bda", "Robert Gordon University", "3 years", 360, "UNDERGRADUATE",
+                "Programme focused on large-scale data processing, analytics platforms, and data-driven decision making.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes.",
+                List.of("Big Data Engineer", "Data Analyst", "BI Developer", "Analytics Consultant"),
+                List.of(mod(1, 1, "BD4001", "Data Fundamentals", 20), mod(1, 2, "BD4002", "Analytics Programming", 20)),
+                "https://storage.example.com/specs/bsc-bda-spec.pdf", "https://storage.example.com/handbooks/bsc-bda-handbook.pdf");
+
+        saveProgram("BSC_BIS", "BSc (Hons) Business Information Systems", "bsc-bis", "Robert Gordon University", "3 years", 360, "UNDERGRADUATE",
+                "Bridging business strategy and IT systems, this programme prepares graduates for roles at the intersection of technology and management.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes.",
+                List.of("Business Analyst", "IT Consultant", "Systems Analyst", "Project Manager"),
+                List.of(mod(1, 1, "BI4001", "Business Information Systems", 20), mod(1, 2, "BI4002", "Systems Analysis & Design", 20)),
+                "https://storage.example.com/specs/bsc-bis-spec.pdf", "https://storage.example.com/handbooks/bsc-bis-handbook.pdf");
+
+        saveProgram("BA_BM", "BA (Hons) Business Management", "ba-bm", "Robert Gordon University", "3 years", 360, "UNDERGRADUATE",
+                "A programme that develops critical thinking, leadership, and management skills for the modern business environment.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes.",
+                List.of("Management Trainee", "Operations Manager", "HR Manager", "Entrepreneur"),
+                List.of(mod(1, 1, "BM4001", "Principles of Management", 20), mod(1, 2, "BM4002", "Organizational Behaviour", 20)),
+                "https://storage.example.com/specs/ba-bm-spec.pdf", "https://storage.example.com/handbooks/ba-bm-handbook.pdf");
+
+        saveProgram("BSC_BC", "BSc (Hons) Business Computing", "bsc-bc", "Robert Gordon University", "3 years", 360, "UNDERGRADUATE",
+                "Combining computing fundamentals with business acumen, this programme produces technology-savvy business professionals.",
+                "Completion of IIT Foundation Programme or equivalent. Minimum 3 A/L passes.",
+                List.of("IT Manager", "Business Systems Developer", "Technology Consultant", "Digital Transformation Lead"),
+                List.of(mod(1, 1, "BC4001", "Computing Fundamentals", 20), mod(1, 2, "BC4002", "Business Process Modelling", 20)),
+                "https://storage.example.com/specs/bsc-bc-spec.pdf", "https://storage.example.com/handbooks/bsc-bc-handbook.pdf");
+
+        log.info("Seeded 7 undergraduate programs.");
+    }
+
+    // ── Postgraduate Programs ───────────────────────────────────────
+    private void seedPostgraduatePrograms() {
+        if (!programRepo.findAllByProgramLevelAndIsDeletedFalseAndIsActiveTrueOrderByProgramNameAsc("POSTGRADUATE").isEmpty()) return;
+        log.info("Seeding postgraduate programs...");
+
+        saveProgram("MSC_ASE", "MSc Advanced Software Engineering", "msc-ase", "University of Wolverhampton", "1 year", 180, "POSTGRADUATE",
+                "An advanced programme for professionals seeking to deepen their software engineering expertise.", "Bachelor's degree in Computing or related field. IELTS 6.5.",
+                List.of("Senior Software Engineer", "Solutions Architect", "Technical Lead", "CTO"),
+                List.of(mod(null, 1, "ASE7001", "Advanced Software Design", 20), mod(null, 1, "ASE7002", "Cloud Computing", 20), mod(null, 2, "ASE7003", "DevOps & CI/CD", 20), mod(null, 2, "ASE7004", "Dissertation", 60)),
+                "https://storage.example.com/specs/msc-ase-spec.pdf", "https://storage.example.com/handbooks/msc-ase-handbook.pdf");
+
+        saveProgram("MSC_CS_F", "MSc Cyber Security and Forensics", "msc-cs-f", "University of Wolverhampton", "1 year", 180, "POSTGRADUATE",
+                "Specialist programme in cyber security, digital forensics, and ethical hacking.", "Bachelor's degree in Computing or related field. IELTS 6.5.",
+                List.of("Cyber Security Analyst", "Penetration Tester", "Security Consultant", "CISO"),
+                List.of(mod(null, 1, "CSF7001", "Network Security", 20), mod(null, 1, "CSF7002", "Digital Forensics", 20), mod(null, 2, "CSF7003", "Ethical Hacking", 20), mod(null, 2, "CSF7004", "Dissertation", 60)),
+                "https://storage.example.com/specs/msc-cs-f-spec.pdf", "https://storage.example.com/handbooks/msc-cs-f-handbook.pdf");
+
+        saveProgram("MSC_IT", "MSc Information Technology", "msc-it", "University of Wolverhampton", "1 year", 180, "POSTGRADUATE",
+                "A broad programme covering modern IT management, systems, and infrastructure.", "Bachelor's degree. IELTS 6.5.",
+                List.of("IT Manager", "Systems Administrator", "IT Consultant", "Enterprise Architect"),
+                List.of(mod(null, 1, "IT7001", "IT Strategy & Governance", 20), mod(null, 2, "IT7002", "Cloud Infrastructure", 20)),
+                "https://storage.example.com/specs/msc-it-spec.pdf", "https://storage.example.com/handbooks/msc-it-handbook.pdf");
+
+        saveProgram("MSC_BDA", "MSc Big Data Analytics", "msc-bda", "Robert Gordon University", "1 year", 180, "POSTGRADUATE",
+                "Advanced programme in big data technologies, analytics platforms, and data science.", "Bachelor's degree in Computing, Mathematics, or related field. IELTS 6.5.",
+                List.of("Senior Data Engineer", "Lead Data Scientist", "Analytics Director"),
+                List.of(mod(null, 1, "BDA7001", "Advanced Data Mining", 20), mod(null, 2, "BDA7002", "Scalable Data Systems", 20)),
+                "https://storage.example.com/specs/msc-bda-spec.pdf", "https://storage.example.com/handbooks/msc-bda-handbook.pdf");
+
+        saveProgram("MSC_BA", "MSc Business Analytics", "msc-ba", "Robert Gordon University", "1 year", 180, "POSTGRADUATE",
+                "Programme combining business intelligence with advanced analytical methods.", "Bachelor's degree. IELTS 6.5.",
+                List.of("Business Intelligence Manager", "Analytics Consultant", "Strategy Analyst"),
+                List.of(mod(null, 1, "BA7001", "Predictive Analytics", 20), mod(null, 2, "BA7002", "Business Intelligence", 20)),
+                "https://storage.example.com/specs/msc-ba-spec.pdf", "https://storage.example.com/handbooks/msc-ba-handbook.pdf");
+
+        saveProgram("MSC_FBM", "MSc Finance and Business Management", "msc-fbm", "Robert Gordon University", "1 year", 180, "POSTGRADUATE",
+                "A programme for those aspiring to leadership roles in finance and business management.", "Bachelor's degree. IELTS 6.5.",
+                List.of("Financial Analyst", "Finance Manager", "Business Development Manager"),
+                List.of(mod(null, 1, "FBM7001", "Corporate Finance", 20), mod(null, 2, "FBM7002", "Strategic Management", 20)),
+                "https://storage.example.com/specs/msc-fbm-spec.pdf", "https://storage.example.com/handbooks/msc-fbm-handbook.pdf");
+
+        log.info("Seeded 6 postgraduate programs.");
+    }
+
+    // ── Foundation Program Categories ────────────────────────────────
+    private void seedFoundationCategories() {
+        if (!foundationRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByCategoryNameAsc().isEmpty()) return;
+        log.info("Seeding foundation program categories...");
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Academic Calendar").categorySlug("academic-calendar")
+                .description("Foundation programme academic calendar for the current year")
+                .academicYear("2025/2026").calendarFileUrl("https://storage.example.com/foundation/calendar-2025-2026.pdf")
+                .contentJson(toJson(Map.of("events", List.of(
+                        Map.of("eventName", "Foundation Semester 1 Start", "startDate", "2025-09-01", "endDate", "2025-09-01", "eventType", "SEMESTER_START"),
+                        Map.of("eventName", "Mid-Semester Break", "startDate", "2025-11-10", "endDate", "2025-11-14", "eventType", "BREAK"),
+                        Map.of("eventName", "Foundation Semester 1 Exams", "startDate", "2025-12-15", "endDate", "2025-12-22", "eventType", "EXAM_PERIOD"),
+                        Map.of("eventName", "Foundation Semester 2 Start", "startDate", "2026-01-12", "endDate", "2026-01-12", "eventType", "SEMESTER_START")
+                )))).build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Program Specification").categorySlug("program-specification")
+                .description("Foundation programme specification document")
+                .programName("IIT Foundation Programme").duration("1 year (Full-time)").totalCredits(120)
+                .specificationFileUrl("https://storage.example.com/foundation/programme-spec.pdf")
+                .contentJson(toJson(Map.of("modules", List.of(
+                        Map.of("moduleCode", "FND101", "moduleName", "Academic English", "credits", 20, "semester", 1),
+                        Map.of("moduleCode", "FND102", "moduleName", "Mathematics for Computing", "credits", 20, "semester", 1),
+                        Map.of("moduleCode", "FND103", "moduleName", "Introduction to Programming", "credits", 20, "semester", 1),
+                        Map.of("moduleCode", "FND201", "moduleName", "Advanced English", "credits", 20, "semester", 2),
+                        Map.of("moduleCode", "FND202", "moduleName", "Statistics", "credits", 20, "semester", 2),
+                        Map.of("moduleCode", "FND203", "moduleName", "Web Development", "credits", 20, "semester", 2)
+                )))).build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Important Contact Details").categorySlug("important-contact-details")
+                .description("Key contacts for the foundation programme")
+                .contentJson(toJson(Map.of("contacts", List.of(
+                        Map.of("role", "Programme Leader", "name", "Dr. Sarah Fernando", "email", "sarah.fernando@iit.ac.lk", "phone", "+94 11 234 5601", "officeHours", "Mon-Fri 9:00-17:00", "office", "Room 201, Main Building"),
+                        Map.of("role", "Academic Coordinator", "name", "Mr. Kamal Perera", "email", "kamal.perera@iit.ac.lk", "phone", "+94 11 234 5602", "officeHours", "Mon-Fri 9:00-16:00", "office", "Room 202, Main Building"),
+                        Map.of("role", "Student Support", "name", "Ms. Nimal Jayawardena", "email", "support.foundation@iit.ac.lk", "phone", "+94 11 234 5603", "officeHours", "Mon-Fri 8:30-17:30", "office", "Student Hub")
+                )))).build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Time Table").categorySlug("time-table")
+                .description("Current semester timetable for foundation programme students")
+                .semester("Semester 2").effectiveFrom("2026-01-12").timetableFileUrl("https://storage.example.com/foundation/timetable-s2.pdf")
+                .contentJson(toJson(Map.of("schedule", List.of(
+                        Map.of("day", "Monday", "slots", List.of(Map.of("startTime", "09:00", "endTime", "11:00", "moduleCode", "FND201", "moduleName", "Advanced English", "lecturer", "Ms. Amanda Silva", "venue", "LR-101"))),
+                        Map.of("day", "Tuesday", "slots", List.of(Map.of("startTime", "09:00", "endTime", "11:00", "moduleCode", "FND202", "moduleName", "Statistics", "lecturer", "Dr. Kumara Dias", "venue", "LR-203"))),
+                        Map.of("day", "Wednesday", "slots", List.of(Map.of("startTime", "13:00", "endTime", "15:00", "moduleCode", "FND203", "moduleName", "Web Development", "lecturer", "Mr. Ashan Rathnayake", "venue", "Lab-02")))
+                )))).build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Assessment Schedule").categorySlug("assessment-schedule")
+                .description("Assessment schedule including deadlines and weightings")
+                .scheduleFileUrl("https://storage.example.com/foundation/assessment-schedule.pdf")
+                .contentJson(toJson(Map.of("assessments", List.of(
+                        Map.of("moduleCode", "FND201", "moduleName", "Advanced English", "assessmentType", "Essay", "description", "Academic writing essay", "weightPercentage", 40, "submissionDeadline", "2026-03-15"),
+                        Map.of("moduleCode", "FND202", "moduleName", "Statistics", "assessmentType", "Exam", "description", "Mid-semester exam", "weightPercentage", 50, "submissionDeadline", "2026-03-20"),
+                        Map.of("moduleCode", "FND203", "moduleName", "Web Development", "assessmentType", "Project", "description", "Portfolio website", "weightPercentage", 60, "submissionDeadline", "2026-04-10")
+                )))).build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("LMS Login Details").categorySlug("lms-login-details")
+                .description("Learning Management System access information")
+                .lmsName("Moodle").lmsUrl("https://lms.iit.ac.lk")
+                .loginInstructions("Use your IIT student credentials to log in. First-time users must activate their account via the link sent to their registered email.")
+                .usernameFormat("student_id@student.iit.ac.lk").defaultPasswordInfo("Your default password is your date of birth in DDMMYYYY format. You will be prompted to change it on first login.")
+                .passwordResetUrl("https://lms.iit.ac.lk/login/forgot_password.php")
+                .contentJson(toJson(Map.of("supportContact", Map.of("name", "IT Help Desk", "email", "it.help@iit.ac.lk", "phone", "+94 11 234 5600"))))
+                .browserRequirements(new ArrayList<>(List.of("Google Chrome 90+", "Mozilla Firefox 88+", "Microsoft Edge 90+", "Safari 14+")))
+                .additionalNotes("Ensure pop-ups are enabled for the LMS domain. Mobile access is available via the Moodle mobile app.")
+                .build());
+
+        foundationRepo.save(FoundationCategory.builder().categoryName("Mitigating Circumstances Form").categorySlug("mitigating-circumstances-form")
+                .description("Mitigating circumstances claim form for foundation programme students")
+                .formName("Foundation Programme Mitigating Circumstances Form")
+                .formFileUrl("https://storage.example.com/foundation/mitigation-form.pdf")
+                .submissionEmail("mitigation.foundation@iit.ac.lk").submissionDeadline("Within 5 working days of the affected assessment")
+                .eligibleCircumstances(new ArrayList<>(List.of("Serious illness requiring medical treatment", "Bereavement of close family member", "Significant personal crisis")))
+                .requiredEvidence(new ArrayList<>(List.of("Medical certificate", "Death certificate", "Police report", "Supporting letter")))
+                .contentJson(toJson(Map.of("contactPerson", Map.of("name", "Foundation Academic Office", "email", "foundation.academic@iit.ac.lk", "phone", "+94 11 234 5610"))))
+                .build());
+
+        log.info("Seeded 7 foundation program categories.");
+    }
+
+    // ── SRU Categories ──────────────────────────────────────────────
+    private void seedSruCategories() {
+        if (sruRepo.findAll().stream().filter(s -> !Boolean.TRUE.equals(s.getIsDeleted())).count() >= 2) return;
+        log.info("Seeding SRU categories...");
+
+        sruRepo.save(SruCategory.builder().categorySlug("_root").unitName("Students Relations Unit")
+                .description("The Students Relations Unit is dedicated to supporting students throughout their academic journey at IIT.")
+                .location("Student Services Building, Ground Floor").email("sru@iit.ac.lk")
+                .phone("+94 11 234 5690").officeHours("Mon-Fri 8:30 AM - 5:00 PM").build());
+
+        SruCategory videos = SruCategory.builder().categorySlug("help-desk-video-series")
+                .categoryName("Help Desk Video Series")
+                .description("A collection of video tutorials created by the Students Relations Unit.")
+                .build();
+        videos.addVideo(SruVideo.builder().title("How to Register for Modules").description("Step-by-step guide on module registration.").videoUrl("https://storage.example.com/videos/module-registration.mp4").thumbnailUrl("https://storage.example.com/thumbnails/module-registration.jpg").duration("05:32").publishedDate("2026-01-15").build());
+        videos.addVideo(SruVideo.builder().title("Accessing the LMS").description("How to log in and navigate the LMS.").videoUrl("https://storage.example.com/videos/lms-access.mp4").thumbnailUrl("https://storage.example.com/thumbnails/lms-access.jpg").duration("04:18").publishedDate("2026-01-15").build());
+        videos.addVideo(SruVideo.builder().title("How to Submit an Assignment").description("Guide on submitting assignments.").videoUrl("https://storage.example.com/videos/assignment-submission.mp4").thumbnailUrl("https://storage.example.com/thumbnails/assignment-submission.jpg").duration("03:45").publishedDate("2026-01-20").build());
+        videos.addVideo(SruVideo.builder().title("Requesting a Transcript").description("How to request official transcripts.").videoUrl("https://storage.example.com/videos/transcript-request.mp4").thumbnailUrl("https://storage.example.com/thumbnails/transcript-request.jpg").duration("03:10").publishedDate("2026-01-25").build());
+        videos.addVideo(SruVideo.builder().title("Student ID Card Replacement").description("Process for replacing a lost ID card.").videoUrl("https://storage.example.com/videos/id-card-replacement.mp4").thumbnailUrl("https://storage.example.com/thumbnails/id-card-replacement.jpg").duration("02:55").publishedDate("2026-02-01").build());
+        videos.addVideo(SruVideo.builder().title("Filing a Mitigating Circumstances Claim").description("How to complete and submit a mitigation form.").videoUrl("https://storage.example.com/videos/mitigation-claim.mp4").thumbnailUrl("https://storage.example.com/thumbnails/mitigation-claim.jpg").duration("06:20").publishedDate("2026-02-05").build());
+        sruRepo.save(videos);
+
+        log.info("Seeded 2 SRU categories with 6 videos.");
+    }
+
+    // ── Student Policies ────────────────────────────────────────────
+    private void seedStudentPolicies() {
+        if (!policyRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByPolicyNameAsc().isEmpty()) return;
+        log.info("Seeding student policies...");
+
+        policyRepo.save(StudentPolicy.builder().policyName("Participation at Conferences").policySlug("participation-at-conferences").version("2.1").effectiveDate("2025-09-01")
+                .description("Policy governing student participation at academic conferences and seminars.")
+                .policyContent("Students are encouraged to participate in conferences. Prior approval must be obtained from the Head of Department...")
+                .policyFileUrl("https://storage.example.com/policies/conference-participation.pdf")
+                .keyPoints(new ArrayList<>(List.of("Prior approval required from HOD", "IIT may provide partial funding", "Students must submit a report after attendance")))
+                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build());
+
+        policyRepo.save(StudentPolicy.builder().policyName("Participation at Competitions").policySlug("participation-at-competitions").version("1.5").effectiveDate("2025-09-01")
+                .description("Policy for student participation in external competitions, hackathons, and coding challenges.")
+                .policyContent("IIT supports student participation in competitions. Teams must register through the Student Affairs office...")
+                .policyFileUrl("https://storage.example.com/policies/competition-participation.pdf")
+                .keyPoints(new ArrayList<>(List.of("Team registration required", "IIT branding guidelines must be followed", "Results must be reported")))
+                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build());
+
+        policyRepo.save(StudentPolicy.builder().policyName("Code of Conduct").policySlug("code-of-conduct").version("3.0").effectiveDate("2025-09-01")
+                .description("The comprehensive student code of conduct governing behaviour on and off campus.")
+                .policyContent("All students are expected to maintain the highest standards of academic integrity and personal conduct...")
+                .policyFileUrl("https://storage.example.com/policies/code-of-conduct.pdf")
+                .keyPoints(new ArrayList<>(List.of("Academic integrity is paramount", "Respect for all community members", "Zero tolerance for plagiarism", "Dress code compliance required")))
+                .disciplinaryProcess(new ArrayList<>(List.of("Verbal warning", "Written warning", "Disciplinary hearing", "Suspension", "Expulsion")))
+                .contactName("Dean of Students").contactRole("Dean of Student Affairs").contactEmail("dean.students@iit.ac.lk").build());
+
+        policyRepo.save(StudentPolicy.builder().policyName("Club Policy").policySlug("club-policy").version("2.0").effectiveDate("2025-09-01")
+                .description("Regulations for student clubs and societies, including formation, governance, and activities.")
+                .policyFileUrl("https://storage.example.com/policies/club-policy.pdf")
+                .keyPoints(new ArrayList<>(List.of("Minimum 15 members to form a club", "Faculty advisor required", "Annual budget submission mandatory")))
+                .contactName("Student Activities Coordinator").contactRole("Student Activities").contactEmail("clubs@iit.ac.lk").build());
+
+        policyRepo.save(StudentPolicy.builder().policyName("IT Policy").policySlug("it-policy").version("4.0").effectiveDate("2025-09-01")
+                .description("IT usage policy covering network access, lab usage, software licensing, and data security.")
+                .policyFileUrl("https://storage.example.com/policies/it-policy.pdf")
+                .keyPoints(new ArrayList<>(List.of("No unauthorized software installation", "VPN required for remote access", "Personal devices must be registered", "Data classification compliance")))
+                .contactName("IT Security Officer").contactRole("IT Department").contactEmail("it.security@iit.ac.lk").build());
+
+        log.info("Seeded 5 student policies.");
+    }
+
+    // ── Mitigation Forms ────────────────────────────────────────────
+    private void seedMitigationForms() {
+        if (!mitigationRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByFormNameAsc().isEmpty()) return;
+        log.info("Seeding mitigation forms...");
+
+        mitigationRepo.save(MitigationForm.builder().formName("UoW - Late Mitigation Circumstances Form").formSlug("uow-late-mitigation-circumstances-form").university("University of Wolverhampton")
+                .description("This form should be completed if you are submitting a mitigating circumstances claim after the standard deadline.")
+                .formFileUrl("https://storage.example.com/mitigation/uow-late-mitigation-form.pdf").submissionEmail("mitigation.uow@iit.ac.lk").submissionDeadline("As soon as possible after the original deadline")
+                .processingTimeBusinessDays(10).contactName("Academic Registry - UoW Programmes").contactEmail("mitigation.uow@iit.ac.lk").contactPhone("+94 11 234 5691")
+                .eligibleCircumstances(new ArrayList<>(List.of("Medical emergency requiring hospitalization", "Bereavement of immediate family member", "Serious accident or injury")))
+                .requiredDocuments(new ArrayList<>(List.of("Completed Late Mitigation Form", "Original evidence", "Written explanation of delay"))).build());
+
+        mitigationRepo.save(MitigationForm.builder().formName("UoW - Mitigating Circumstances Form").formSlug("uow-mitigating-circumstances-form").university("University of Wolverhampton")
+                .description("Standard mitigating circumstances claim form for students on University of Wolverhampton programmes.")
+                .formFileUrl("https://storage.example.com/mitigation/uow-mitigating-circumstances-form.pdf").submissionEmail("mitigation.uow@iit.ac.lk").submissionDeadline("Within 5 working days of the affected assessment deadline")
+                .processingTimeBusinessDays(10).contactName("Academic Registry - UoW Programmes").contactEmail("mitigation.uow@iit.ac.lk").contactPhone("+94 11 234 5691")
+                .eligibleCircumstances(new ArrayList<>(List.of("Serious illness or injury", "Bereavement", "Significant family or personal crisis", "Victim of crime")))
+                .requiredDocuments(new ArrayList<>(List.of("Completed Mitigation Form", "Medical certificate or evidence", "Supporting statement"))).build());
+
+        mitigationRepo.save(MitigationForm.builder().formName("UoW - Self Certification Claim Form").formSlug("uow-self-certification-claim-form").university("University of Wolverhampton")
+                .description("Self-certification form for minor short-term circumstances (up to 5 working days).")
+                .formFileUrl("https://storage.example.com/mitigation/uow-self-cert-form.pdf").submissionEmail("mitigation.uow@iit.ac.lk").submissionDeadline("Within 3 working days")
+                .processingTimeBusinessDays(5).contactName("Academic Registry - UoW Programmes").contactEmail("mitigation.uow@iit.ac.lk").contactPhone("+94 11 234 5691")
+                .extensionDuration("Up to 5 working days")
+                .eligibleCircumstances(new ArrayList<>(List.of("Short-term illness (up to 5 days)", "Minor personal emergency")))
+                .limitations(new ArrayList<>(List.of("Maximum one self-certification per semester", "Cannot be used for examinations"))).build());
+
+        mitigationRepo.save(MitigationForm.builder().formName("RGU - Coursework Extension Form (Self-Certification)").formSlug("rgu-coursework-extension-form-self-certification").university("Robert Gordon University")
+                .description("Self-certification form for coursework extension requests on RGU programmes.")
+                .formFileUrl("https://storage.example.com/mitigation/rgu-extension-form.pdf").submissionEmail("mitigation.rgu@iit.ac.lk").submissionDeadline("Before the original submission deadline")
+                .processingTimeBusinessDays(3).contactName("Academic Registry - RGU Programmes").contactEmail("mitigation.rgu@iit.ac.lk").contactPhone("+94 11 234 5692")
+                .extensionDuration("Up to 7 calendar days")
+                .eligibleCircumstances(new ArrayList<>(List.of("Short-term illness", "Minor personal circumstances")))
+                .limitations(new ArrayList<>(List.of("One extension per module per trimester", "Not applicable for examinations or group work"))).build());
+
+        mitigationRepo.save(MitigationForm.builder().formName("RGU - Deferral Request Form (Self-Certification)").formSlug("rgu-deferral-request-form-self-certification").university("Robert Gordon University")
+                .description("Self-certification deferral request form for RGU programme assessments.")
+                .formFileUrl("https://storage.example.com/mitigation/rgu-deferral-form.pdf").submissionEmail("mitigation.rgu@iit.ac.lk").submissionDeadline("Within 5 working days of the affected assessment")
+                .processingTimeBusinessDays(5).contactName("Academic Registry - RGU Programmes").contactEmail("mitigation.rgu@iit.ac.lk").contactPhone("+94 11 234 5692")
+                .deferralDetails("Assessment will be deferred to the next available assessment period. The deferred assessment will be treated as a first attempt.")
+                .eligibleCircumstances(new ArrayList<>(List.of("Serious illness", "Bereavement", "Significant adverse personal circumstances")))
+                .requiredDocuments(new ArrayList<>(List.of("Completed Deferral Form", "Medical evidence or other documentation")))
+                .possibleOutcomes(new ArrayList<>(List.of("Deferral granted", "Deferral denied", "Partial deferral"))).build());
+
+        log.info("Seeded 5 mitigation forms.");
+    }
+
+    // ── Staff Categories ────────────────────────────────────────────
+    private void seedStaffCategories() {
+        if (!staffRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByCategoryNameAsc().isEmpty()) return;
+        log.info("Seeding staff categories...");
+
+        staffRepo.save(StaffCategory.builder().categoryName("SOC").categorySlug("soc").description("School of Computing staff information")
+                .departmentFullName("School of Computing - Informatics Institute of Technology")
+                .contentJson(toJson(Map.of("staffMembers", List.of(
+                        Map.of("id", 1, "name", "Prof. Koliya Pulasinghe", "designation", "Dean / Senior Lecturer", "email", "koliya.p@iit.ac.lk", "phone", "+94 11 234 5710", "specialization", "Software Engineering, AI", "officeHours", "Mon-Thu 10:00-16:00"),
+                        Map.of("id", 2, "name", "Dr. Dilshan Silva", "designation", "Senior Lecturer", "email", "dilshan.s@iit.ac.lk", "phone", "+94 11 234 5711", "specialization", "Data Science, Machine Learning", "officeHours", "Mon-Fri 09:00-15:00"),
+                        Map.of("id", 3, "name", "Ms. Tharushi Weerasinghe", "designation", "Lecturer", "email", "tharushi.w@iit.ac.lk", "phone", "+94 11 234 5712", "specialization", "Web Technologies, UX Design"))))).build());
+
+        staffRepo.save(StaffCategory.builder().categoryName("Common Info").categorySlug("common-info").description("Common staff information and general guidelines")
+                .contentJson(toJson(Map.of("generalInfo", Map.of("institutionName", "Informatics Institute of Technology (IIT)", "mainAddress", "57, Ramakrishna Road, Colombo 06, Sri Lanka", "mainPhone", "+94 11 236 0212", "mainEmail", "info@iit.ac.lk", "website", "https://www.iit.ac.lk", "workingHours", "Monday - Friday: 8:30 AM - 5:30 PM", "academicYear", "2025/2026")))).build());
+
+        staffRepo.save(StaffCategory.builder().categoryName("Mail Groups").categorySlug("mail-groups").description("Staff and department email groups")
+                .contentJson(toJson(Map.of("mailGroups", List.of(
+                        Map.of("groupName", "All Academic Staff", "email", "academic-staff@iit.ac.lk", "description", "All lecturers and academic staff", "accessLevel", "Staff Only"),
+                        Map.of("groupName", "SOC Staff", "email", "soc-staff@iit.ac.lk", "description", "School of Computing staff", "accessLevel", "SOC Staff"),
+                        Map.of("groupName", "Student Announcements", "email", "student-announce@iit.ac.lk", "description", "Official student announcements", "accessLevel", "Admin Only"))))).build());
+
+        staffRepo.save(StaffCategory.builder().categoryName("Doc Arch").categorySlug("doc-arch").description("Document archive and templates")
+                .contentJson(toJson(Map.of("documents", List.of(
+                        Map.of("id", 1, "documentName", "Staff Handbook 2025-2026", "category", "Handbooks", "fileUrl", "https://storage.example.com/docs/staff-handbook.pdf", "fileType", "PDF", "fileSizeKb", 2048, "uploadedDate", "2025-08-15"),
+                        Map.of("id", 2, "documentName", "Assessment Guidelines", "category", "Academic", "fileUrl", "https://storage.example.com/docs/assessment-guidelines.pdf", "fileType", "PDF", "fileSizeKb", 512, "uploadedDate", "2025-09-01"))))).build());
+
+        staffRepo.save(StaffCategory.builder().categoryName("Contacts").categorySlug("contacts").description("Staff contact directory")
+                .contentJson(toJson(Map.of(
+                        "departments", List.of(Map.of("departmentName", "Academic Affairs", "headOfDepartment", "Prof. Koliya Pulasinghe", "email", "academic.affairs@iit.ac.lk", "phone", "+94 11 234 5720"), Map.of("departmentName", "Student Services", "headOfDepartment", "Ms. Chamari Perera", "email", "student.services@iit.ac.lk", "phone", "+94 11 234 5730")),
+                        "emergencyContacts", Map.of("Security", "+94 11 234 5800", "Medical", "+94 11 234 5801", "Fire", "+94 11 234 5802")))).build());
+
+        log.info("Seeded 5 staff categories.");
+    }
+
+    // ── Info Categories ─────────────────────────────────────────────
+    private void seedInfoCategories() {
+        if (!infoRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByCategoryNameAsc().isEmpty()) return;
+        log.info("Seeding info categories...");
+
+        infoRepo.save(InfoCategory.builder().categoryName("Course Details").categorySlug("course-details").description("Overview of all academic programmes offered at IIT")
+                .contentJson(toJson(Map.of(
+                        "programmeCategories", List.of(
+                                Map.of("category", "Undergraduate", "programmes", List.of(Map.of("programName", "BSc (Hons) AI and Data Science", "duration", "3 years", "awardingBody", "University of Wolverhampton", "intake", "September", "fee", "Contact admissions"), Map.of("programName", "BSc (Hons) Computer Science", "duration", "3 years", "awardingBody", "University of Wolverhampton", "intake", "September", "fee", "Contact admissions"))),
+                                Map.of("category", "Postgraduate", "programmes", List.of(Map.of("programName", "MSc Advanced Software Engineering", "duration", "1 year", "awardingBody", "University of Wolverhampton", "intake", "September / January", "fee", "Contact admissions")))),
+                        "admissionsContact", Map.of("email", "admissions@iit.ac.lk", "phone", "+94 11 236 0212", "whatsapp", "+94 77 123 4567")))).build());
+
+        infoRepo.save(InfoCategory.builder().categoryName("Houses").categorySlug("houses").description("Student house system information and standings")
+                .contentJson(toJson(Map.of("houses", List.of(
+                        Map.of("id", 1, "houseName", "Phoenix", "color", "#FF4500", "motto", "Rise from the ashes", "description", "House of resilience and determination", "housemaster", "Dr. Dilshan Silva", "totalPoints", 2450, "rank", 1),
+                        Map.of("id", 2, "houseName", "Titan", "color", "#4169E1", "motto", "Strength in unity", "description", "House of teamwork and collaboration", "housemaster", "Ms. Tharushi Weerasinghe", "totalPoints", 2380, "rank", 2),
+                        Map.of("id", 3, "houseName", "Vortex", "color", "#32CD32", "motto", "Innovation unleashed", "description", "House of creativity and innovation", "housemaster", "Mr. Ashan Rathnayake", "totalPoints", 2290, "rank", 3),
+                        Map.of("id", 4, "houseName", "Zenith", "color", "#FFD700", "motto", "Reach the peak", "description", "House of excellence and ambition", "housemaster", "Dr. Kumara Dias", "totalPoints", 2150, "rank", 4))))).build());
+
+        infoRepo.save(InfoCategory.builder().categoryName("Students' Union").categorySlug("students-union").description("IIT Students' Union information and office bearers")
+                .contentJson(toJson(Map.of(
+                        "currentAcademicYear", "2025/2026", "office", "Room G05, Student Hub", "email", "su@iit.ac.lk", "phone", "+94 11 234 5750",
+                        "socialMedia", Map.of("instagram", "@iit_su", "facebook", "IIT Students Union", "linkedin", "IIT Students Union"),
+                        "currentOffice", Map.of("academicYear", "2025/2026", "officeBearers", List.of(
+                                Map.of("position", "President", "name", "Kasun Rajapaksha", "email", "president.su@iit.ac.lk", "programme", "BSc Computer Science", "year", 3),
+                                Map.of("position", "Vice President", "name", "Amaya Perera", "email", "vp.su@iit.ac.lk", "programme", "BSc AI and Data Science", "year", 3),
+                                Map.of("position", "Secretary", "name", "Dineth Fernando", "email", "secretary.su@iit.ac.lk", "programme", "BEng Software Engineering", "year", 2),
+                                Map.of("position", "Treasurer", "name", "Rashmi De Silva", "email", "treasurer.su@iit.ac.lk", "programme", "BSc Business Computing", "year", 2))),
+                        "upcomingEvents", List.of(Map.of("eventName", "IIT Freshers' Night 2026", "date", "2026-03-15", "venue", "Main Auditorium", "description", "Annual welcome event for new students"), Map.of("eventName", "Hackathon 2026", "date", "2026-04-20", "venue", "Innovation Lab", "description", "24-hour coding competition"))))).build());
+
+        infoRepo.save(InfoCategory.builder().categoryName("Clubs and Societies").categorySlug("clubs-and-societies").description("Student clubs and societies at IIT")
+                .contentJson(toJson(Map.of(
+                        "totalClubs", 8, "joinInstructions", "Visit the Students' Union office or fill out the online form at clubs.iit.ac.lk to join a club.",
+                        "clubs", List.of(
+                                Map.of("id", 1, "clubName", "IIT Computing Society", "clubCode", "IITCS", "category", "Academic", "description", "Premier computing and technology club", "president", "Nisal Gamage", "email", "cs.club@iit.ac.lk", "memberCount", 120, "isOpenForRegistration", true),
+                                Map.of("id", 2, "clubName", "IEEE Student Branch", "clubCode", "IEEE-IIT", "category", "Professional", "description", "IEEE student chapter for networking and professional development", "president", "Sachini Pathirana", "email", "ieee@iit.ac.lk", "memberCount", 85, "isOpenForRegistration", true),
+                                Map.of("id", 3, "clubName", "Toastmasters Club", "clubCode", "TM-IIT", "category", "Communication", "description", "Public speaking and leadership development", "president", "Kavinda Silva", "email", "toastmasters@iit.ac.lk", "memberCount", 45, "isOpenForRegistration", true),
+                                Map.of("id", 4, "clubName", "IIT Sports Club", "clubCode", "IITSC", "category", "Sports", "description", "Organizes sports events and inter-university competitions", "president", "Tharindu Perera", "email", "sports@iit.ac.lk", "memberCount", 200, "isOpenForRegistration", true))))).build());
+
+        log.info("Seeded 4 info categories.");
+    }
+
+    // ── Intranet helpers ────────────────────────────────────────────
+
+    private void saveProgram(String code, String name, String slug, String uni, String duration,
+                             int credits, String level, String desc, String entry,
+                             List<String> careers, List<ProgramModule> modules,
+                             String specUrl, String handbookUrl) {
+        Program p = Program.builder()
+                .programCode(code).programName(name).programSlug(slug)
+                .awardingUniversity(uni).duration(duration).totalCredits(credits)
+                .programLevel(level).description(desc).entryRequirements(entry)
+                .careerProspects(new ArrayList<>(careers))
+                .programSpecificationUrl(specUrl).handbookUrl(handbookUrl)
+                .build();
+        modules.forEach(p::addModule);
+        programRepo.save(p);
+    }
+
+    private ProgramModule mod(Integer year, int sem, String code, String name, int credits) {
+        return ProgramModule.builder().year(year).semester(sem).moduleCode(code).moduleName(name).credits(credits).isCore(true).build();
+    }
+
+    private String toJson(Object obj) {
+        try {
+            return objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize seed data to JSON", e);
+            return "{}";
+        }
+    }
 }
+

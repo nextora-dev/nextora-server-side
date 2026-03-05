@@ -238,60 +238,21 @@ public final class ApiConstants {
     public static final String ELECTION_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
     public static final String ELECTION_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
 
+    // ==================== Intranet Content Endpoints ====================
 
+    public static final String SCHEDULES = API_V1 + "/schedules";
+    public static final String STUDENT_COMPLAINTS = API_V1 + "/student-complaints";
+    public static final String ACADEMIC_CALENDARS = API_V1 + "/academic-calendars";
+    public static final String UNDERGRADUATE = API_V1 + "/undergraduate";
+    public static final String POSTGRADUATE = API_V1 + "/postgraduate";
+    public static final String FOUNDATION_PROGRAM = API_V1 + "/foundation-program";
+    public static final String STUDENTS_RELATIONS_UNIT = API_V1 + "/students-relations-unit";
+    public static final String STUDENT_POLICIES = API_V1 + "/student-policies";
+    public static final String MITIGATION_FORMS = API_V1 + "/mitigation-forms";
+    public static final String STAFF = API_V1 + "/staff";
+    public static final String INFO = API_V1 + "/info";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    public static final String VOTING_ADMIN_CLUBS = ELECTION_ADMIN + "/clubs";
-//    public static final String VOTING_ADMIN_CLUB_BY_ID = VOTING_ADMIN_CLUBS + "/{clubId}";
-//    public static final String VOTING_ADMIN_MEMBERSHIPS = ELECTION_ADMIN + "/memberships";
-//    public static final String VOTING_ADMIN_MEMBERSHIP_FORCE_APPROVE = "/{membershipId}/force-approve";
-//    public static final String VOTING_ADMIN_MEMBERSHIP_FORCE_REJECT = "/{membershipId}/force-reject";
-//    public static final String VOTING_ADMIN_MEMBERSHIP_SUSPEND = "/{membershipId}/suspend";
-//    public static final String VOTING_ADMIN_CLUB_MEMBERSHIPS = VOTING_ADMIN_CLUBS + "/{clubId}/memberships";
-//
-//    public static final String VOTING_ADMIN_ELECTIONS = ELECTION_ADMIN + "/elections";
-//    public static final String VOTING_ADMIN_ELECTION_BY_ID = VOTING_ADMIN_ELECTIONS + "/{electionId}";
-//
-//    public static final String VOTING_ADMIN_CANDIDATES = VOTING_ADMIN_ELECTIONS + "/{electionId}/candidates";
-//    public static final String VOTING_ADMIN_CANDIDATE_FORCE_APPROVE = "/candidates/{candidateId}/force-approve";
-//    public static final String VOTING_ADMIN_CANDIDATE_FORCE_REJECT = "/candidates/{candidateId}/force-reject";
-//    public static final String VOTING_ADMIN_CANDIDATE_DISQUALIFY = "/candidates/{candidateId}/disqualify";
-//
-//
-//    public static final String VOTING_ADMIN_STATISTICS = ELECTION_ADMIN + "/statistics";
-//
-//    public static final String VOTING_ADMIN_CLUB_STATISTICS = VOTING_ADMIN_CLUBS + "/{clubId}/statistics";
-//
-//    public static final String VOTING_SUPER_ADMIN_PROCESS_STATUS = ELECTION_ADMIN + "/elections/process-status-updates";
-//
-//    public static final String VOTING_SUPER_ADMIN_AUDIT_LOG = ELECTION_ADMIN + "/audit-log";
-//
-//    public static final String VOTING_SUPER_ADMIN_BULK_APPROVE = ELECTION_ADMIN + "/memberships/bulk-approve";
-//    public static final String VOTING_SUPER_ADMIN_BULK_CANCEL = ELECTION_ADMIN + "/elections/bulk-cancel";
-//
-//    public static final String VOTING_SUPER_ADMIN_CLUB_EXPORT = ELECTION_ADMIN + "/clubs/{clubId}/export";
-//    public static final String VOTING_SUPER_ADMIN_ELECTION_EXPORT = ELECTION_ADMIN + "/elections/{electionId}/export";
-//
-//    public static final String VOTING_SUPER_ADMIN_PERMANENT_DELETE_CLUB = ELECTION_ADMIN + "/clubs/{clubId}/permanent";
-//    public static final String VOTING_SUPER_ADMIN_RESET_VOTES = ELECTION_ADMIN + "/elections/{electionId}/reset-votes";
-//    public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = ELECTION_ADMIN + "/voters/{voterId}/invalidate-votes";
-//    public static final String VOTING_SUPER_ADMIN_CONFIG = ELECTION_ADMIN + "/config";
+    // Common intranet slug path
+    public static final String BY_SLUG = "/{slug}";
 
 }
-
-
