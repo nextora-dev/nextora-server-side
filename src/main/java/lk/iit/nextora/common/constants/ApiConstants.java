@@ -110,6 +110,28 @@ public final class ApiConstants {
     public static final String KUPPI_NOTE_UPDATE_UPLOAD = "/{noteId}/upload";
 
     public static final String KUPPI_DOWNLOAD = KUPPI_NOTE_BY_ID + "/download";
+
+
+    // ==================== Lost & Found Endpoints ====================
+
+    // Base path for the Lost & Found module — same level as KUPPI = API_V1 + "/kuppi"
+    public static final String LOST_AND_FOUND         = API_V1 + "/lost-and-found";
+
+    // Controller base paths
+    public static final String LOST_AND_FOUND_ITEMS   = LOST_AND_FOUND + "/items";
+    public static final String LOST_AND_FOUND_CLAIMS  = LOST_AND_FOUND + "/claims";
+
+    // Sub-path constants — mirrors the KUPPI_MY / KUPPI_SEARCH / KUPPI_APPROVE pattern
+    public static final String LOST_AND_FOUND_MY      = "/my";
+    public static final String LOST_AND_FOUND_SEARCH  = "/search";
+    public static final String LOST_AND_FOUND_STATUS  = "/status/{status}";
+    public static final String LOST_AND_FOUND_APPROVE = "/approve";
+    public static final String LOST_AND_FOUND_REJECT  = "/reject";
+
+    // Admin endpoint — mirrors KUPPI_ADMIN = ADMIN + "/kuppi"
+    public static final String LOST_AND_FOUND_ADMIN   = ADMIN + "/lost-and-found";
+
+
     // ==================== Club & Voting Endpoints ====================
 
     // Clubs (voting module - for elections)
