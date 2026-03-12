@@ -195,6 +195,23 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
         return clubMapper.toResponse(announcement);
     }
 
+    @Override
+    @Transactional
+    public void permanentlyDeleteAnnouncement(Long announcementId) {
+        log.info("Super Admin permanently deleting announcement: {}", announcementId);
+
+        ClubAnnouncement announcement = announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new ResourceNotFoundException("ClubAnnouncement", "id", announcementId));
+
+        // Remove attachment from S3 if exists
+        deleteS3File(announcement.getAttachmentUrl());
+
+        // Permanently delete from database
+        announcementRepository.delete(announcement);
+
+        log.info("Super Admin permanently deleted announcement: {} (title: {})", announcementId, announcement.getTitle());
+    }
+
     // ==================== Helpers ====================
 
     private Club findClubById(Long clubId) {

@@ -220,6 +220,8 @@ public final class ApiConstants {
     public static final String CLUB_ADMIN_FORCE_SUSPEND = "/memberships/{membershipId}/force-suspend";
     public static final String CLUB_ADMIN_FORCE_ACTIVATE = "/memberships/{membershipId}/force-activate";
     public static final String CLUB_ADMIN_PLATFORM_STATS = "/platform-stats";
+    public static final String CLUB_ADMIN_PERMANENT_DELETE = "/{clubId}/permanent";
+    public static final String CLUB_ADMIN_ANNOUNCEMENT_PERMANENT_DELETE = "/announcements/{announcementId}/permanent";
 
     // Election endpoints
 

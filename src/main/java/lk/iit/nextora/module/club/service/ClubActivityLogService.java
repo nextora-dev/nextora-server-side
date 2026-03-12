@@ -24,5 +24,11 @@ public interface ClubActivityLogService {
     PagedResponse<ClubActivityLogResponse> getActivityLogs(Long clubId, Pageable pageable);
 
     PagedResponse<ClubActivityLogResponse> getActivityLogsByType(Long clubId, ClubActivityLog.ActivityType type, Pageable pageable);
+
+    /**
+     * Permanently delete all activity logs for a club.
+     * Used during permanent club deletion (Super Admin only).
+     */
+    void deleteByClubId(Long clubId);
 }
 

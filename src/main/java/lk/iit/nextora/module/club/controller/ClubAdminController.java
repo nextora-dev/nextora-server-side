@@ -10,10 +10,12 @@ import lk.iit.nextora.module.club.dto.request.ChangeMemberPositionRequest;
 import lk.iit.nextora.module.club.dto.response.*;
 import lk.iit.nextora.module.club.entity.ClubActivityLog;
 import lk.iit.nextora.module.club.service.ClubActivityLogService;
+import lk.iit.nextora.module.club.service.ClubAnnouncementService;
 import lk.iit.nextora.module.club.service.ClubService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +34,7 @@ public class ClubAdminController {
 
     private final ClubService clubService;
     private final ClubActivityLogService activityLogService;
+    private final ClubAnnouncementService announcementService;
 
     // ==================== Club Statistics ====================
 
@@ -113,6 +116,30 @@ public class ClubAdminController {
     public ApiResponse<ClubStatisticsResponse> getClubStatsOfficer(@PathVariable Long clubId) {
         ClubStatisticsResponse response = clubService.getClubStatistics(clubId);
         return ApiResponse.success("Statistics retrieved successfully", response);
+    }
+
+    // ==================== Permanent Delete (Super Admin only) ====================
+
+    @DeleteMapping(ApiConstants.CLUB_ADMIN_PERMANENT_DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Permanently delete club",
+               description = "Permanently delete a club and ALL associated data (memberships, announcements, activity logs, elections). " +
+                             "This action is IRREVERSIBLE. Super Admin only.")
+    @PreAuthorize("hasAuthority('CLUB:PERMANENT_DELETE')")
+    public ApiResponse<Void> permanentlyDeleteClub(@PathVariable Long clubId) {
+        clubService.permanentlyDeleteClub(clubId);
+        return ApiResponse.success("Club and all associated data permanently deleted");
+    }
+
+    @DeleteMapping(ApiConstants.CLUB_ADMIN_ANNOUNCEMENT_PERMANENT_DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Permanently delete announcement",
+               description = "Permanently delete an announcement and its S3 attachment from the database. " +
+                             "This action is IRREVERSIBLE. Super Admin only.")
+    @PreAuthorize("hasAuthority('CLUB_ANNOUNCEMENT:PERMANENT_DELETE')")
+    public ApiResponse<Void> permanentlyDeleteAnnouncement(@PathVariable Long announcementId) {
+        announcementService.permanentlyDeleteAnnouncement(announcementId);
+        return ApiResponse.success("Announcement permanently deleted");
     }
 }
 

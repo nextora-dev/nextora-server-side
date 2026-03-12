@@ -8,12 +8,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ClubAnnouncementRepository extends JpaRepository<ClubAnnouncement, Long> {
 
     Optional<ClubAnnouncement> findByIdAndIsDeletedFalse(Long id);
+
+    List<ClubAnnouncement> findByClubId(Long clubId);
+
+    void deleteByClubId(Long clubId);
 
     Page<ClubAnnouncement> findByClubIdAndIsDeletedFalseOrderByIsPinnedDescCreatedAtDesc(Long clubId, Pageable pageable);
 

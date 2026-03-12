@@ -92,11 +92,14 @@ public enum Permission {
     CLUB_MEMBERSHIP_VIEW("CLUB_MEMBERSHIP:VIEW", "View club memberships", "CLUB_MEMBERSHIP", "VIEW", PermissionCategory.VOTING_MANAGEMENT),
 
 
+    CLUB_PERMANENT_DELETE("CLUB:PERMANENT_DELETE", "Permanently delete clubs from database", "CLUB", "PERMANENT_DELETE", PermissionCategory.CLUB_MANAGEMENT),
+
     // ==================== CLUB ANNOUNCEMENTS ====================
     CLUB_ANNOUNCEMENT_CREATE("CLUB_ANNOUNCEMENT:CREATE", "Create club announcements", "CLUB_ANNOUNCEMENT", "CREATE", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_ANNOUNCEMENT_READ("CLUB_ANNOUNCEMENT:READ", "View club announcements", "CLUB_ANNOUNCEMENT", "READ", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_ANNOUNCEMENT_UPDATE("CLUB_ANNOUNCEMENT:UPDATE", "Update club announcements", "CLUB_ANNOUNCEMENT", "UPDATE", PermissionCategory.CLUB_MANAGEMENT),
     CLUB_ANNOUNCEMENT_DELETE("CLUB_ANNOUNCEMENT:DELETE", "Delete club announcements", "CLUB_ANNOUNCEMENT", "DELETE", PermissionCategory.CLUB_MANAGEMENT),
+    CLUB_ANNOUNCEMENT_PERMANENT_DELETE("CLUB_ANNOUNCEMENT:PERMANENT_DELETE", "Permanently delete club announcements from database", "CLUB_ANNOUNCEMENT", "PERMANENT_DELETE", PermissionCategory.CLUB_MANAGEMENT),
 
     // ==================== VOTING/ELECTION MANAGEMENT ====================
     ELECTION_CREATE("ELECTION:CREATE", "Create elections", "ELECTION", "CREATE", PermissionCategory.VOTING_MANAGEMENT),

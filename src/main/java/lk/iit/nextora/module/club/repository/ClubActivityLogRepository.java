@@ -27,5 +27,7 @@ public interface ClubActivityLogRepository extends JpaRepository<ClubActivityLog
 
     @Query("SELECT a FROM ClubActivityLog a ORDER BY a.createdAt DESC")
     List<ClubActivityLog> findRecentActivity(Pageable pageable);
+
+    void deleteByClubId(Long clubId);
 }
 

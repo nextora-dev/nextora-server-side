@@ -111,4 +111,6 @@ public interface ClubMembershipRepository extends JpaRepository<ClubMembership, 
            "AND cm.status = 'ACTIVE' AND cm.isDeleted = false")
     Optional<ClubMembership> findByClubIdAndPositionAndStatusActive(@Param("clubId") Long clubId,
                                                                      @Param("position") ClubPositionsType position);
+
+    void deleteByClubId(Long clubId);
 }

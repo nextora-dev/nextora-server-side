@@ -70,6 +70,7 @@ public enum UserRole {
                     Permission.CLUB_ANNOUNCEMENT_READ,
                     Permission.CLUB_ANNOUNCEMENT_UPDATE,
                     Permission.CLUB_ANNOUNCEMENT_DELETE,
+                    Permission.CLUB_MEMBERSHIP_VIEW,
 
                     // Election management permissions
                     Permission.ELECTION_CREATE,
@@ -150,6 +151,8 @@ public enum UserRole {
         adminPermissions.remove(Permission.ELECTION_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
         adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.CLUB_PERMANENT_DELETE);
+        adminPermissions.remove(Permission.CLUB_ANNOUNCEMENT_PERMANENT_DELETE);
 
         // Normal user management - Super Admin exclusive (restore & permanent delete)
         adminPermissions.remove(Permission.NORMAL_USER_RESTORE);

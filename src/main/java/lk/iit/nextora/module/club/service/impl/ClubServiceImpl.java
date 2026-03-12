@@ -142,6 +142,54 @@ public class ClubServiceImpl implements ClubService {
         log.info("Club deleted successfully: {}", clubId);
     }
 
+    @Override
+    @Transactional
+    public void permanentlyDeleteClub(Long clubId) {
+        log.info("Super Admin permanently deleting club: {}", clubId);
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ResourceNotFoundException("Club", "id", clubId));
+
+        // 1. Delete all announcement attachments from S3
+        var announcements = announcementRepository.findByClubId(clubId);
+        for (var announcement : announcements) {
+            if (announcement.getAttachmentUrl() != null && !announcement.getAttachmentUrl().isEmpty()) {
+                try {
+                    String key = extractS3KeyFromUrl(announcement.getAttachmentUrl());
+                    if (key != null) {
+                        s3Service.deleteFile(key);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete announcement attachment from S3: {}", e.getMessage());
+                }
+            }
+        }
+
+        // 2. Delete club logo from S3
+        if (club.getLogoUrl() != null && !club.getLogoUrl().isEmpty()) {
+            try {
+                String key = extractS3KeyFromUrl(club.getLogoUrl());
+                if (key != null) {
+                    s3Service.deleteFile(key);
+                    log.info("Deleted club logo from S3: {}", key);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to delete club logo from S3: {}", e.getMessage());
+            }
+        }
+
+        // 3. Delete all related records (order matters for FK constraints)
+        announcementRepository.deleteByClubId(clubId);
+        membershipRepository.deleteByClubId(clubId);
+        activityLogService.deleteByClubId(clubId);
+        // Elections cascade via Club entity (CascadeType.ALL + orphanRemoval)
+
+        // 4. Permanently delete the club itself
+        clubRepository.delete(club);
+
+        log.info("Super Admin permanently deleted club: {} (name: {})", clubId, club.getName());
+    }
+
     private void validateLogoFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("Logo file is required");

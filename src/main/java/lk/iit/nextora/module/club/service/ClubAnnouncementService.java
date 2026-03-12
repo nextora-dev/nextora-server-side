@@ -32,5 +32,11 @@ public interface ClubAnnouncementService {
     ClubAnnouncementResponse pinAnnouncement(Long announcementId);
 
     ClubAnnouncementResponse unpinAnnouncement(Long announcementId);
+
+    /**
+     * Permanently delete an announcement from the database and remove associated S3 files.
+     * Super Admin only — this action is irreversible.
+     */
+    void permanentlyDeleteAnnouncement(Long announcementId);
 }
 

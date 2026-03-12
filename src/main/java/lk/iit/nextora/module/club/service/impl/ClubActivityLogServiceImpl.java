@@ -83,5 +83,12 @@ public class ClubActivityLogServiceImpl implements ClubActivityLogService {
                 .empty(page.isEmpty())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void deleteByClubId(Long clubId) {
+        activityLogRepository.deleteByClubId(clubId);
+        log.info("Permanently deleted all activity logs for club: {}", clubId);
+    }
 }
 

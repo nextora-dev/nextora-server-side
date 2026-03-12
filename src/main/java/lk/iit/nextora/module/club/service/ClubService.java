@@ -24,6 +24,13 @@ public interface ClubService {
 
     void deleteClub(Long clubId);
 
+    /**
+     * Permanently delete a club and all associated data from the database.
+     * Removes: memberships, announcements (+ S3 files), activity logs, elections, and the club itself.
+     * Super Admin only — this action is irreversible.
+     */
+    void permanentlyDeleteClub(Long clubId);
+
     ClubResponse getClubById(Long clubId);
 
     ClubResponse getClubByCode(String clubCode);
