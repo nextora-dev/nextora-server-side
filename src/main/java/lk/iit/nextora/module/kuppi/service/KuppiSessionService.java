@@ -23,6 +23,7 @@ public interface KuppiSessionService {
      */
     PagedResponse<KuppiSessionResponse> getPublicSessions(Pageable pageable);
 
+
     /**
      * View a specific Kuppi session (increments view count)
      */
