@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
 import lk.iit.nextora.common.enums.EventStatus;
 import lk.iit.nextora.common.enums.EventType;
-import lk.iit.nextora.module.auth.entity.Student;
+import lk.iit.nextora.module.auth.entity.BaseUser;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -52,7 +52,7 @@ public class Event extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
-    private Student createdBy;
+    private BaseUser createdBy;
 
     @Column(nullable = false)
     @Builder.Default
