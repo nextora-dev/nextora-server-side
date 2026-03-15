@@ -7,8 +7,7 @@ import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
 import lk.iit.nextora.common.exception.custom.UnauthorizedException;
 import lk.iit.nextora.config.security.SecurityService;
-import lk.iit.nextora.module.auth.entity.Student;
-import lk.iit.nextora.module.auth.repository.StudentRepository;
+import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.event.dto.request.CreateEventRequest;
 import lk.iit.nextora.module.event.dto.request.UpdateEventRequest;
 import lk.iit.nextora.module.event.dto.response.EventAnalyticsResponse;
@@ -40,7 +39,6 @@ import java.util.List;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final StudentRepository studentRepository;
     private final SecurityService securityService;
     private final EventMapper eventMapper;
 
@@ -119,8 +117,8 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResponse createEvent(CreateEventRequest request) {
-        Long currentUserId = securityService.getCurrentUserId();
-        Student creator = findStudentById(currentUserId);
+        BaseUser creator = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("Authentication required to create events"));
 
         // Validate time range
         validateTimeRange(request.getStartAt(), request.getEndAt());
@@ -135,7 +133,7 @@ public class EventServiceImpl implements EventService {
         }
 
         event = eventRepository.save(event);
-        log.info("Event created by user {}: {}", currentUserId, event.getId());
+        log.info("Event created by user {} (role: {}): {}", creator.getId(), creator.getRole(), event.getId());
 
         return eventMapper.toResponse(event);
     }
@@ -380,10 +378,6 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
     }
 
-    private Student findStudentById(Long studentId) {
-        return studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
-    }
 
     private void validateEventOwnership(Event event, Long userId) {
         if (!event.getCreatedBy().getId().equals(userId)) {
