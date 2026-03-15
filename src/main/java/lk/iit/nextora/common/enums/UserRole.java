@@ -21,16 +21,13 @@ public enum UserRole {
             Set.of(
                     Permission.USER_READ,
                     Permission.USER_UPDATE,
-
                     Permission.KUPPI_READ,
                     Permission.KUPPI_JOIN,
                     Permission.KUPPI_LEAVE,
                     Permission.KUPPI_FEEDBACK,
-                    
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
-
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,
                     Permission.EVENT_READ,
@@ -45,82 +42,66 @@ public enum UserRole {
                     Permission.CANDIDATE_NOMINATE,
                     Permission.VOTE_CAST,
                     Permission.VOTE_VIEW_RESULTS,
-                    Permission.CLUB_MEMBERSHIP_VIEW,
-                    // Club announcement read
-                    Permission.CLUB_ANNOUNCEMENT_READ
+                    Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
-
-    // ==================== NON_ACADEMIC_STAFF ====================
-    ROLE_NON_ACADEMIC_STAFF("Non_Academic_Staff", "Non-academic staff access to system functions", true,
+    // ==================== LECTURER - Lecturer access ====================
+    ROLE_LECTURER("Lecturer", "Lecturer access to system functions", true,
             Set.of(
                     Permission.USER_READ,
                     Permission.USER_UPDATE,
-                    Permission.CLUB_READ,
-                    Permission.CLUB_CREATE,
-                    Permission.CLUB_UPDATE,
-                    Permission.CLUB_DELETE,
-                    Permission.CLUB_MEMBERSHIP_MANAGE,
-                    Permission.CLUB_VIEW_STATS,
-                    Permission.CLUB_VIEW_ACTIVITY_LOG,
-
-
-                    // Club announcement management
-                    Permission.CLUB_ANNOUNCEMENT_CREATE,
-                    Permission.CLUB_ANNOUNCEMENT_READ,
-                    Permission.CLUB_ANNOUNCEMENT_UPDATE,
-                    Permission.CLUB_ANNOUNCEMENT_DELETE,
-                    Permission.CLUB_MEMBERSHIP_VIEW,
-
-                    // Election management permissions
-                    Permission.ELECTION_CREATE,
-                    Permission.ELECTION_UPDATE,
-                    Permission.ELECTION_DELETE,
-                    Permission.ELECTION_READ,
-                    Permission.ELECTION_MANAGE,
-                    Permission.ELECTION_PUBLISH_RESULTS,
-
-                    // Candidate management permissions
-                    Permission.CANDIDATE_APPROVE,
-                    Permission.CANDIDATE_VIEW,
-
-                    // Voting statistics permissions
-                    Permission.VOTE_VIEW_STATISTICS,
-                    Permission.VOTE_VIEW_RESULTS
-            )),
-
-    // ==================== ACADEMIC_STAFF (includes Lecturer permissions) ====================
-    ROLE_ACADEMIC_STAFF("Academic_Staff", "Academic staff and lecturer access to system functions", true,
-            Set.of(
-                    Permission.USER_READ,
-                    Permission.USER_UPDATE,
-
                     Permission.KUPPI_READ,
                     Permission.KUPPI_APPROVE,
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
-                    Permission.KUPPI_VIEW_STATS,
-                    Permission.KUPPI_DELETE,
-                    Permission.KUPPI_NOTE_DELETE,
-
-                    // Kuppi Application - Academic Staff can approve/reject applications
-                    Permission.KUPPI_APPLICATION_VIEW_ALL,
-                    Permission.KUPPI_APPLICATION_APPROVE,
-                    Permission.KUPPI_APPLICATION_REJECT,
-                    Permission.KUPPI_APPLICATION_STATS,
-
                     Permission.CLUB_READ,
                     Permission.BATCH_READ,
-
                     Permission.EVENT_CREATE,
                     Permission.EVENT_READ,
                     Permission.EVENT_UPDATE,
-
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
                     Permission.LOST_FOUND_READ
+            )),
+
+    // ==================== NON_ACADEMIC_STAFF ====================
+    ROLE_NON_ACADEMIC_STAFF("Non_Academic_Staff", "Non-academic staff access to system functions", true,
+            Set.of(
+                    Permission.USER_READ,
+                    Permission.CLUB_READ,
+                    Permission.CLUB_CREATE,
+                    Permission.CLUB_UPDATE,
+                    Permission.CLUB_DELETE,
+                    Permission.CLUB_MEMBERSHIP_MANAGE,
+
+                    Permission.ELECTION_CREATE,
+                    Permission.ELECTION_UPDATE,
+                    Permission.ELECTION_DELETE,
+                    Permission.ELECTION_READ,
+                    Permission.ELECTION_MANAGE,
+                    Permission.VOTE_VIEW_STATISTICS,
+                    Permission.ELECTION_PUBLISH_RESULTS,
+                    Permission.CANDIDATE_APPROVE,
+                    Permission.CANDIDATE_VIEW,
+                    Permission.EVENT_CREATE,
+                    Permission.EVENT_READ,
+                    Permission.EVENT_UPDATE
+            )),
+
+    // ==================== ACADEMIC_STAFF ====================
+    ROLE_ACADEMIC_STAFF("Academic_Staff", "Academic staff access to system functions", true,
+            Set.of(
+                    Permission.USER_READ,
+                    Permission.USER_UPDATE,
+                    Permission.KUPPI_READ,
+                    Permission.KUPPI_APPROVE,
+                    Permission.KUPPI_NOTE_READ,
+                    Permission.KUPPI_NOTE_DOWNLOAD,
+                    Permission.KUPPI_NOTE_SEARCH,
+                    Permission.CLUB_READ
+
             ));
 
     private final String displayName;
@@ -141,31 +122,8 @@ public enum UserRole {
         return new HashSet<>(Arrays.asList(Permission.values()));
     }
 
-    /**
-     * Get admin permissions - all permissions except SUPER_ADMIN exclusive ones
-     */
     private static Set<Permission> getAdminPermissions() {
-        Set<Permission> adminPermissions = new HashSet<>(Arrays.asList(Permission.values()));
-        // Remove super admin exclusive permissions
-        adminPermissions.remove(Permission.ELECTION_SUPER_ADMIN);
-        adminPermissions.remove(Permission.ELECTION_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.KUPPI_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.KUPPI_NOTE_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.CLUB_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.CLUB_ANNOUNCEMENT_PERMANENT_DELETE);
-
-        // Normal user management - Super Admin exclusive (restore & permanent delete)
-        adminPermissions.remove(Permission.NORMAL_USER_RESTORE);
-        adminPermissions.remove(Permission.NORMAL_USER_PERMANENT_DELETE);
-
-        // Admin user management permissions - Super Admin exclusive
-        adminPermissions.remove(Permission.ADMIN_USER_CREATE);
-        adminPermissions.remove(Permission.ADMIN_USER_READ);
-        adminPermissions.remove(Permission.ADMIN_USER_UPDATE);
-        adminPermissions.remove(Permission.ADMIN_USER_SOFT_DELETE);
-        adminPermissions.remove(Permission.ADMIN_USER_PERMANENT_DELETE);
-        adminPermissions.remove(Permission.ADMIN_USER_RESTORE);
-        return adminPermissions;
+        return new HashSet<>(Arrays.asList(Permission.values()));
     }
 
     /**
