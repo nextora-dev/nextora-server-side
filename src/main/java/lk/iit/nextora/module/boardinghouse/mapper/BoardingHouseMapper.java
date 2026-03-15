@@ -1,54 +1,55 @@
 package lk.iit.nextora.module.boardinghouse.mapper;
 
-import lk.iit.nextora.common.enums.Gender;
+import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.module.boardinghouse.dto.request.CreateBoardingHouseRequest;
 import lk.iit.nextora.module.boardinghouse.dto.response.BoardingHouseResponse;
 import lk.iit.nextora.module.boardinghouse.entity.BoardingHouse;
-import org.springframework.stereotype.Component;
+import org.mapstruct.*;
 
-@Component
-public class BoardingHouseMapper {
+import java.math.BigDecimal;
+import java.util.List;
 
-    public BoardingHouse toEntity(CreateBoardingHouseRequest request) {
+/**
+ * MapStruct mapper for Boarding House module
+ */
+@Mapper(config = MapperConfiguration.class)
+public interface BoardingHouseMapper {
 
-        return BoardingHouse.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .price(request.getPrice())
-                .city(request.getCity())
-                .address(request.getAddress())
-                .gender(request.getGender())
-                .contactNumber1(request.getContactNumber1())
-                .contactNumber2(request.getContactNumber2())
-                .keyMoneyRequired(request.getKeyMoneyRequired())
-                .waterBillIncluded(request.getWaterBillIncluded())
-                .electricityBillIncluded(request.getElectricityBillIncluded())
-                .foodIncluded(request.getFoodIncluded())
-                .furnitureIncluded(request.getFurnitureIncluded())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .build();
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "postedBy", ignore = true)
+    @Mapping(target = "viewCount", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "isActive", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    BoardingHouse toEntity(CreateBoardingHouseRequest request);
 
-    public BoardingHouseResponse toResponse(BoardingHouse entity) {
+    @Mapping(target = "postedById", source = "postedBy.id")
+    @Mapping(target = "postedByName", expression = "java(boardingHouse.getPostedBy().getFullName())")
+    @Mapping(target = "genderPreferenceDisplay", expression = "java(boardingHouse.getGenderPreference().getDisplayName())")
+    @Mapping(target = "formattedPrice", expression = "java(formatPrice(boardingHouse.getPrice()))")
+    BoardingHouseResponse toResponse(BoardingHouse boardingHouse);
 
-        return BoardingHouseResponse.builder()
-                .id(entity.getId())
-                .title(entity.getTitle())
-                .description(entity.getDescription())
-                .price(entity.getPrice())
-                .city(entity.getCity())
-                .address(entity.getAddress())
-                .gender(entity.getGender().name())
-                .contactNumber1(entity.getContactNumber1())
-                .contactNumber2(entity.getContactNumber2())
-                .keyMoneyRequired(entity.getKeyMoneyRequired())
-                .waterBillIncluded(entity.getWaterBillIncluded())
-                .electricityBillIncluded(entity.getElectricityBillIncluded())
-                .foodIncluded(entity.getFoodIncluded())
-                .furnitureIncluded(entity.getFurnitureIncluded())
-                .latitude(entity.getLatitude())
-                .longitude(entity.getLongitude())
-                .build();
+    List<BoardingHouseResponse> toResponseList(List<BoardingHouse> boardingHouses);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "postedBy", ignore = true)
+    @Mapping(target = "viewCount", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "isActive", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "deletedBy", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
+    void updateFromRequest(
+            lk.iit.nextora.module.boardinghouse.dto.request.UpdateBoardingHouseRequest request,
+            @MappingTarget BoardingHouse boardingHouse);
+
+    default String formatPrice(BigDecimal price) {
+        if (price == null) return "N/A";
+        return "Rs. " + String.format("%,.0f", price) + "/month";
     }
 }
