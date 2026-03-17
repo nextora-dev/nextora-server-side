@@ -16,13 +16,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "votes",
        uniqueConstraints = {
-           @UniqueConstraint(name = "uk_election_voter", columnNames = {"election_id", "voter_id"})
+           @UniqueConstraint(name = "uk_election_voter", columnNames = {"election_id", "voter_id"}),
+           @UniqueConstraint(name = "uk_election_vote_hash", columnNames = {"election_id", "vote_hash"})
        },
        indexes = {
            @Index(name = "idx_vote_election", columnList = "election_id"),
            @Index(name = "idx_vote_candidate", columnList = "candidate_id"),
            @Index(name = "idx_vote_voter", columnList = "voter_id"),
-           @Index(name = "idx_vote_hash", columnList = "voteHash")
+           @Index(name = "idx_vote_hash", columnList = "vote_hash")
        })
 @Getter
 @Setter

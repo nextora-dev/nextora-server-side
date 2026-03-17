@@ -88,20 +88,9 @@ public class ElectionServiceImpl implements ElectionService {
         BaseUser currentUser = securityService.getCurrentUser()
                 .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
 
-        // Creator is the current user (BaseUser)
-        NonAcademicStaff creator = null;
-        if (currentUser instanceof NonAcademicStaff) {
-            creator = (NonAcademicStaff) currentUser;
-        } else {
-            // For Admin/SuperAdmin, try to find as NonAcademicStaff in database
-            creator = nonAcademicStaffRepository.findById(currentUserId).orElse(null);
-        }
-
         Election election = votingMapper.toEntity(request);
         election.setClub(club);
-        if (creator != null) {
-            election.setCreatedBy(creator);
-        }
+        election.setCreatedBy(currentUser);
         election.setStatus(ElectionStatus.DRAFT);
 
         election = electionRepository.save(election);
@@ -206,6 +195,7 @@ public class ElectionServiceImpl implements ElectionService {
         }
 
         election.softDelete();
+        election.setDeletedBy(securityService.getCurrentUserId());
         electionRepository.save(election);
 
         log.info("Election deleted: {}", electionId);
@@ -551,8 +541,7 @@ public class ElectionServiceImpl implements ElectionService {
         }
 
         // Soft delete the nomination
-        candidate.setIsDeleted(true);
-        candidate.setDeletedAt(LocalDateTime.now());
+        candidate.softDelete();
         candidate.setDeletedBy(currentUserId);
         candidateRepository.save(candidate);
 
@@ -994,10 +983,10 @@ public class ElectionServiceImpl implements ElectionService {
         Election election = electionRepository.findById(electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
 
-        // Delete all candidates first
-        candidateRepository.deleteByElectionId(electionId);
-        // Delete all votes
+        // Delete votes first (votes reference candidates via FK)
         voteRepository.deleteByElectionId(electionId);
+        // Then delete candidates (candidates reference election via FK)
+        candidateRepository.deleteByElectionId(electionId);
         // Finally delete the election
         electionRepository.delete(election);
 
@@ -1412,11 +1401,20 @@ public class ElectionServiceImpl implements ElectionService {
     }
 
     private ElectionResponse enrichElectionResponse(ElectionResponse response, Election election) {
+        // Use count queries instead of loading entire collections (avoids N+1 and OOM)
+        long totalCandidates = candidateRepository.countByElectionIdAndIsDeletedFalse(election.getId());
+        long approvedCandidates = candidateRepository.countByElectionIdAndStatusAndIsDeletedFalse(
+                election.getId(), CandidateStatus.APPROVED);
+        long totalVotes = voteRepository.countByElectionIdAndIsDeletedFalse(election.getId());
         long eligibleVoters = membershipRepository.countActiveMembers(election.getClub().getId(), LocalDate.now());
+
+        response.setTotalCandidates((int) totalCandidates);
+        response.setApprovedCandidates((int) approvedCandidates);
+        response.setTotalVotes((int) totalVotes);
         response.setEligibleVoters((int) eligibleVoters);
 
-        if (response.getTotalVotes() != null && eligibleVoters > 0) {
-            response.setParticipationRate((double) response.getTotalVotes() / eligibleVoters * 100);
+        if (totalVotes > 0 && eligibleVoters > 0) {
+            response.setParticipationRate((double) totalVotes / eligibleVoters * 100);
         }
 
         return response;
