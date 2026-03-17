@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.intranet.mapper;
 
 import lk.iit.nextora.common.mapper.MapperConfiguration;
+import lk.iit.nextora.common.util.JsonUtils;
 import lk.iit.nextora.module.intranet.dto.*;
 import lk.iit.nextora.module.intranet.entity.*;
 import org.mapstruct.*;
@@ -8,6 +9,8 @@ import org.mapstruct.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * MapStruct mapper for all intranet module entity → response DTO conversions.
@@ -18,7 +21,7 @@ public interface IntranetMapper {
     // ==================== Schedule Category ====================
 
     @Mapping(target = "lastUpdated", source = "updatedAt", qualifiedByName = "formatDateTime")
-    @Mapping(target = "events", source = "events")
+    @Mapping(target = "events", source = "events", qualifiedByName = "mapScheduleEvents")
     ScheduleCategoryResponse toScheduleCategoryResponse(ScheduleCategory entity);
 
     @Named("scheduleSummary")
@@ -33,6 +36,12 @@ public interface IntranetMapper {
     ScheduleCategoryResponse.ScheduleEventResponse toScheduleEventResponse(ScheduleEvent entity);
 
     List<ScheduleCategoryResponse.ScheduleEventResponse> toScheduleEventResponseList(List<ScheduleEvent> entities);
+
+    @Named("mapScheduleEvents")
+    default List<ScheduleCategoryResponse.ScheduleEventResponse> mapScheduleEvents(List<ScheduleEvent> events) {
+        if (events == null) return null;
+        return toScheduleEventResponseList(events);
+    }
 
     // ==================== Student Complaint Category ====================
 
@@ -54,7 +63,7 @@ public interface IntranetMapper {
     // ==================== Academic Calendar ====================
 
     @Mapping(target = "lastUpdated", source = "updatedAt", qualifiedByName = "formatDateTime")
-    @Mapping(target = "events", source = "events")
+    @Mapping(target = "events", source = "events", qualifiedByName = "mapCalendarEvents")
     AcademicCalendarResponse toCalendarResponse(AcademicCalendar entity);
 
     @Named("calendarSummary")
@@ -69,10 +78,16 @@ public interface IntranetMapper {
 
     List<AcademicCalendarResponse.CalendarEventResponse> toCalendarEventResponseList(List<CalendarEvent> entities);
 
+    @Named("mapCalendarEvents")
+    default List<AcademicCalendarResponse.CalendarEventResponse> mapCalendarEvents(List<CalendarEvent> events) {
+        if (events == null) return null;
+        return toCalendarEventResponseList(events);
+    }
+
     // ==================== Program (UG / PG) ====================
 
     @Mapping(target = "lastUpdated", source = "updatedAt", qualifiedByName = "formatDateTime")
-    @Mapping(target = "modules", source = "modules")
+    @Mapping(target = "modules", source = "modules", qualifiedByName = "mapProgramModules")
     @Mapping(target = "careerProspects", source = "careerProspects")
     ProgramResponse toProgramResponse(Program entity);
 
@@ -95,10 +110,18 @@ public interface IntranetMapper {
 
     List<ProgramResponse.ProgramModuleResponse> toProgramModuleResponseList(List<ProgramModule> entities);
 
+    @Named("mapProgramModules")
+    default List<ProgramResponse.ProgramModuleResponse> mapProgramModules(List<ProgramModule> modules) {
+        if (modules == null) return null;
+        return toProgramModuleResponseList(modules);
+    }
+
     // ==================== Student Policy ====================
 
     @Mapping(target = "lastUpdated", source = "updatedAt", qualifiedByName = "formatDateTime")
     @Mapping(target = "contactPerson", source = ".", qualifiedByName = "mapPolicyContact")
+    @Mapping(target = "keyPoints", source = "keyPointsJson", qualifiedByName = "parseJsonList")
+    @Mapping(target = "disciplinaryProcess", source = "disciplinaryProcessJson", qualifiedByName = "parseJsonList")
     StudentPolicyResponse toPolicyResponse(StudentPolicy entity);
 
     @Named("policySummary")
@@ -171,5 +194,12 @@ public interface IntranetMapper {
     default String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return null;
         return dateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
+
+    @Named("parseJsonList")
+    default List<String> parseJsonList(String jsonStr) {
+        if (jsonStr == null || jsonStr.isEmpty()) return List.of();
+        return JsonUtils.fromJsonSafe(jsonStr, new TypeReference<>() {
+        });
     }
 }
