@@ -77,25 +77,40 @@ public class ElectionServiceImpl implements ElectionService {
     @Transactional
     public ElectionResponse createElection(CreateElectionRequest request) {
         Long currentUserId = securityService.getCurrentUserId();
-        log.info("Creating election for club {}", request.getClubId());
+        String currentUserEmail = securityService.getCurrentUserEmail();
+        log.info("Creating election for club {} by user {}", request.getClubId(), currentUserId);
 
         Club club = findClubById(request.getClubId());
         validateClubAdminAccess();
         validateElectionSchedule(request);
 
-        NonAcademicStaff creator = findNonAcademicStaffById(currentUserId);
+        // Get current user - can be NonAcademicStaff, Admin, or SuperAdmin (all are BaseUser subclasses)
+        BaseUser currentUser = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
+
+        // Creator is the current user (BaseUser)
+        NonAcademicStaff creator = null;
+        if (currentUser instanceof NonAcademicStaff) {
+            creator = (NonAcademicStaff) currentUser;
+        } else {
+            // For Admin/SuperAdmin, try to find as NonAcademicStaff in database
+            creator = nonAcademicStaffRepository.findById(currentUserId).orElse(null);
+        }
 
         Election election = votingMapper.toEntity(request);
         election.setClub(club);
-        election.setCreatedBy(creator);
+        if (creator != null) {
+            election.setCreatedBy(creator);
+        }
         election.setStatus(ElectionStatus.DRAFT);
 
         election = electionRepository.save(election);
-        log.info("Election created: {} (ID: {})", election.getTitle(), election.getId());
+        log.info("Election created successfully: {} (ID: {}) by user {}",
+                election.getTitle(), election.getId(), currentUserId);
 
         activityLogService.log(club, ClubActivityLog.ActivityType.ELECTION_CREATED,
                 "Election created: " + election.getTitle(),
-                currentUserId, securityService.getCurrentUserEmail(),
+                currentUserId, currentUserEmail,
                 null, null, election.getId(), "Election", null);
 
         return enrichElectionResponse(votingMapper.toResponse(election), election);

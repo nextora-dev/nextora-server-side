@@ -8,6 +8,7 @@ import lk.iit.nextora.config.ratelimit.RateLimitAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
@@ -98,6 +99,40 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // Handle JSON parsing/deserialization errors (including invalid enum values)
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, WebRequest request) {
+
+        log.error("HTTP message not readable: {}", ex.getMessage());
+
+        String message = "Invalid JSON format or invalid enum value";
+
+        // Check if it's an enum deserialization error
+        if (ex.getCause() != null && ex.getCause().getMessage() != null) {
+            String cause = ex.getCause().getMessage();
+            if (cause.contains("not one of the values accepted for Enum class")) {
+                // Extract enum values from error message
+                message = cause.contains(": ")
+                    ? "Invalid enum value. " + cause.substring(cause.indexOf(": ") + 2)
+                    : "Invalid enum value provided. Please check the allowed values for this field.";
+            } else {
+                message = "Invalid JSON format: " + cause;
+            }
+        }
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Bad Request")
+                .message(message)
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     // Handle Validation exceptions
