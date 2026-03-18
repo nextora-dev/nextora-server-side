@@ -203,4 +203,44 @@ public interface EventRepository extends JpaRepository<Event, Long> {
         */
        @Query("SELECT COUNT(DISTINCT e.createdBy.id) FROM Event e WHERE e.createdAt BETWEEN :start AND :end AND e.isDeleted = false")
        long countNewCreatorsThisMonth(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+       // ==================== Scheduler Queries ====================
+
+       /**
+        * Find published events whose end time has passed (for auto-completion)
+        */
+       @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND e.endAt < :now AND e.isDeleted = false")
+       List<Event> findEventsToComplete(@Param("now") LocalDateTime now);
+
+       /**
+        * Find published events starting between two times (for reminders)
+        */
+       @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' " +
+                     "AND e.startAt BETWEEN :from AND :to AND e.isDeleted = false")
+       List<Event> findEventsStartingBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+       // ==================== Advanced Search ====================
+
+       /**
+        * Advanced multi-criteria search
+        */
+       @Query("SELECT e FROM Event e LEFT JOIN e.createdBy c WHERE e.isDeleted = false " +
+                     "AND e.status IN :statuses " +
+                     "AND (:keyword IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                     "    OR LOWER(e.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+                     "AND (:location IS NULL OR LOWER(e.location) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+                     "AND (:creatorName IS NULL OR LOWER(c.firstName) LIKE LOWER(CONCAT('%', :creatorName, '%')) " +
+                     "    OR LOWER(c.lastName) LIKE LOWER(CONCAT('%', :creatorName, '%'))) " +
+                     "AND (:eventType IS NULL OR e.eventType = :eventType) " +
+                     "AND (:startDate IS NULL OR e.startAt >= :startDate) " +
+                     "AND (:endDate IS NULL OR e.startAt <= :endDate)")
+       Page<Event> advancedSearch(
+                     @Param("keyword") String keyword,
+                     @Param("location") String location,
+                     @Param("creatorName") String creatorName,
+                     @Param("eventType") EventType eventType,
+                     @Param("startDate") LocalDateTime startDate,
+                     @Param("endDate") LocalDateTime endDate,
+                     @Param("statuses") List<EventStatus> statuses,
+                     Pageable pageable);
 }

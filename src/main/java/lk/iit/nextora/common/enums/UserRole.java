@@ -60,6 +60,8 @@ public enum UserRole {
                     Permission.EVENT_CREATE,
                     Permission.EVENT_READ,
                     Permission.EVENT_UPDATE,
+                    Permission.EVENT_DELETE,
+                    Permission.EVENT_VIEW_ANALYTICS,
                     Permission.COMMUNICATION_READ,
                     Permission.COMMUNICATION_SEND,
                     Permission.COMMUNICATION_BROADCAST,
@@ -87,7 +89,9 @@ public enum UserRole {
                     Permission.CANDIDATE_VIEW,
                     Permission.EVENT_CREATE,
                     Permission.EVENT_READ,
-                    Permission.EVENT_UPDATE
+                    Permission.EVENT_UPDATE,
+                    Permission.EVENT_DELETE,
+                    Permission.EVENT_VIEW_ANALYTICS
             )),
 
     // ==================== ACADEMIC_STAFF ====================

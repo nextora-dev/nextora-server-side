@@ -14,7 +14,8 @@ public enum NotificationType {
     ATTENDANCE("Attendance"),
     MESSAGE("Message"),
     KUPPI_SESSION("Kuppi Session"),
-    KUPPI_REMINDER("Kuppi Reminder");
+    KUPPI_REMINDER("Kuppi Reminder"),
+    EVENT_REMINDER("Event Reminder");
 
     private final String displayName;
 

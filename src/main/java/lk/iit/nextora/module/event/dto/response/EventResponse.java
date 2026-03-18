@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.event.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lk.iit.nextora.common.enums.EventStatus;
 import lk.iit.nextora.common.enums.EventType;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EventResponse {
 
     private Long id;
@@ -32,11 +34,17 @@ public class EventResponse {
     private String registrationLink;
     private String cancellationReason;
     private LocalDateTime cancelledAt;
+    private String coverImageUrl;
 
     // Creator details
     private Long createdById;
     private String createdByName;
     private String createdByEmail;
+
+    // Registration stats
+    private Long registrationCount;
+    private Boolean isRegistrationOpen;
+    private Boolean isFull;
 
     // Metadata
     private LocalDateTime createdAt;
