@@ -97,4 +97,8 @@ public class CreateMeetingRequest {
      */
     @Size(max = 200, message = "Attachment name must not exceed 200 characters")
     private String attachmentName;
+
+    public Object getLecturerId() {
+        return null;
+    }
 }
