@@ -1266,40 +1266,44 @@ public class DataInitializer implements CommandLineRunner {
         if (!policyRepo.findAllByIsDeletedFalseAndIsActiveTrueOrderByPolicyNameAsc().isEmpty()) return;
         log.info("Seeding student policies...");
 
-        policyRepo.save(StudentPolicy.builder().policyName("Participation at Conferences").policySlug("participation-at-conferences").version("2.1").effectiveDate("2025-09-01")
+        StudentPolicy conferencePolicy = StudentPolicy.builder().policyName("Participation at Conferences").policySlug("participation-at-conferences").version("2.1").effectiveDate("2025-09-01")
                 .description("Policy governing student participation at academic conferences and seminars.")
                 .policyContent("Students are encouraged to participate in conferences. Prior approval must be obtained from the Head of Department...")
                 .policyFileUrl("https://storage.example.com/policies/conference-participation.pdf")
-                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build()
-                .keyPoints(new ArrayList<>(List.of("Prior approval required from HOD", "IIT may provide partial funding", "Students must submit a report after attendance"))));
+                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build();
+        conferencePolicy.setKeyPoints(new ArrayList<>(List.of("Prior approval required from HOD", "IIT may provide partial funding", "Students must submit a report after attendance")));
+        policyRepo.save(conferencePolicy);
 
-        policyRepo.save(StudentPolicy.builder().policyName("Participation at Competitions").policySlug("participation-at-competitions").version("1.5").effectiveDate("2025-09-01")
+        StudentPolicy competitionPolicy = StudentPolicy.builder().policyName("Participation at Competitions").policySlug("participation-at-competitions").version("1.5").effectiveDate("2025-09-01")
                 .description("Policy for student participation in external competitions, hackathons, and coding challenges.")
                 .policyContent("IIT supports student participation in competitions. Teams must register through the Student Affairs office...")
                 .policyFileUrl("https://storage.example.com/policies/competition-participation.pdf")
-                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build()
-                .keyPoints(new ArrayList<>(List.of("Team registration required", "IIT branding guidelines must be followed", "Results must be reported"))));
+                .contactName("Dr. Ravi Kumar").contactRole("Head of Student Affairs").contactEmail("student.affairs@iit.ac.lk").build();
+        competitionPolicy.setKeyPoints(new ArrayList<>(List.of("Team registration required", "IIT branding guidelines must be followed", "Results must be reported")));
+        policyRepo.save(competitionPolicy);
 
         StudentPolicy codeOfConduct = StudentPolicy.builder().policyName("Code of Conduct").policySlug("code-of-conduct").version("3.0").effectiveDate("2025-09-01")
                 .description("The comprehensive student code of conduct governing behaviour on and off campus.")
                 .policyContent("All students are expected to maintain the highest standards of academic integrity and personal conduct...")
                 .policyFileUrl("https://storage.example.com/policies/code-of-conduct.pdf")
                 .contactName("Dean of Students").contactRole("Dean of Student Affairs").contactEmail("dean.students@iit.ac.lk").build();
-        codeOfConduct.keyPoints(new ArrayList<>(List.of("Academic integrity is paramount", "Respect for all community members", "Zero tolerance for plagiarism", "Dress code compliance required")));
-        codeOfConduct.disciplinaryProcess(new ArrayList<>(List.of("Verbal warning", "Written warning", "Disciplinary hearing", "Suspension", "Expulsion")));
+        codeOfConduct.setKeyPoints(new ArrayList<>(List.of("Academic integrity is paramount", "Respect for all community members", "Zero tolerance for plagiarism", "Dress code compliance required")));
+        codeOfConduct.setDisciplinaryProcess(new ArrayList<>(List.of("Verbal warning", "Written warning", "Disciplinary hearing", "Suspension", "Expulsion")));
         policyRepo.save(codeOfConduct);
 
-        policyRepo.save(StudentPolicy.builder().policyName("Club Policy").policySlug("club-policy").version("2.0").effectiveDate("2025-09-01")
+        StudentPolicy clubPolicy = StudentPolicy.builder().policyName("Club Policy").policySlug("club-policy").version("2.0").effectiveDate("2025-09-01")
                 .description("Regulations for student clubs and societies, including formation, governance, and activities.")
                 .policyFileUrl("https://storage.example.com/policies/club-policy.pdf")
-                .contactName("Student Activities Coordinator").contactRole("Student Activities").contactEmail("clubs@iit.ac.lk").build()
-                .keyPoints(new ArrayList<>(List.of("Minimum 15 members to form a club", "Faculty advisor required", "Annual budget submission mandatory"))));
+                .contactName("Student Activities Coordinator").contactRole("Student Activities").contactEmail("clubs@iit.ac.lk").build();
+        clubPolicy.setKeyPoints(new ArrayList<>(List.of("Minimum 15 members to form a club", "Faculty advisor required", "Annual budget submission mandatory")));
+        policyRepo.save(clubPolicy);
 
-        policyRepo.save(StudentPolicy.builder().policyName("IT Policy").policySlug("it-policy").version("4.0").effectiveDate("2025-09-01")
+        StudentPolicy itPolicy = StudentPolicy.builder().policyName("IT Policy").policySlug("it-policy").version("4.0").effectiveDate("2025-09-01")
                 .description("IT usage policy covering network access, lab usage, software licensing, and data security.")
                 .policyFileUrl("https://storage.example.com/policies/it-policy.pdf")
-                .contactName("IT Security Officer").contactRole("IT Department").contactEmail("it.security@iit.ac.lk").build()
-                .keyPoints(new ArrayList<>(List.of("No unauthorized software installation", "VPN required for remote access", "Personal devices must be registered", "Data classification compliance"))));
+                .contactName("IT Security Officer").contactRole("IT Department").contactEmail("it.security@iit.ac.lk").build();
+        itPolicy.setKeyPoints(new ArrayList<>(List.of("No unauthorized software installation", "VPN required for remote access", "Personal devices must be registered", "Data classification compliance")));
+        policyRepo.save(itPolicy);
 
         log.info("Seeded 5 student policies.");
     }

@@ -120,8 +120,8 @@ public interface IntranetMapper {
 
     @Mapping(target = "lastUpdated", source = "updatedAt", qualifiedByName = "formatDateTime")
     @Mapping(target = "contactPerson", source = ".", qualifiedByName = "mapPolicyContact")
-    @Mapping(target = "keyPoints", source = "keyPointsJson", qualifiedByName = "parseJsonList")
-    @Mapping(target = "disciplinaryProcess", source = "disciplinaryProcessJson", qualifiedByName = "parseJsonList")
+    @Mapping(target = "keyPoints", source = "keyPoints")
+    @Mapping(target = "disciplinaryProcess", source = "disciplinaryProcess")
     StudentPolicyResponse toPolicyResponse(StudentPolicy entity);
 
     @Named("policySummary")
