@@ -20,9 +20,12 @@ public final class ApiConstants {
     public static final String AUTH_REGISTER = "/register";
     public static final String AUTH_REFRESH = "/refresh-token";
     public static final String AUTH_LOGOUT = "/logout";
+    public static final String AUTH_FORGOT_PASSWORD = "/forgot-password";
+    public static final String AUTH_RESET_PASSWORD = "/reset-password";
 
     // User endpoints
     public static final String USERS = API_V1 + "/users";
+    public static final String USER = API_V1 + "/user";
     public static final String USER_ME = "/me";
     public static final String USER_ACTIVE = "/active";
     public static final String CHANGE_PASSWORD = "/password";
@@ -31,6 +34,26 @@ public final class ApiConstants {
     public static final String USER_SEARCH = "/search";
     public static final String USER_ME_SEARCH = USER_ME + USER_SEARCH;
     public static final String USER_RESTORE = USER_BY_ID + "/restore";
+
+    // Admin User Management
+    public static final String USER_ADMIN = API_V1 + "/admin/users";
+    public static final String ADMIN_USER_STATS = "/stats";
+    public static final String ADMIN_USER_SEARCH = "/search";
+    public static final String ADMIN_USER_FILTER = "/filter";
+    public static final String USER_ACTIVATE = "/{id}/activate";
+    public static final String USER_DEACTIVATE = "/{id}/deactivate";
+    public static final String USER_SUSPEND = "/{id}/suspend";
+    public static final String USER_UNLOCK = "/{id}/unlock";
+    public static final String USER_RESET_PASSWORD = "/{id}/reset-password";
+
+    // Super Admin User Management
+    public static final String USER_SUPER_ADMIN = API_V1 + "/super-admin/users";
+    public static final String ADMIN_USER = "/admin";
+    public static final String ADMIN_USER_BY_ID = "/admin/{id}";
+    public static final String ADMIN_USER_PERMANENT_DELETE = "/admin/{id}/permanent";
+    public static final String ADMIN_USER_RESTORE = "/admin/{id}/restore";
+    public static final String NORMAL_USER_RESTORE = "/normal/{id}/restore";
+    public static final String NORMAL_USER_PERMANENT_DELETE = "/normal/{id}/permanent";
 
     // Kuppi endpoints
     public static final String KUPPI = API_V1 + "/kuppi";
@@ -53,10 +76,46 @@ public final class ApiConstants {
     public static final String KUPPI_RESCHEDULE = "/reschedule";
     public static final String KUPPI_DOWNLOAD = "/download";
 
+    // Kuppi Session detail endpoints
+    public static final String KUPPI_SESSION_BY_ID = "/{sessionId}";
+    public static final String KUPPI_SEARCH_SUBJECT = "/search-subject";
+    public static final String KUPPI_SEARCH_HOST = "/search-host";
+    public static final String KUPPI_SEARCH_DATE = "/search-date";
+
+    // Kuppi Student endpoints
+    public static final String KUPPI_STUDENTS = KUPPI + "/students";
+    public static final String KUPPI_STUDENT_BY_ID = "/{studentId}";
+    public static final String KUPPI_STUDENTS_SEARCH_NAME = "/search/name";
+    public static final String KUPPI_STUDENTS_SEARCH_SUBJECT = "/search/subject";
+    public static final String KUPPI_STUDENTS_BY_FACULTY = "/faculty/{faculty}";
+
+    // Kuppi Note endpoints
+    public static final String KUPPI_NOTE_SESSION = "/session/{sessionId}";
+    public static final String KUPPI_NOTE_BY_ID = "/{noteId}";
+    public static final String KUPPI_NOTE_UPLOAD = "/upload";
+    public static final String KUPPI_NOTE_DOWNLOAD_FILE = "/{noteId}/file";
+    public static final String KUPPI_NOTE_UPDATE_UPLOAD = "/{noteId}";
+
     // Kuppi Admin endpoints
     public static final String KUPPI_ADMIN = API_V1 + "/admin/kuppi";
     public static final String KUPPI_ADMIN_SESSIONS = KUPPI_ADMIN + "/sessions";
     public static final String KUPPI_ADMIN_NOTES = KUPPI_ADMIN + "/notes";
+
+    // Kuppi Admin Application endpoints
+    public static final String KUPPI_ADMIN_APPLICATION_BASE = "/applications";
+    public static final String KUPPI_ADMIN_APPLICATION_STATUS = "/applications/status/{status}";
+    public static final String KUPPI_ADMIN_APPLICATION_PENDING = "/applications/pending";
+    public static final String KUPPI_ADMIN_APPLICATION_ACTIVE = "/applications/active";
+    public static final String KUPPI_ADMIN_APPLICATION_BY_ID = "/applications/{id}";
+    public static final String KUPPI_ADMIN_APPLICATION_SEARCH = "/applications/search";
+    public static final String KUPPI_ADMIN_APPLICATION_STATS = "/applications/stats";
+    public static final String KUPPI_ADMIN_APPLICATION_APPROVE = "/applications/{id}/approve";
+    public static final String KUPPI_ADMIN_APPLICATION_REJECT = "/applications/{id}/reject";
+    public static final String KUPPI_ADMIN_APPLICATION_UNDER_REVIEW = "/applications/{id}/under-review";
+    public static final String KUPPI_ADMIN_APPLICATION_PERMANENT = "/applications/{id}/permanent";
+    public static final String KUPPI_ADMIN_APPLICATION_REVOKE = "/applications/{id}/revoke";
+    public static final String KUPPI_ADMIN_SESSIONS_PERMANENT = "/sessions/{id}/permanent";
+    public static final String KUPPI_ADMIN_NOTES_PERMANENT = "/notes/{id}/permanent";
 
     // ==================== Event Endpoints ====================
 
@@ -82,6 +141,27 @@ public final class ApiConstants {
 
     // Club Module (standalone club management)
     public static final String CLUB_MODULE = API_V1 + "/club-management";
+
+    // Club Admin endpoints
+    public static final String CLUB_ADMIN = API_V1 + "/admin/clubs";
+    public static final String CLUB_ADMIN_STATS = "/stats";
+    public static final String CLUB_ADMIN_ACTIVITY_LOG = "/activity-log";
+    public static final String MEMBERSHIP_CHANGE_POSITION = "/memberships/{membershipId}/change-position";
+    public static final String MEMBERSHIP_BULK_APPROVE = "/memberships/bulk-approve";
+    public static final String CLUB_TOGGLE_REGISTRATION = "/{clubId}/toggle-registration";
+    public static final String CLUB_STATISTICS = "/{clubId}/statistics";
+    public static final String CLUB_ADMIN_PERMANENT_DELETE = "/{clubId}/permanent";
+    public static final String CLUB_ADMIN_ANNOUNCEMENT_PERMANENT_DELETE = "/announcements/{announcementId}/permanent";
+
+    // Club Announcement endpoints
+    public static final String CLUB_ANNOUNCEMENTS = API_V1 + "/club-announcements";
+    public static final String CLUB_ANNOUNCEMENT_BY_ID = "/{announcementId}";
+    public static final String CLUB_ANNOUNCEMENTS_BY_CLUB = "/club/{clubId}";
+    public static final String CLUB_ANNOUNCEMENTS_PUBLIC = "/public";
+    public static final String CLUB_ANNOUNCEMENTS_PINNED = "/pinned";
+    public static final String CLUB_ANNOUNCEMENTS_SEARCH = "/search";
+    public static final String CLUB_ANNOUNCEMENT_PIN = "/{announcementId}/pin";
+    public static final String CLUB_ANNOUNCEMENT_UNPIN = "/{announcementId}/unpin";
 
     // Clubs (voting module - for elections)
     public static final String CLUBS = API_V1 + "/clubs";
@@ -121,6 +201,8 @@ public final class ApiConstants {
     public static final String CANDIDATES = "/candidates";
     public static final String CANDIDATE_BY_ID = "/candidates/{candidateId}";
     public static final String CANDIDATE_NOMINATE = "/candidates/nominate";
+    public static final String CANDIDATE_UPDATE = "/candidates/{candidateId}";
+    public static final String CANDIDATE_DELETE = "/candidates/{candidateId}";
     public static final String CANDIDATE_REVIEW = "/candidates/review";
     public static final String CANDIDATE_WITHDRAW = "/candidates/{candidateId}/withdraw";
     public static final String ELECTION_CANDIDATES = "/{electionId}/candidates";
@@ -177,6 +259,67 @@ public final class ApiConstants {
     public static final String VOTING_SUPER_ADMIN_INVALIDATE_VOTES = VOTING_ADMIN
             + "/voters/{voterId}/invalidate-votes";
     public static final String VOTING_SUPER_ADMIN_CONFIG = VOTING_ADMIN + "/config";
+
+    // ==================== Election Admin Endpoints ====================
+    public static final String ELECTION_ADMIN = API_V1 + "/admin/elections";
+    public static final String ELECTION_ADMIN_ELECTION_PERMANENT = "/{electionId}/permanent";
+    public static final String ELECTION_ADMIN_FORCE_OPEN_NOMINATIONS = "/{electionId}/force-open-nominations";
+    public static final String ELECTION_ADMIN_FORCE_CLOSE_NOMINATIONS = "/{electionId}/force-close-nominations";
+    public static final String ELECTION_ADMIN_FORCE_OPEN_VOTING = "/{electionId}/force-open-voting";
+    public static final String ELECTION_ADMIN_FORCE_CLOSE_VOTING = "/{electionId}/force-close-voting";
+    public static final String ELECTION_ADMIN_FORCE_PUBLISH_RESULTS = "/{electionId}/force-publish-results";
+    public static final String ELECTION_ADMIN_FORCE_CANCEL = "/{electionId}/force-cancel";
+    public static final String ELECTION_ADMIN_CANDIDATES_BY_ELECTION = "/{electionId}/candidates";
+    public static final String ELECTION_ADMIN_CANDIDATE_FORCE_APPROVE_PATH = "/{electionId}/candidates/{candidateId}/force-approve";
+    public static final String ELECTION_ADMIN_CANDIDATE_FORCE_REJECT_PATH = "/{electionId}/candidates/{candidateId}/force-reject";
+    public static final String ELECTION_ADMIN_CANDIDATE_DISQUALIFY_PATH = "/{electionId}/candidates/{candidateId}/disqualify";
+    public static final String ELECTION_ADMIN_CANDIDATES_UPDATE = "/{electionId}/candidates/{candidateId}";
+    public static final String ELECTION_ADMIN_LIVE_VOTES = "/{electionId}/live-votes";
+    public static final String ELECTION_ADMIN_STATISTICS_PATH = "/statistics";
+    public static final String ELECTION_ADMIN_STATISTICS_CLUBS = "/statistics/clubs";
+    public static final String ELECTION_ADMIN_STATISTICS_ELECTIONS = "/statistics/elections";
+    public static final String ELECTION_ADMIN_STATISTICS_SUMMARY = "/statistics/summary";
+    public static final String ELECTION_ADMIN_PROCESS_STATUS_PATH = "/process-status-updates";
+    public static final String ELECTION_ADMIN_RESET_VOTES_PATH = "/{electionId}/reset-votes";
+
+    // ==================== Kuppi Application Endpoints ====================
+    public static final String KUPPI_APPLICATIONS = API_V1 + "/kuppi/applications";
+    public static final String KUPPI_APPLICATION_MY = "/my";
+    public static final String KUPPI_APPLICATION_ACTIVE = "/active";
+    public static final String KUPPI_APPLICATION_BY_ID = "/{applicationId}";
+    public static final String KUPPI_APPLICATION_CAN_APPLY = "/can-apply";
+    public static final String KUPPI_APPLICATION_IS_KUPPI_STUDENT = "/is-kuppi-student";
+
+    // ==================== Club Dashboard Endpoints ====================
+    public static final String CLUB_DASHBOARD = API_V1 + "/club-dashboard";
+    public static final String CLUB_DASHBOARD_STUDENT = "/student";
+    public static final String CLUB_DASHBOARD_CLUB_MEMBER = "/club-member";
+    public static final String CLUB_DASHBOARD_STAFF = "/staff";
+    public static final String CLUB_DASHBOARD_ADMIN = "/admin";
+    public static final String CLUB_DASHBOARD_ACADEMIC = "/academic";
+
+    // Club Election endpoints
+    public static final String CLUB_ELECTIONS = "/{clubId}/elections";
+    public static final String CLUB_ELECTIONS_ACTIVE = "/{clubId}/elections/active";
+    public static final String CLUB_ELECTIONS_UPCOMING = "/{clubId}/elections/upcoming";
+
+    // ==================== Intranet Endpoints ====================
+    public static final String BY_SLUG = "/{slug}";
+    public static final String FOUNDATION_PROGRAM = API_V1 + "/foundation-program";
+    public static final String STAFF = API_V1 + "/staff";
+    public static final String MITIGATION_FORMS = API_V1 + "/mitigation-forms";
+    public static final String STUDENTS_RELATIONS_UNIT = API_V1 + "/students-relations-unit";
+    public static final String INFO = API_V1 + "/info";
+    public static final String STUDENT_COMPLAINTS = API_V1 + "/student-complaints";
+    public static final String ACADEMIC_CALENDARS = API_V1 + "/academic-calendars";
+    public static final String POSTGRADUATE = API_V1 + "/postgraduate";
+    public static final String SCHEDULES = API_V1 + "/schedules";
+    public static final String STUDENT_POLICIES = API_V1 + "/student-policies";
+    public static final String UNDERGRADUATE = API_V1 + "/undergraduate";
+
+    // ==================== Push Notification Endpoints ====================
+    public static final String PUSH = API_V1 + "/push";
+    public static final String NOTIFICATIONS = API_V1 + "/notifications";
 
 }
 

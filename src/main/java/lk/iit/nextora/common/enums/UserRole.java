@@ -45,29 +45,6 @@ public enum UserRole {
                     Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
-    // ==================== LECTURER - Lecturer access ====================
-    ROLE_LECTURER("Lecturer", "Lecturer access to system functions", true,
-            Set.of(
-                    Permission.USER_READ,
-                    Permission.USER_UPDATE,
-                    Permission.KUPPI_READ,
-                    Permission.KUPPI_APPROVE,
-                    Permission.KUPPI_NOTE_READ,
-                    Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ,
-                    Permission.BATCH_READ,
-                    Permission.EVENT_CREATE,
-                    Permission.EVENT_READ,
-                    Permission.EVENT_UPDATE,
-                    Permission.EVENT_DELETE,
-                    Permission.EVENT_VIEW_ANALYTICS,
-                    Permission.COMMUNICATION_READ,
-                    Permission.COMMUNICATION_SEND,
-                    Permission.COMMUNICATION_BROADCAST,
-                    Permission.LOST_FOUND_READ
-            )),
-
     // ==================== NON_ACADEMIC_STAFF ====================
     ROLE_NON_ACADEMIC_STAFF("Non_Academic_Staff", "Non-academic staff access to system functions", true,
             Set.of(
@@ -104,8 +81,17 @@ public enum UserRole {
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
                     Permission.KUPPI_NOTE_SEARCH,
-                    Permission.CLUB_READ
-
+                    Permission.CLUB_READ,
+                    Permission.BATCH_READ,
+                    Permission.EVENT_CREATE,
+                    Permission.EVENT_READ,
+                    Permission.EVENT_UPDATE,
+                    Permission.EVENT_DELETE,
+                    Permission.EVENT_VIEW_ANALYTICS,
+                    Permission.COMMUNICATION_READ,
+                    Permission.COMMUNICATION_SEND,
+                    Permission.COMMUNICATION_BROADCAST,
+                    Permission.LOST_FOUND_READ
             ));
 
     private final String displayName;
