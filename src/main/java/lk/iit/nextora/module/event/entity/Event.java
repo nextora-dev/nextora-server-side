@@ -9,6 +9,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Entity representing an Event
@@ -20,8 +22,8 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Event extends BaseEntity {
+
     @Column(nullable = false, length = 200)
     private String title;
 
@@ -70,10 +72,20 @@ public class Event extends BaseEntity {
     @Column
     private LocalDateTime cancelledAt;
 
+    @Column(length = 500)
+    private String coverImageUrl;
+
+    @Column(length = 300)
+    private String coverImageKey;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<EventRegistration> registrations = new HashSet<>();
+
     /* -------- CORE BUSINESS RULES -------- */
 
     public boolean hasValidTimeRange() {
-        return startAt.isBefore(endAt);
+        return startAt != null && endAt != null && startAt.isBefore(endAt);
     }
 
     public boolean canEdit() {
@@ -81,7 +93,7 @@ public class Event extends BaseEntity {
     }
 
     public boolean isVisible() {
-        return status == EventStatus.PUBLISHED;
+        return status == EventStatus.PUBLISHED || status == EventStatus.COMPLETED;
     }
 
     public boolean isUpcoming() {
@@ -91,6 +103,30 @@ public class Event extends BaseEntity {
     public boolean isOngoing() {
         LocalDateTime now = LocalDateTime.now();
         return now.isAfter(startAt) && now.isBefore(endAt) && status == EventStatus.PUBLISHED;
+    }
+
+    public boolean isRegistrationOpen() {
+        if (status != EventStatus.PUBLISHED) return false;
+        if (startAt.isBefore(LocalDateTime.now())) return false;
+        if (maxAttendees == null) return true;
+        long activeRegistrations = registrations.stream()
+                .filter(r -> !r.getIsCancelled())
+                .count();
+        return activeRegistrations < maxAttendees;
+    }
+
+    public boolean isFull() {
+        if (maxAttendees == null) return false;
+        long activeRegistrations = registrations.stream()
+                .filter(r -> !r.getIsCancelled())
+                .count();
+        return activeRegistrations >= maxAttendees;
+    }
+
+    public long getActiveRegistrationCount() {
+        return registrations.stream()
+                .filter(r -> !r.getIsCancelled())
+                .count();
     }
 
     public void incrementViewCount() {

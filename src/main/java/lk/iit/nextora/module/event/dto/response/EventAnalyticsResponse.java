@@ -22,6 +22,9 @@ public class EventAnalyticsResponse {
     private Long cancelledEvents;
     private Long totalViews;
 
+    // Registration stats
+    private Long totalRegistrations;
+
     // Most viewed event
     private Long mostViewedEventId;
     private String mostViewedEventTitle;

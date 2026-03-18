@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Enum representing the status of a candidate in an election
+ * Enum representing the status of an event
  */
 @Getter
 @RequiredArgsConstructor
@@ -20,14 +20,14 @@ public enum EventStatus {
     private final String description;
 
     /**
-     * Check if candidate can Edit the event
+     * Check if event can be edited
      */
     public boolean canEdit() {
         return this == DRAFT;
     }
 
     /**
-     * Check if candidate status can be changed to Published
+     * Check if event status can be changed to Published
      */
     public boolean canPublish() {
         return this == DRAFT;
