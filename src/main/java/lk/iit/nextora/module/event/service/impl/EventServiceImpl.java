@@ -442,7 +442,7 @@ public class EventServiceImpl implements EventService {
         if (existingReg.isPresent()) {
             registration = existingReg.get();
             if (!registration.getIsCancelled()) {
-                throw new DuplicateResourceException("You are already registered for this event");
+                throw new DuplicateResourceException("EventRegistration", "eventId_userId", eventId + "_" + userId);
             }
             // Re-register
             registration.reRegister();
