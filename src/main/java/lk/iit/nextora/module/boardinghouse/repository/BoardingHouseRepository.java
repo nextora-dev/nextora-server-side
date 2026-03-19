@@ -84,4 +84,17 @@ public interface BoardingHouseRepository extends JpaRepository<BoardingHouse, Lo
     // Analytics
     @Query("SELECT SUM(b.viewCount) FROM BoardingHouse b WHERE b.postedBy.id = :userId AND b.isDeleted = false")
     Long getTotalViewsByPoster(@Param("userId") Long userId);
+
+    // Stats by gender preference
+    @Query("SELECT SUM(b.viewCount) FROM BoardingHouse b WHERE b.isDeleted = false")
+    Long getTotalViews();
+
+    @Query("SELECT COUNT(b) FROM BoardingHouse b WHERE b.genderPreference = 'MALE' AND b.isDeleted = false")
+    long countMaleOnlyListings();
+
+    @Query("SELECT COUNT(b) FROM BoardingHouse b WHERE b.genderPreference = 'FEMALE' AND b.isDeleted = false")
+    long countFemaleOnlyListings();
+
+    @Query("SELECT COUNT(b) FROM BoardingHouse b WHERE b.genderPreference = 'ANY' AND b.isDeleted = false")
+    long countAnyGenderListings();
 }

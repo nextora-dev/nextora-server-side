@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,7 +44,8 @@ public class BoardingHouseResponse {
 
     // Additional info
     private Set<String> amenities;
-    private String imageUrl;
+    private List<BoardingHouseImageResponse> images;
+    private String primaryImageUrl;
     private Long viewCount;
 
     // Posted by (Admin details)
