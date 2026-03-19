@@ -46,7 +46,6 @@ public enum UserRole {
                     Permission.USER_RESET_PASSWORD,
                     // Boarding House - students can browse listings
                     Permission.BOARDING_HOUSE_READ
-                    Permission.CLUB_MEMBERSHIP_VIEW
             )),
 
     // ==================== NON_ACADEMIC_STAFF ====================
@@ -70,7 +69,6 @@ public enum UserRole {
                     Permission.CANDIDATE_VIEW,
 
                     // Voting statistics permissions
-                    Permission.VOTE_VIEW_STATISTICS,
                     Permission.VOTE_VIEW_RESULTS,
                     Permission.USER_RESET_PASSWORD,
                     Permission.USER_UPDATE,
@@ -79,7 +77,7 @@ public enum UserRole {
                     Permission.BOARDING_HOUSE_CREATE,
                     Permission.BOARDING_HOUSE_READ,
                     Permission.BOARDING_HOUSE_UPDATE,
-                    Permission.BOARDING_HOUSE_DELETE
+                    Permission.BOARDING_HOUSE_DELETE,
                     Permission.EVENT_CREATE,
                     Permission.EVENT_READ,
                     Permission.EVENT_UPDATE,
@@ -140,7 +138,6 @@ public enum UserRole {
         // Boarding House permanent delete is Super Admin only
         adminPermissions.remove(Permission.BOARDING_HOUSE_PERMANENT_DELETE);
         return adminPermissions;
-        return new HashSet<>(Arrays.asList(Permission.values()));
     }
 
     /**

@@ -1109,7 +1109,7 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Created 10 boarding house listings");
         }
     }
-}
+
     // ═══════════════════════════════════════════════════════════════════
     //  INTRANET CONTENT SEEDING (moved from IntranetDataSeeder)
     // ═══════════════════════════════════════════════════════════════════

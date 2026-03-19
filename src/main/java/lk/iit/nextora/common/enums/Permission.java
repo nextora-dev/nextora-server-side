@@ -21,9 +21,6 @@ public enum Permission {
     USER_RESTORE("USER:RESTORE", "Restore deleted users", "USER", "RESTORE", PermissionCategory.USER_MANAGEMENT),
     USER_PERMANENT_DELETE("USER:PERMANENT_DELETE", "Permanently delete users from database", "USER", "PERMANENT_DELETE", PermissionCategory.USER_MANAGEMENT),
     USER_UNLOCK("USER:UNLOCK", "Unlock suspended user accounts", "USER", "UNLOCK", PermissionCategory.USER_MANAGEMENT),
-    // ==================== USER SELF MANAGEMENT (Any authenticated user for their own profile) ====================
-    USER_READ("USER:READ", "View own user profile", "USER", "READ", PermissionCategory.USER_MANAGEMENT),
-    USER_UPDATE("USER:UPDATE", "Update own user profile", "USER", "UPDATE", PermissionCategory.USER_MANAGEMENT),
 
     // ==================== NORMAL USER MANAGEMENT (Admin manages Student, Academic Staff, Non-Academic Staff) ====================
     NORMAL_USER_CREATE("NORMAL_USER:CREATE", "Create normal users (Student, Academic Staff, Non-Academic Staff)", "NORMAL_USER", "CREATE", PermissionCategory.USER_MANAGEMENT),
