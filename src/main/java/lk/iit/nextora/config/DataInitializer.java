@@ -11,6 +11,10 @@ import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.election.entity.*;
 import lk.iit.nextora.module.election.repository.*;
+import lk.iit.nextora.module.event.entity.Event;
+import lk.iit.nextora.module.event.entity.EventRegistration;
+import lk.iit.nextora.module.event.repository.EventRegistrationRepository;
+import lk.iit.nextora.module.event.repository.EventRepository;
 import lk.iit.nextora.module.intranet.entity.*;
 import lk.iit.nextora.module.intranet.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,10 @@ public class DataInitializer implements CommandLineRunner {
     private final ClubMembershipRepository clubMembershipRepository;
     private final ElectionRepository electionRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // ── Event repositories ─────────────────────────────────────────
+    private final EventRepository eventRepository;
+    private final EventRegistrationRepository eventRegistrationRepository;
 
     // ── Intranet repositories ───────────────────────────────────────
     private final StudentComplaintCategoryRepository complaintRepo;
@@ -65,6 +73,7 @@ public class DataInitializer implements CommandLineRunner {
         createClubs();
         createClubMemberships();
         createElections();
+        createEvents();
 
         // ── Intranet content seeding ────────────────────────────────
         seedIntranetContent();
@@ -1446,6 +1455,224 @@ public class DataInitializer implements CommandLineRunner {
                 .build();
         modules.forEach(p::addModule);
         programRepo.save(p);
+    }
+
+    // ── Event seeding ─────────────────────────────────────────────────
+    private void createEvents() {
+        if (eventRepository.count() == 0) {
+            // Get existing users to assign as event creators
+            Student student = studentRepository.findAll().stream().findFirst().orElse(null);
+            Admin admin = adminRepository.findAll().stream().findFirst().orElse(null);
+            AcademicStaff lecturer = academicStaffRepository.findAll().stream().findFirst().orElse(null);
+
+            if (student == null || admin == null || lecturer == null) {
+                log.warn("Skipping event seeding — required users not found");
+                return;
+            }
+
+            // 1. Published upcoming workshop (created by student)
+            Event workshop = new Event();
+            workshop.setTitle("Full-Stack Development Workshop");
+            workshop.setDescription("A comprehensive hands-on workshop covering React, Spring Boot, and PostgreSQL. Learn to build production-ready applications from scratch with industry best practices.");
+            workshop.setStartAt(LocalDateTime.now().plusDays(15).withHour(9).withMinute(0));
+            workshop.setEndAt(LocalDateTime.now().plusDays(15).withHour(17).withMinute(0));
+            workshop.setLocation("Colombo, Sri Lanka");
+            workshop.setVenue("IIT Main Auditorium, Block A");
+            workshop.setEventType(EventType.WORKSHOP);
+            workshop.setStatus(EventStatus.PUBLISHED);
+            workshop.setCreatedBy(student);
+            workshop.setMaxAttendees(50);
+            workshop.setViewCount(125L);
+            workshop.setRegistrationLink("https://forms.google.com/workshop-2026");
+            eventRepository.save(workshop);
+            log.info("Created Event: {}", workshop.getTitle());
+
+            // 2. Published upcoming seminar (created by lecturer)
+            Event seminar = new Event();
+            seminar.setTitle("AI & Machine Learning in Healthcare");
+            seminar.setDescription("Join Dr. James Smith for an insightful seminar on how artificial intelligence and machine learning are revolutionizing healthcare diagnostics and treatment planning.");
+            seminar.setStartAt(LocalDateTime.now().plusDays(7).withHour(14).withMinute(0));
+            seminar.setEndAt(LocalDateTime.now().plusDays(7).withHour(16).withMinute(30));
+            seminar.setLocation("Colombo, Sri Lanka");
+            seminar.setVenue("Seminar Hall, Block B, Room 301");
+            seminar.setEventType(EventType.SEMINAR);
+            seminar.setStatus(EventStatus.PUBLISHED);
+            seminar.setCreatedBy(lecturer);
+            seminar.setMaxAttendees(200);
+            seminar.setViewCount(340L);
+            eventRepository.save(seminar);
+            log.info("Created Event: {}", seminar.getTitle());
+
+            // 3. Published upcoming hackathon (created by admin)
+            Event hackathon = new Event();
+            hackathon.setTitle("Nextora Hackathon 2026");
+            hackathon.setDescription("48-hour coding challenge! Build innovative solutions using AI, IoT, or Blockchain. Amazing prizes for top 3 teams. Open to all university students.");
+            hackathon.setStartAt(LocalDateTime.now().plusDays(30).withHour(8).withMinute(0));
+            hackathon.setEndAt(LocalDateTime.now().plusDays(32).withHour(8).withMinute(0));
+            hackathon.setLocation("Kandy, Sri Lanka");
+            hackathon.setVenue("IIT Innovation Hub");
+            hackathon.setEventType(EventType.HACKATHON);
+            hackathon.setStatus(EventStatus.PUBLISHED);
+            hackathon.setCreatedBy(admin);
+            hackathon.setMaxAttendees(100);
+            hackathon.setViewCount(510L);
+            hackathon.setRegistrationLink("https://nextora-hack.dev/register");
+            eventRepository.save(hackathon);
+            log.info("Created Event: {}", hackathon.getTitle());
+
+            // 4. Published upcoming sports event (created by student)
+            Event sportsDay = new Event();
+            sportsDay.setTitle("Inter-Faculty Sports Championship");
+            sportsDay.setDescription("Annual inter-faculty sports competition featuring cricket, football, badminton, and athletics. Come support your faculty!");
+            sportsDay.setStartAt(LocalDateTime.now().plusDays(20).withHour(7).withMinute(30));
+            sportsDay.setEndAt(LocalDateTime.now().plusDays(20).withHour(18).withMinute(0));
+            sportsDay.setLocation("Colombo, Sri Lanka");
+            sportsDay.setVenue("University Sports Complex");
+            sportsDay.setEventType(EventType.SPORTS);
+            sportsDay.setStatus(EventStatus.PUBLISHED);
+            sportsDay.setCreatedBy(student);
+            sportsDay.setMaxAttendees(500);
+            sportsDay.setViewCount(230L);
+            eventRepository.save(sportsDay);
+            log.info("Created Event: {}", sportsDay.getTitle());
+
+            // 5. Published upcoming cultural event (created by admin)
+            Event culturalNight = new Event();
+            culturalNight.setTitle("Cultural Night - Unity in Diversity");
+            culturalNight.setDescription("A celebration of Sri Lanka's diverse cultures through music, dance, drama, and food. Featuring performances from all student clubs and special guest artists.");
+            culturalNight.setStartAt(LocalDateTime.now().plusDays(25).withHour(17).withMinute(0));
+            culturalNight.setEndAt(LocalDateTime.now().plusDays(25).withHour(22).withMinute(0));
+            culturalNight.setLocation("Colombo, Sri Lanka");
+            culturalNight.setVenue("Main Auditorium & Outdoor Stage");
+            culturalNight.setEventType(EventType.CULTURAL);
+            culturalNight.setStatus(EventStatus.PUBLISHED);
+            culturalNight.setCreatedBy(admin);
+            culturalNight.setMaxAttendees(300);
+            culturalNight.setViewCount(415L);
+            eventRepository.save(culturalNight);
+            log.info("Created Event: {}", culturalNight.getTitle());
+
+            // 6. Published upcoming academic conference (created by lecturer)
+            Event conference = new Event();
+            conference.setTitle("International Research Symposium 2026");
+            conference.setDescription("Presenting cutting-edge research in Computer Science, Data Science, and Cybersecurity. Keynote speakers from MIT and Stanford.");
+            conference.setStartAt(LocalDateTime.now().plusDays(45).withHour(9).withMinute(0));
+            conference.setEndAt(LocalDateTime.now().plusDays(46).withHour(17).withMinute(0));
+            conference.setLocation("Galle, Sri Lanka");
+            conference.setVenue("Galle International Convention Centre");
+            conference.setEventType(EventType.ACADEMIC);
+            conference.setStatus(EventStatus.PUBLISHED);
+            conference.setCreatedBy(lecturer);
+            conference.setMaxAttendees(150);
+            conference.setViewCount(189L);
+            conference.setRegistrationLink("https://iit-symposium.lk/register");
+            eventRepository.save(conference);
+            log.info("Created Event: {}", conference.getTitle());
+
+            // 7. Draft event (created by student)
+            Event draftEvent = new Event();
+            draftEvent.setTitle("Python for Data Science - Beginner Bootcamp");
+            draftEvent.setDescription("A 2-day bootcamp covering Python fundamentals, Pandas, NumPy, and basic ML with scikit-learn. Perfect for beginners!");
+            draftEvent.setStartAt(LocalDateTime.now().plusDays(60).withHour(9).withMinute(0));
+            draftEvent.setEndAt(LocalDateTime.now().plusDays(61).withHour(17).withMinute(0));
+            draftEvent.setLocation("Colombo, Sri Lanka");
+            draftEvent.setVenue("Computer Lab, Block C");
+            draftEvent.setEventType(EventType.WORKSHOP);
+            draftEvent.setStatus(EventStatus.DRAFT);
+            draftEvent.setCreatedBy(student);
+            draftEvent.setMaxAttendees(30);
+            draftEvent.setViewCount(0L);
+            eventRepository.save(draftEvent);
+            log.info("Created Event (Draft): {}", draftEvent.getTitle());
+
+            // 8. Cancelled event (created by admin)
+            Event cancelledEvent = new Event();
+            cancelledEvent.setTitle("Outdoor Movie Night");
+            cancelledEvent.setDescription("An outdoor screening of a popular movie with popcorn and refreshments under the stars.");
+            cancelledEvent.setStartAt(LocalDateTime.now().plusDays(5).withHour(18).withMinute(0));
+            cancelledEvent.setEndAt(LocalDateTime.now().plusDays(5).withHour(21).withMinute(0));
+            cancelledEvent.setLocation("Colombo, Sri Lanka");
+            cancelledEvent.setVenue("University Lawn");
+            cancelledEvent.setEventType(EventType.SOCIAL);
+            cancelledEvent.setStatus(EventStatus.CANCELLED);
+            cancelledEvent.setCreatedBy(admin);
+            cancelledEvent.setMaxAttendees(200);
+            cancelledEvent.setViewCount(78L);
+            cancelledEvent.setCancellationReason("Venue unavailable due to maintenance work");
+            cancelledEvent.setCancelledAt(LocalDateTime.now().minusDays(2));
+            eventRepository.save(cancelledEvent);
+            log.info("Created Event (Cancelled): {}", cancelledEvent.getTitle());
+
+            // 9. Completed (past) event (created by lecturer)
+            Event pastEvent = new Event();
+            pastEvent.setTitle("Introduction to Cloud Computing");
+            pastEvent.setDescription("A seminar covering AWS, Azure, and GCP fundamentals. Learn about cloud architecture, deployment, and best practices.");
+            pastEvent.setStartAt(LocalDateTime.now().minusDays(10).withHour(10).withMinute(0));
+            pastEvent.setEndAt(LocalDateTime.now().minusDays(10).withHour(12).withMinute(30));
+            pastEvent.setLocation("Colombo, Sri Lanka");
+            pastEvent.setVenue("Lecture Hall 2, Block A");
+            pastEvent.setEventType(EventType.SEMINAR);
+            pastEvent.setStatus(EventStatus.COMPLETED);
+            pastEvent.setCreatedBy(lecturer);
+            pastEvent.setMaxAttendees(100);
+            pastEvent.setViewCount(290L);
+            eventRepository.save(pastEvent);
+            log.info("Created Event (Completed): {}", pastEvent.getTitle());
+
+            // 10. Published social event with no attendee limit (created by student)
+            Event socialEvent = new Event();
+            socialEvent.setTitle("Freshers Welcome Party 2026");
+            socialEvent.setDescription("Welcome our new batch of students! Join us for games, music, food, and fun. A great opportunity to meet your seniors and make new friends.");
+            socialEvent.setStartAt(LocalDateTime.now().plusDays(10).withHour(16).withMinute(0));
+            socialEvent.setEndAt(LocalDateTime.now().plusDays(10).withHour(21).withMinute(0));
+            socialEvent.setLocation("Colombo, Sri Lanka");
+            socialEvent.setVenue("Student Centre & Rooftop");
+            socialEvent.setEventType(EventType.SOCIAL);
+            socialEvent.setStatus(EventStatus.PUBLISHED);
+            socialEvent.setCreatedBy(student);
+            socialEvent.setViewCount(620L);
+            eventRepository.save(socialEvent);
+            log.info("Created Event: {}", socialEvent.getTitle());
+
+            log.info("Created 10 seed events");
+
+            // ── Event Registrations ──────────────────────────────────
+            List<Student> students = studentRepository.findAll();
+            List<Event> publishedEvents = eventRepository.findAll().stream()
+                    .filter(e -> e.getStatus() == EventStatus.PUBLISHED)
+                    .toList();
+
+            for (Event event : publishedEvents) {
+                int regCount = 0;
+                for (Student s : students) {
+                    if (regCount >= 3) break; // register up to 3 students per event
+                    if (s.getId().equals(event.getCreatedBy().getId())) continue; // skip creator
+
+                    EventRegistration reg = EventRegistration.builder()
+                            .event(event)
+                            .user(s)
+                            .registeredAt(LocalDateTime.now().minusDays(regCount + 1))
+                            .isCancelled(false)
+                            .build();
+                    eventRegistrationRepository.save(reg);
+                    regCount++;
+                }
+            }
+
+            // Add a cancelled registration for variety
+            if (students.size() > 4 && !publishedEvents.isEmpty()) {
+                EventRegistration cancelledReg = EventRegistration.builder()
+                        .event(publishedEvents.get(0))
+                        .user(students.get(4))
+                        .registeredAt(LocalDateTime.now().minusDays(5))
+                        .isCancelled(true)
+                        .cancelledAt(LocalDateTime.now().minusDays(3))
+                        .build();
+                eventRegistrationRepository.save(cancelledReg);
+            }
+
+            log.info("Created event registrations for seed data");
+        }
     }
 
     private ProgramModule mod(Integer year, int sem, String code, String name, int credits) {

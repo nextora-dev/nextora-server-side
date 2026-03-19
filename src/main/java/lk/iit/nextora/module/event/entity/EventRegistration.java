@@ -3,6 +3,8 @@ package lk.iit.nextora.module.event.entity;
 import jakarta.persistence.*;
 import lk.iit.nextora.module.auth.entity.BaseUser;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -40,13 +42,34 @@ public class EventRegistration {
     @Column
     private LocalDateTime cancelledAt;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    @Column
+    private LocalDateTime deletedAt;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column
+    private LocalDateTime updatedAt;
+
     public void cancel() {
         this.isCancelled = true;
+        this.isActive = false;
         this.cancelledAt = LocalDateTime.now();
     }
 
     public void reRegister() {
         this.isCancelled = false;
+        this.isActive = true;
         this.cancelledAt = null;
         this.registeredAt = LocalDateTime.now();
     }
