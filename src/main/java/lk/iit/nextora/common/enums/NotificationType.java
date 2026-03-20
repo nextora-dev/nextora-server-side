@@ -15,7 +15,12 @@ public enum NotificationType {
     MESSAGE("Message"),
     KUPPI_SESSION("Kuppi Session"),
     KUPPI_REMINDER("Kuppi Reminder"),
-    EVENT_REMINDER("Event Reminder");
+    EVENT_REMINDER("Event Reminder"),
+    MEETING("Meeting"),
+    MEETING_REMINDER("Meeting Reminder"),
+    ELECTION("Election"),
+    LOST_AND_FOUND("Lost & Found"),
+    BOARDING_HOUSE("Boarding House");
 
     private final String displayName;
 

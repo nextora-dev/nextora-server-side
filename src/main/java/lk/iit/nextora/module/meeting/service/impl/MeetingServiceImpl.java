@@ -18,6 +18,7 @@ import lk.iit.nextora.module.meeting.entity.Meeting;
 import lk.iit.nextora.module.meeting.mapper.MeetingMapper;
 import lk.iit.nextora.module.meeting.repository.MeetingRepository;
 import lk.iit.nextora.module.meeting.service.MeetingService;
+import lk.iit.nextora.infrastructure.notification.service.MeetingNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -57,6 +58,7 @@ public class MeetingServiceImpl implements MeetingService {
     private final AcademicStaffRepository academicStaffRepository;
     private final SecurityService securityService;
     private final MeetingMapper meetingMapper;
+    private final MeetingNotificationService meetingNotificationService;
 
     // ==================== Student Operations ====================
 
@@ -94,8 +96,13 @@ public class MeetingServiceImpl implements MeetingService {
         log.info("Meeting request {} created by student {} with priority {}",
                 meeting.getId(), currentUserId, meeting.getPriority());
 
-        // TODO: Send notification to lecturer about new meeting request
-        // Notify more urgently if high priority
+        // Send notification to lecturer about new meeting request
+        meetingNotificationService.notifyNewMeetingRequest(
+                meeting.getId(), lecturer.getId(),
+                student.getFirstName() + " " + student.getLastName(),
+                meeting.getSubject(),
+                meeting.getPriorityDisplayName()
+        );
 
         return meetingMapper.toResponse(meeting);
     }
@@ -156,7 +163,12 @@ public class MeetingServiceImpl implements MeetingService {
         meetingRepository.save(meeting);
         log.info("Meeting {} cancelled by student {}", meetingId, currentUserId);
 
-        // TODO: Notify lecturer about cancellation
+        // Notify lecturer about cancellation
+        meetingNotificationService.notifyMeetingCancelledByStudent(
+                meetingId, meeting.getLecturer().getId(),
+                meeting.getStudent().getFirstName() + " " + meeting.getStudent().getLastName(),
+                reason
+        );
     }
 
     @Override
@@ -286,8 +298,13 @@ public class MeetingServiceImpl implements MeetingService {
         meeting = meetingRepository.save(meeting);
         log.info("Meeting {} accepted and scheduled for {}", meetingId, request.getScheduledStartTime());
 
-        // TODO: Send notification to student with meeting details
-        // TODO: Update lecturer's calendar automatically
+        // Send notification to student with meeting details
+        meetingNotificationService.notifyMeetingAccepted(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName(),
+                request.getScheduledStartTime(), request.getLocation(),
+                request.getMeetingLink(), request.getIsOnline()
+        );
 
         return meetingMapper.toResponse(meeting);
     }
@@ -317,7 +334,12 @@ public class MeetingServiceImpl implements MeetingService {
         meeting = meetingRepository.save(meeting);
         log.info("Meeting {} rejected with reason: {}", meetingId, request.getReason());
 
-        // TODO: Send notification to student with rejection reason
+        // Send notification to student with rejection reason
+        meetingNotificationService.notifyMeetingRejected(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName(),
+                request.getReason()
+        );
 
         return meetingMapper.toResponse(meeting);
     }
@@ -379,8 +401,12 @@ public class MeetingServiceImpl implements MeetingService {
         meeting = meetingRepository.save(meeting);
         log.info("Meeting {} rescheduled from {} to {}", meetingId, oldStartTime, request.getScheduledStartTime());
 
-        // TODO: Send notification to student about reschedule
-        // TODO: Update calendar with new time
+        // Send notification to student about reschedule
+        meetingNotificationService.notifyMeetingRescheduled(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName(),
+                request.getScheduledStartTime()
+        );
 
         return meetingMapper.toResponse(meeting);
     }
@@ -411,8 +437,12 @@ public class MeetingServiceImpl implements MeetingService {
         meetingRepository.save(meeting);
         log.info("Meeting {} cancelled by lecturer with reason: {}", meetingId, reason);
 
-        // TODO: Notify student about cancellation
-        // TODO: Remove from calendar
+        // Notify student about cancellation
+        meetingNotificationService.notifyMeetingCancelledByLecturer(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName(),
+                reason
+        );
     }
 
     @Override
@@ -532,7 +562,11 @@ public class MeetingServiceImpl implements MeetingService {
         log.info("Meeting {} completed. Duration: {} minutes",
                 meetingId, meeting.getActualDurationMinutes());
 
-        // TODO: Send notification to student asking for feedback
+        // Send notification to student asking for feedback
+        meetingNotificationService.notifyMeetingCompleted(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName()
+        );
 
         return meetingMapper.toResponse(meeting);
     }
@@ -579,7 +613,11 @@ public class MeetingServiceImpl implements MeetingService {
 
         meetingRepository.save(meeting);
 
-        // TODO: Notify both student and lecturer
+        // Notify both student and lecturer
+        meetingNotificationService.notifyAdminCancelledMeeting(
+                meetingId, meeting.getStudent().getId(),
+                meeting.getLecturer().getId(), reason
+        );
     }
 
     @Override
@@ -641,7 +679,11 @@ public class MeetingServiceImpl implements MeetingService {
             meeting.setActualEndTime(now);
             meetingRepository.save(meeting);
             log.info("Auto-completed meeting {} at {}", meeting.getId(), now);
-            // TODO: Send feedback request to student
+            // Send feedback request to student
+            meetingNotificationService.notifyMeetingCompleted(
+                    meeting.getId(), meeting.getStudent().getId(),
+                    meeting.getLecturer().getFirstName() + " " + meeting.getLecturer().getLastName()
+            );
         }
     }
 
@@ -655,7 +697,11 @@ public class MeetingServiceImpl implements MeetingService {
         List<Meeting> meetingsNeedingReminder = meetingRepository.findMeetingsNeedingReminder(now, reminderTime);
 
         for (Meeting meeting : meetingsNeedingReminder) {
-            // TODO: Send 24-hour reminder to both student and lecturer
+            meetingNotificationService.notifyMeetingReminder(
+                    meeting.getId(), meeting.getStudent().getId(),
+                    meeting.getLecturer().getId(), meeting.getSubject(),
+                    meeting.getScheduledStartTime(), 1440
+            );
             meeting.setReminderSent(true);
             meetingRepository.save(meeting);
             log.info("Sent 24-hour reminder for meeting {}", meeting.getId());
@@ -672,7 +718,11 @@ public class MeetingServiceImpl implements MeetingService {
         List<Meeting> meetingsNeedingFinalReminder = meetingRepository.findMeetingsNeedingFinalReminder(now, finalReminderTime);
 
         for (Meeting meeting : meetingsNeedingFinalReminder) {
-            // TODO: Send 1-hour reminder to both student and lecturer
+            meetingNotificationService.notifyMeetingReminder(
+                    meeting.getId(), meeting.getStudent().getId(),
+                    meeting.getLecturer().getId(), meeting.getSubject(),
+                    meeting.getScheduledStartTime(), 60
+            );
             meeting.setFinalReminderSent(true);
             meetingRepository.save(meeting);
             log.info("Sent 1-hour reminder for meeting {}", meeting.getId());

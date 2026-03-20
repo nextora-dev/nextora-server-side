@@ -27,6 +27,7 @@ import lk.iit.nextora.module.election.entity.*;
 import lk.iit.nextora.module.election.mapper.VotingMapper;
 import lk.iit.nextora.module.election.repository.*;
 import lk.iit.nextora.module.election.service.ElectionService;
+import lk.iit.nextora.infrastructure.notification.service.ElectionNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +68,7 @@ public class ElectionServiceImpl implements ElectionService {
     private final ClubActivityLogService activityLogService;
     private final VotingMapper votingMapper;
     private final lk.iit.nextora.config.S3.S3Service s3Service;
+    private final ElectionNotificationService electionNotificationService;
 
     @Value("${app.voting.secret:nextora-voting-secret-2026}")
     private String votingSecret;
@@ -223,6 +225,12 @@ public class ElectionServiceImpl implements ElectionService {
                 securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
                 null, null, election.getId(), "Election", null);
 
+        electionNotificationService.notifyNominationsOpened(
+                electionId, election.getTitle(),
+                election.getClub().getName(),
+                election.getNominationEndTime()
+        );
+
         log.info("Nominations opened for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -278,6 +286,11 @@ public class ElectionServiceImpl implements ElectionService {
                 securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
                 null, null, election.getId(), "Election", null);
 
+        electionNotificationService.notifyVotingOpened(
+                electionId, election.getTitle(),
+                election.getClub().getName(), (int) approvedCount
+        );
+
         log.info("Voting opened for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -301,6 +314,10 @@ public class ElectionServiceImpl implements ElectionService {
                 "Voting closed for election: " + election.getTitle(),
                 securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
                 null, null, election.getId(), "Election", null);
+
+        electionNotificationService.notifyVotingClosed(
+                electionId, election.getTitle(), election.getClub().getName()
+        );
 
         log.info("Voting closed for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
@@ -332,6 +349,11 @@ public class ElectionServiceImpl implements ElectionService {
         // Auto-update club president if this is a PRESIDENT election
         autoUpdateClubPositionFromElection(election);
 
+        electionNotificationService.notifyResultsPublished(
+                electionId, election.getTitle(),
+                election.getClub().getName(), null
+        );
+
         log.info("Results published for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -355,6 +377,11 @@ public class ElectionServiceImpl implements ElectionService {
                 "Election cancelled: " + election.getTitle() + " - Reason: " + reason,
                 securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
                 null, null, election.getId(), "Election", null);
+
+        electionNotificationService.notifyElectionCancelled(
+                electionId, election.getTitle(),
+                election.getClub().getName(), reason
+        );
 
         log.info("Election cancelled: {}", electionId);
     }
@@ -694,12 +721,25 @@ public class ElectionServiceImpl implements ElectionService {
         if (request.getApproved()) {
             candidate.approve(reviewer);
             log.info("Candidate approved: {}", request.getCandidateId());
+
+            electionNotificationService.notifyCandidateApproved(
+                    candidate.getElection().getId(),
+                    candidate.getStudent().getId(),
+                    candidate.getElection().getTitle()
+            );
         } else {
             if (request.getRejectionReason() == null || request.getRejectionReason().isBlank()) {
                 throw new BadRequestException("Rejection reason is required");
             }
             candidate.reject(reviewer, request.getRejectionReason());
             log.info("Candidate rejected: {}", request.getCandidateId());
+
+            electionNotificationService.notifyCandidateRejected(
+                    candidate.getElection().getId(),
+                    candidate.getStudent().getId(),
+                    candidate.getElection().getTitle(),
+                    request.getRejectionReason()
+            );
         }
 
         candidate = candidateRepository.save(candidate);

@@ -20,6 +20,7 @@ import lk.iit.nextora.module.boardinghouse.mapper.BoardingHouseMapper;
 import lk.iit.nextora.module.boardinghouse.repository.BoardingHouseImageRepository;
 import lk.iit.nextora.module.boardinghouse.repository.BoardingHouseRepository;
 import lk.iit.nextora.module.boardinghouse.service.BoardingHouseService;
+import lk.iit.nextora.infrastructure.notification.service.BoardingHouseNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -53,6 +54,7 @@ public class BoardingHouseServiceImpl implements BoardingHouseService {
     private final SecurityService securityService;
     private final S3Service s3Service;
     private final List<BaseUserRepository<? extends BaseUser>> userRepositories;
+    private final BoardingHouseNotificationService boardingHouseNotificationService;
 
     // ==================== Browse Operations (All authenticated users) ====================
 
@@ -129,6 +131,12 @@ public class BoardingHouseServiceImpl implements BoardingHouseService {
 
         house = boardingHouseRepository.save(house);
         log.info("Boarding house listing created by user {}: {}", currentUserId, house.getId());
+
+        boardingHouseNotificationService.notifyNewListing(
+                house.getId(), house.getTitle(), house.getCity(),
+                house.getDistrict(), house.getPrice()
+        );
+
         return boardingHouseMapper.toResponse(house);
     }
 
@@ -330,6 +338,10 @@ public class BoardingHouseServiceImpl implements BoardingHouseService {
 
         house.softDelete();
         boardingHouseRepository.save(house);
+
+        boardingHouseNotificationService.notifyListingRemovedByAdmin(
+                houseId, house.getPostedBy().getId(), house.getTitle()
+        );
 
         log.info("Boarding house {} soft deleted by admin {}", houseId, currentUserId);
     }
