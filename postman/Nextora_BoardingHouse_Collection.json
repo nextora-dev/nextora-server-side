@@ -1,0 +1,1608 @@
+{
+  "info": {
+    "_postman_id": "bh-module-nextora",
+    "name": "Nextora - Boarding House Module",
+    "description": "Complete Postman collection for the Boarding House module.\n\n**Roles & Access:**\n- Student: Browse, Search, Filter only\n- Non-Academic Staff: Full CRUD + Images\n- Admin: Full CRUD + Images + Admin overrides\n- Super Admin: Everything + Permanent Delete + Stats\n\n**Setup:**\n1. Run \"Login\" request first to get token\n2. Token is auto-saved to `{{accessToken}}` variable\n3. All subsequent requests use Bearer token automatically",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "houseId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "imageId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Browse & Search (All Users)",
+      "description": "Endpoints accessible by ALL authenticated users (Students, Staff, Admin, Super Admin).\nRequires: BOARDING_HOUSE:READ permission.",
+      "item": [
+        {
+          "name": "Get All Available Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is success', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Contains paged response', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "    pm.expect(jsonData.data).to.have.property('totalElements');",
+                  "    pm.expect(jsonData.data).to.have.property('totalPages');",
+                  "});",
+                  "",
+                  "// Save first house ID for later use",
+                  "if (jsonData.data && jsonData.data.content && jsonData.data.content.length > 0) {",
+                  "    pm.collectionVariables.set('houseId', jsonData.data.content[0].id);",
+                  "    console.log('Saved houseId: ' + jsonData.data.content[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses?page=0&size=10&sortBy=createdAt&sortDirection=DESC",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Page number (0-based)"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "Sort field: createdAt, price, title, city, viewCount"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "DESC",
+                  "description": "ASC or DESC"
+                }
+              ]
+            },
+            "description": "Get all available (not deleted, is_available=true) boarding house listings with pagination and sorting.\n\n**Sort Options:** createdAt, price, title, city, district, viewCount"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Listing by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Contains boarding house details', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('title');",
+                  "    pm.expect(jsonData.data).to.have.property('price');",
+                  "    pm.expect(jsonData.data).to.have.property('formattedPrice');",
+                  "    pm.expect(jsonData.data).to.have.property('images');",
+                  "    pm.expect(jsonData.data).to.have.property('primaryImageUrl');",
+                  "    pm.expect(jsonData.data).to.have.property('postedByName');",
+                  "    pm.expect(jsonData.data).to.have.property('viewCount');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Get a specific boarding house by ID. Increments view count automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Listings by Keyword",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Search returned results', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/search?keyword=Colombo&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Colombo",
+                  "description": "Search in title, description, and city"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Full-text search across title, description, and city fields. Case-insensitive partial matching."
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Filter applied', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/filter?city=Colombo&district=Colombo&genderPreference=ANY&minPrice=5000&maxPrice=30000&page=0&size=10&sortBy=price&sortDirection=ASC",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "filter"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Colombo",
+                  "description": "(Optional) Filter by city name"
+                },
+                {
+                  "key": "district",
+                  "value": "Colombo",
+                  "description": "(Optional) Filter by district"
+                },
+                {
+                  "key": "genderPreference",
+                  "value": "ANY",
+                  "description": "(Optional) MALE, FEMALE, or ANY"
+                },
+                {
+                  "key": "minPrice",
+                  "value": "5000",
+                  "description": "(Optional) Minimum monthly rent"
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "30000",
+                  "description": "(Optional) Maximum monthly rent"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "price",
+                  "description": "Sort field"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "ASC"
+                }
+              ]
+            },
+            "description": "Advanced multi-criteria filter. All parameters are optional - omit any to skip that filter.\n\n**Gender Options:** MALE, FEMALE, ANY\n**Sort Options:** createdAt, price, title, city, viewCount"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by City",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/city?city=Colombo&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "city"
+              ],
+              "query": [
+                {
+                  "key": "city",
+                  "value": "Colombo",
+                  "description": "City name (partial match, case-insensitive)"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Filter boarding houses by city. Partial match, case-insensitive."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter by District",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/district?district=Gampaha&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "district"
+              ],
+              "query": [
+                {
+                  "key": "district",
+                  "value": "Gampaha",
+                  "description": "District name (partial match, case-insensitive)"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Filter boarding houses by district. Partial match, case-insensitive."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Images for Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Images array returned', function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('imageId', jsonData.data[0].id);",
+                  "    console.log('Saved imageId: ' + jsonData.data[0].id);",
+                  "    ",
+                  "    pm.test('Image has required fields', function () {",
+                  "        pm.expect(jsonData.data[0]).to.have.property('id');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('imageUrl');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('displayOrder');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('isPrimary');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images"
+              ]
+            },
+            "description": "Get all images for a boarding house listing, ordered by display order."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CRUD Operations (Admin / Non-Academic Staff)",
+      "description": "Create, Update, Delete operations.\nRequires: BOARDING_HOUSE:CREATE, BOARDING_HOUSE:UPDATE, BOARDING_HOUSE:DELETE\n\n**Allowed Roles:** Admin, Super Admin, Non-Academic Staff",
+      "item": [
+        {
+          "name": "Create Boarding House",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Boarding house created', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data.title).to.be.a('string');",
+                  "    pm.expect(jsonData.data.formattedPrice).to.be.a('string');",
+                  "});",
+                  "",
+                  "if (jsonData.data) {",
+                  "    pm.collectionVariables.set('houseId', jsonData.data.id);",
+                  "    console.log('Created houseId: ' + jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Spacious Room Near IIT Colombo\",\n    \"description\": \"Fully furnished room with attached bathroom. 10 minutes walk to IIT campus. Includes WiFi, daily cleaning, and 3 meals. Quiet neighborhood ideal for studying.\",\n    \"price\": 15000.00,\n    \"address\": \"42/A, Galle Road, Wellawatte\",\n    \"city\": \"Colombo\",\n    \"district\": \"Colombo\",\n    \"genderPreference\": \"ANY\",\n    \"totalRooms\": 5,\n    \"availableRooms\": 3,\n    \"contactName\": \"Mrs. Perera\",\n    \"contactPhone\": \"+94771234567\",\n    \"contactEmail\": \"perera.boarding@gmail.com\",\n    \"amenities\": [\"WiFi\", \"Meals\", \"Laundry\", \"Hot Water\", \"Study Room\"],\n    \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Create a new boarding house listing.\n\n**Required fields:** title, price, address, city, district, contactName, contactPhone\n**Optional fields:** description, genderPreference (default: ANY), totalRooms, availableRooms, contactEmail, amenities, isAvailable (default: true)\n\n**Note:** Images are uploaded separately via the image upload endpoint after creation."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Boarding House (Male Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Gender preference is MALE', function () {",
+                  "    pm.expect(jsonData.data.genderPreference).to.eql('MALE');",
+                  "    pm.expect(jsonData.data.genderPreferenceDisplay).to.eql('Male Only');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Boys Hostel - Nugegoda\",\n    \"description\": \"Affordable boys hostel with shared rooms. Close to bus routes and train station. Includes meals and laundry.\",\n    \"price\": 8500.00,\n    \"address\": \"15, High Level Road, Nugegoda\",\n    \"city\": \"Nugegoda\",\n    \"district\": \"Colombo\",\n    \"genderPreference\": \"MALE\",\n    \"totalRooms\": 10,\n    \"availableRooms\": 4,\n    \"contactName\": \"Mr. Silva\",\n    \"contactPhone\": \"+94777654321\",\n    \"contactEmail\": \"silva.hostel@gmail.com\",\n    \"amenities\": [\"WiFi\", \"Meals\", \"Parking\"],\n    \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Create a male-only boarding house listing."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Boarding House (Female Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Gender preference is FEMALE', function () {",
+                  "    pm.expect(jsonData.data.genderPreference).to.eql('FEMALE');",
+                  "    pm.expect(jsonData.data.genderPreferenceDisplay).to.eql('Female Only');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Girls Boarding - Dehiwala\",\n    \"description\": \"Safe and secure girls-only boarding with CCTV and 24/7 security. Includes AC rooms, attached bathrooms, and home-cooked meals.\",\n    \"price\": 22000.00,\n    \"address\": \"88, Galle Road, Dehiwala\",\n    \"city\": \"Dehiwala\",\n    \"district\": \"Colombo\",\n    \"genderPreference\": \"FEMALE\",\n    \"totalRooms\": 8,\n    \"availableRooms\": 2,\n    \"contactName\": \"Mrs. Fernando\",\n    \"contactPhone\": \"+94712345678\",\n    \"contactEmail\": \"fernando.girls@gmail.com\",\n    \"amenities\": [\"WiFi\", \"AC\", \"Meals\", \"Hot Water\", \"CCTV\", \"Security\"],\n    \"isAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Create a female-only boarding house listing."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Boarding House",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Update successful', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated - Spacious Room Near IIT Colombo\",\n    \"price\": 16500.00,\n    \"availableRooms\": 2,\n    \"amenities\": [\"WiFi\", \"Meals\", \"Laundry\", \"Hot Water\", \"Study Room\", \"Parking\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Update a boarding house listing. Only provided fields are updated (partial update).\n\n**Access:** Owner of the listing OR Admin/Super Admin can update."
+          },
+          "response": []
+        },
+        {
+          "name": "Update - Change Availability",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Availability updated', function () {",
+                  "    pm.expect(jsonData.data.isAvailable).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"isAvailable\": false,\n    \"availableRooms\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Mark a boarding house as unavailable (fully booked). It won't show in student browse results but remains in admin view."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Boarding House (Soft Delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Soft delete a boarding house listing. Sets is_deleted=true. Can be restored later.\n\n**Access:** Owner or Admin/Super Admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Contains paged response', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "    pm.expect(jsonData.data.content).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/my?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get all boarding house listings created by the currently logged-in user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Listings (Admin View)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin view - includes unavailable', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('content');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/all?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Admin-only endpoint. Shows ALL non-deleted listings including unavailable ones.\n\n**Requires:** BOARDING_HOUSE:ADMIN_READ permission (Admin, Super Admin only)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Image Management (S3)",
+      "description": "Upload, delete, and manage boarding house images stored in AWS S3.\n\n**Limits:**\n- Max 10 images per listing\n- Max 5MB per image\n- Allowed types: JPEG, PNG, WebP\n\nRequires: BOARDING_HOUSE:UPDATE permission",
+      "item": [
+        {
+          "name": "Upload Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Images uploaded', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+                  "});",
+                  "",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('imageId', jsonData.data[0].id);",
+                  "    console.log('Saved imageId: ' + jsonData.data[0].id);",
+                  "    ",
+                  "    pm.test('Image has required fields', function () {",
+                  "        pm.expect(jsonData.data[0]).to.have.property('id');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('imageUrl');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('displayOrder');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('isPrimary');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "description": "Select one or more image files (JPEG, PNG, WebP). Max 5MB each.",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "files",
+                  "description": "Additional image file",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "files",
+                  "description": "Additional image file",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images"
+              ]
+            },
+            "description": "Upload one or more images for a boarding house listing.\n\n**How to use in Postman:**\n1. Select Body > form-data\n2. Key: `files` (type: File)\n3. Click \"Select Files\" and choose images\n4. To upload multiple: add more rows with key `files`\n\n**Constraints:**\n- Max 10 images per listing total\n- Max 5MB per image file\n- Allowed types: JPEG (.jpg/.jpeg), PNG (.png), WebP (.webp)\n- First image uploaded becomes the primary/cover image automatically\n\n**Access:** Owner of listing or Admin."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Multiple Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Multiple images uploaded', function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "description": "Image 1 - Front view",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "files",
+                  "description": "Image 2 - Room interior",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "files",
+                  "description": "Image 3 - Bathroom",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images"
+              ]
+            },
+            "description": "Upload multiple images at once. Enable multiple file rows and select different images for each."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Images list returned', function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.collectionVariables.set('imageId', jsonData.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images"
+              ]
+            },
+            "description": "Get all images for a boarding house listing, sorted by display order."
+          },
+          "response": []
+        },
+        {
+          "name": "Set Primary Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Primary image set', function () {",
+                  "    pm.expect(jsonData.data.isPrimary).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images/{{imageId}}/primary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images",
+                "{{imageId}}",
+                "primary"
+              ]
+            },
+            "description": "Set an image as the primary/cover image for the listing. The previous primary image is unset automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images",
+                "{{imageId}}"
+              ]
+            },
+            "description": "Delete an image from the listing. Removes from both S3 and database.\n\nIf the deleted image was the primary image, the next image in display order automatically becomes primary."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Operations (Super Admin)",
+      "description": "Admin override operations.\nBase path: /api/v1/admin/boardinghouse\n\n**Admin Update/Delete:** Requires BOARDING_HOUSE:ADMIN_UPDATE or ADMIN_DELETE (Admin, Super Admin)\n**Permanent Delete:** Requires BOARDING_HOUSE:PERMANENT_DELETE (Super Admin ONLY)\n**Stats:** Requires BOARDING_HOUSE:ADMIN_READ",
+      "item": [
+        {
+          "name": "Admin Update Any Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin update successful', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"[Admin Updated] Spacious Room Near IIT\",\n    \"isAvailable\": true,\n    \"availableRooms\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Admin can update ANY boarding house listing regardless of ownership. No ownership check performed.\n\n**Requires:** BOARDING_HOUSE:ADMIN_UPDATE permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Delete Any Listing (Soft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Admin delete successful', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "Admin soft-delete any listing regardless of ownership.\n\n**Requires:** BOARDING_HOUSE:ADMIN_DELETE permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Permanently Delete Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Permanent delete successful', function () {",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.message).to.include('permanently');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/boardinghouse/houses/{{houseId}}/permanent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "permanent"
+              ]
+            },
+            "description": "**SUPER ADMIN ONLY** - Permanently delete a boarding house from the database. This also deletes all associated images from S3.\n\n**WARNING:** This action is IRREVERSIBLE. The listing, all images, and all associated data will be permanently removed.\n\n**Requires:** BOARDING_HOUSE:PERMANENT_DELETE permission (Super Admin only)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Platform Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Stats contain all fields', function () {",
+                  "    pm.expect(jsonData.data).to.have.property('totalListings');",
+                  "    pm.expect(jsonData.data).to.have.property('availableListings');",
+                  "    pm.expect(jsonData.data).to.have.property('unavailableListings');",
+                  "    pm.expect(jsonData.data).to.have.property('totalViews');",
+                  "    pm.expect(jsonData.data).to.have.property('maleOnlyListings');",
+                  "    pm.expect(jsonData.data).to.have.property('femaleOnlyListings');",
+                  "    pm.expect(jsonData.data).to.have.property('anyGenderListings');",
+                  "});",
+                  "",
+                  "pm.test('Stats values are numbers', function () {",
+                  "    pm.expect(jsonData.data.totalListings).to.be.a('number');",
+                  "    pm.expect(jsonData.data.availableListings).to.be.a('number');",
+                  "    pm.expect(jsonData.data.totalViews).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/boardinghouse/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "boardinghouse",
+                "stats"
+              ]
+            },
+            "description": "Get boarding house platform statistics.\n\n**Response includes:**\n- totalListings: Total non-deleted listings\n- availableListings: Currently available\n- unavailableListings: Currently unavailable (fully booked)\n- totalViews: Sum of all view counts\n- maleOnlyListings: Male-only listings count\n- femaleOnlyListings: Female-only listings count\n- anyGenderListings: Any-gender listings count\n\n**Requires:** BOARDING_HOUSE:ADMIN_READ permission."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios (Testing)",
+      "description": "Test requests that should return error responses. Use these to verify error handling works correctly.",
+      "item": [
+        {
+          "name": "Get Non-Existent Listing (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "999999"
+              ]
+            },
+            "description": "Try to get a non-existent boarding house. Should return 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Without Required Fields (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation errors returned', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('validationErrors');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"description\": \"Missing required fields\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Try to create a listing without required fields (title, price, address, city, district, contactName, contactPhone). Should return 400 with validation errors."
+          },
+          "response": []
+        },
+        {
+          "name": "Create With Invalid Price (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Boarding\",\n    \"price\": -500,\n    \"address\": \"123 Street\",\n    \"city\": \"Colombo\",\n    \"district\": \"Colombo\",\n    \"contactName\": \"Test\",\n    \"contactPhone\": \"0771234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Try to create with negative price. Should return 400."
+          },
+          "response": []
+        },
+        {
+          "name": "Access Without Token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 or 403', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "Try to access without authentication token. Should return 401."
+          },
+          "response": []
+        },
+        {
+          "name": "Student Try Create (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 Forbidden', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Student should not create this\",\n    \"price\": 10000,\n    \"address\": \"123 Street\",\n    \"city\": \"Colombo\",\n    \"district\": \"Colombo\",\n    \"contactName\": \"Student\",\n    \"contactPhone\": \"0771234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses"
+              ]
+            },
+            "description": "**Login as Student first!**\n\nStudents only have BOARDING_HOUSE:READ permission. Attempting to create should return 403 Forbidden."
+          },
+          "response": []
+        },
+        {
+          "name": "Student Try Delete (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 Forbidden', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}"
+              ]
+            },
+            "description": "**Login as Student first!**\n\nStudents cannot delete listings. Should return 403."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Try Permanent Delete (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 Forbidden', function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/boardinghouse/houses/{{houseId}}/permanent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "permanent"
+              ]
+            },
+            "description": "**Login as Admin (not Super Admin) first!**\n\nOnly Super Admin can permanently delete. Admin should get 403."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Non-Existent Image (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boardinghouse/houses/{{houseId}}/images/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "boardinghouse",
+                "houses",
+                "{{houseId}}",
+                "images",
+                "999999"
+              ]
+            },
+            "description": "Try to delete a non-existent image. Should return 404."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

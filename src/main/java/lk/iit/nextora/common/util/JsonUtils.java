@@ -36,6 +36,7 @@ public final class JsonUtils {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper;
     }
 
@@ -107,6 +108,33 @@ public final class JsonUtils {
         } catch (JsonProcessingException e) {
             log.error("Failed to deserialize JSON to {}: {}", clazz.getSimpleName(), e.getMessage());
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Convert JSON string to object with TypeReference (returns null if json is blank or parsing fails).
+     * Useful for deserializing generic types like {@code List<Foo>} or {@code Map<String, Object>}.
+     */
+    public static <T> T fromJsonSafe(String json, TypeReference<T> typeRef) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, typeRef);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize JSON: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Convert JSON string to object (returns null if json is blank or parsing fails).
+     */
+    public static <T> T fromJsonOrNull(String json, Class<T> clazz) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, clazz);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to deserialize JSON to {}: {}", clazz.getSimpleName(), e.getMessage());
+            return null;
         }
     }
 
@@ -230,4 +258,3 @@ public final class JsonUtils {
         }
     }
 }
-

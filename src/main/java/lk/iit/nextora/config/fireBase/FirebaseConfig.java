@@ -7,6 +7,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -14,7 +15,6 @@ import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
 /**
  * Firebase Configuration for Push Notifications.
@@ -25,16 +25,19 @@ import java.util.Optional;
  * Configuration Properties:
  * - firebase.enabled: Enable/disable Firebase (default: false)
  * - firebase.config-path: Path to serviceAccountKey.json
+ *
+ * The FirebaseMessaging bean is registered directly (not wrapped in Optional).
+ * Dependents that declare Optional<FirebaseMessaging> will receive:
+ * - Optional.of(instance) when Firebase is properly initialized
+ * - Optional.empty() when Firebase is disabled or not available
  */
 @Configuration
 @Slf4j
+@ConditionalOnProperty(name = "firebase.enabled", havingValue = "true")
 public class FirebaseConfig {
 
     @Value("${firebase.config-path:}")
     private String firebaseConfigPath;
-
-    @Value("${firebase.enabled:false}")
-    private boolean firebaseEnabled;
 
     private final ResourceLoader resourceLoader;
 
@@ -44,12 +47,13 @@ public class FirebaseConfig {
         this.resourceLoader = resourceLoader;
     }
 
+    /**
+     * Initialize Firebase Admin SDK eagerly via @PostConstruct
+     * so it's ready before any dependent beans are created.
+     */
     @PostConstruct
-    public void initialize() {
-        if (!firebaseEnabled) {
-            log.info("Firebase is disabled via configuration. Push notifications will not be available.");
-            return;
-        }
+    public void initializeFirebase() {
+        if (initialized) return;
 
         if (firebaseConfigPath == null || firebaseConfigPath.isBlank()) {
             log.warn("Firebase config path is not set. Push notifications will not work.");
@@ -87,15 +91,20 @@ public class FirebaseConfig {
     }
 
     /**
-     * Create FirebaseMessaging bean as Optional to allow graceful degradation.
-     * Returns null if Firebase is not initialized.
+     * Create FirebaseMessaging bean directly.
+     * When this bean exists, Spring will inject Optional.of(firebaseMessaging) into
+     * dependents that declare Optional<FirebaseMessaging>.
+     * When Firebase is not initialized (config class skipped), the bean won't exist,
+     * and Spring injects Optional.empty().
      */
     @Bean
-    public Optional<FirebaseMessaging> firebaseMessaging() {
+    public FirebaseMessaging firebaseMessaging() {
         if (!initialized) {
-            log.debug("FirebaseMessaging bean requested but Firebase is not initialized - returning empty Optional");
-            return Optional.empty();
+            log.warn("FirebaseMessaging bean: Firebase is not initialized - bean will not be available");
+            return null;
         }
-        return Optional.of(FirebaseMessaging.getInstance());
+
+        log.info("FirebaseMessaging bean created successfully");
+        return FirebaseMessaging.getInstance();
     }
 }

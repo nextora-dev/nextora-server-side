@@ -30,15 +30,19 @@ public class ClubResponse {
     private String socialMediaLinks;
 
     // President details
-    private Long presidentId;
-    private String presidentName;
-    private String presidentEmail;
+    private ClubOfficerResponse president;
+
+    // Vice President details
+    private ClubOfficerResponse vicePresident;
+
+    // Secretary details
+    private ClubOfficerResponse secretary;
+
+    // Treasurer details
+    private ClubOfficerResponse treasurer;
 
     // Advisor details (AcademicStaff)
-    private Long advisorId;
-    private String advisorName;
-    private String advisorEmail;
-    private String advisorDepartment;
+    private ClubOfficerResponse advisor;
 
     // Settings
     private Integer maxMembers;
@@ -54,4 +58,18 @@ public class ClubResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isActive;
+
+    /**
+     * DTO for club officer details (Vice President, Secretary, Treasurer)
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClubOfficerResponse {
+        private Long id;
+        private String name;
+        private String email;
+        private String profilePictureUrl;
+    }
 }

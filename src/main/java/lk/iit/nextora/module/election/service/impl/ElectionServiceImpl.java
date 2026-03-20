@@ -2,7 +2,9 @@ package lk.iit.nextora.module.election.service.impl;
 
 import lk.iit.nextora.common.dto.PagedResponse;
 import lk.iit.nextora.common.enums.CandidateStatus;
+import lk.iit.nextora.common.enums.ClubPositionsType;
 import lk.iit.nextora.common.enums.ElectionStatus;
+import lk.iit.nextora.common.enums.ElectionType;
 import lk.iit.nextora.common.exception.custom.BadRequestException;
 import lk.iit.nextora.common.exception.custom.DuplicateResourceException;
 import lk.iit.nextora.common.exception.custom.ResourceNotFoundException;
@@ -14,8 +16,10 @@ import lk.iit.nextora.module.auth.entity.Student;
 import lk.iit.nextora.module.auth.repository.NonAcademicStaffRepository;
 import lk.iit.nextora.module.auth.repository.StudentRepository;
 import lk.iit.nextora.module.club.entity.Club;
+import lk.iit.nextora.module.club.entity.ClubActivityLog;
 import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
+import lk.iit.nextora.module.club.service.ClubActivityLogService;
 import lk.iit.nextora.module.club.service.ClubService;
 import lk.iit.nextora.module.election.dto.request.*;
 import lk.iit.nextora.module.election.dto.response.*;
@@ -60,6 +64,7 @@ public class ElectionServiceImpl implements ElectionService {
     private final NonAcademicStaffRepository nonAcademicStaffRepository;
     private final SecurityService securityService;
     private final ClubService clubService;
+    private final ClubActivityLogService activityLogService;
     private final VotingMapper votingMapper;
     private final lk.iit.nextora.config.S3.S3Service s3Service;
 
@@ -72,21 +77,30 @@ public class ElectionServiceImpl implements ElectionService {
     @Transactional
     public ElectionResponse createElection(CreateElectionRequest request) {
         Long currentUserId = securityService.getCurrentUserId();
-        log.info("Creating election for club {}", request.getClubId());
+        String currentUserEmail = securityService.getCurrentUserEmail();
+        log.info("Creating election for club {} by user {}", request.getClubId(), currentUserId);
 
         Club club = findClubById(request.getClubId());
         validateClubAdminAccess();
         validateElectionSchedule(request);
 
-        NonAcademicStaff creator = findNonAcademicStaffById(currentUserId);
+        // Get current user - can be NonAcademicStaff, Admin, or SuperAdmin (all are BaseUser subclasses)
+        BaseUser currentUser = securityService.getCurrentUser()
+                .orElseThrow(() -> new UnauthorizedException("User not authenticated"));
 
         Election election = votingMapper.toEntity(request);
         election.setClub(club);
-        election.setCreatedBy(creator);
+        election.setCreatedBy(currentUser);
         election.setStatus(ElectionStatus.DRAFT);
 
         election = electionRepository.save(election);
-        log.info("Election created: {} (ID: {})", election.getTitle(), election.getId());
+        log.info("Election created successfully: {} (ID: {}) by user {}",
+                election.getTitle(), election.getId(), currentUserId);
+
+        activityLogService.log(club, ClubActivityLog.ActivityType.ELECTION_CREATED,
+                "Election created: " + election.getTitle(),
+                currentUserId, currentUserEmail,
+                null, null, election.getId(), "Election", null);
 
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -181,6 +195,7 @@ public class ElectionServiceImpl implements ElectionService {
         }
 
         election.softDelete();
+        election.setDeletedBy(securityService.getCurrentUserId());
         electionRepository.save(election);
 
         log.info("Election deleted: {}", electionId);
@@ -203,6 +218,11 @@ public class ElectionServiceImpl implements ElectionService {
         election.openNominations();
         election = electionRepository.save(election);
 
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_NOMINATIONS_OPENED,
+                "Nominations opened for election: " + election.getTitle(),
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
+
         log.info("Nominations opened for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -221,6 +241,11 @@ public class ElectionServiceImpl implements ElectionService {
 
         election.closeNominations();
         election = electionRepository.save(election);
+
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_NOMINATIONS_CLOSED,
+                "Nominations closed for election: " + election.getTitle(),
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
 
         log.info("Nominations closed for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
@@ -248,6 +273,11 @@ public class ElectionServiceImpl implements ElectionService {
         election.openVoting();
         election = electionRepository.save(election);
 
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_VOTING_OPENED,
+                "Voting opened for election: " + election.getTitle() + " (" + approvedCount + " candidates)",
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
+
         log.info("Voting opened for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -266,6 +296,11 @@ public class ElectionServiceImpl implements ElectionService {
 
         election.closeVoting();
         election = electionRepository.save(election);
+
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_VOTING_CLOSED,
+                "Voting closed for election: " + election.getTitle(),
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
 
         log.info("Voting closed for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
@@ -286,6 +321,17 @@ public class ElectionServiceImpl implements ElectionService {
         election.publishResults();
         election = electionRepository.save(election);
 
+        Long currentUserId = securityService.getCurrentUserId();
+        String currentUserEmail = securityService.getCurrentUserEmail();
+
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_RESULTS_PUBLISHED,
+                "Results published for election: " + election.getTitle(),
+                currentUserId, currentUserEmail,
+                null, null, election.getId(), "Election", null);
+
+        // Auto-update club president if this is a PRESIDENT election
+        autoUpdateClubPositionFromElection(election);
+
         log.info("Results published for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
     }
@@ -304,6 +350,11 @@ public class ElectionServiceImpl implements ElectionService {
 
         election.cancel(reason);
         electionRepository.save(election);
+
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_CANCELLED,
+                "Election cancelled: " + election.getTitle() + " - Reason: " + reason,
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
 
         log.info("Election cancelled: {}", electionId);
     }
@@ -490,8 +541,7 @@ public class ElectionServiceImpl implements ElectionService {
         }
 
         // Soft delete the nomination
-        candidate.setIsDeleted(true);
-        candidate.setDeletedAt(LocalDateTime.now());
+        candidate.softDelete();
         candidate.setDeletedBy(currentUserId);
         candidateRepository.save(candidate);
 
@@ -933,10 +983,10 @@ public class ElectionServiceImpl implements ElectionService {
         Election election = electionRepository.findById(electionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Election", "id", electionId));
 
-        // Delete all candidates first
-        candidateRepository.deleteByElectionId(electionId);
-        // Delete all votes
+        // Delete votes first (votes reference candidates via FK)
         voteRepository.deleteByElectionId(electionId);
+        // Then delete candidates (candidates reference election via FK)
+        candidateRepository.deleteByElectionId(electionId);
         // Finally delete the election
         electionRepository.delete(election);
 
@@ -1009,6 +1059,14 @@ public class ElectionServiceImpl implements ElectionService {
         election.setStatus(ElectionStatus.RESULTS_PUBLISHED);
         election.setResultsPublishedAt(LocalDateTime.now());
         election = electionRepository.save(election);
+
+        activityLogService.log(election.getClub(), ClubActivityLog.ActivityType.ELECTION_RESULTS_PUBLISHED,
+                "Admin force published results for election: " + election.getTitle(),
+                securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                null, null, election.getId(), "Election", null);
+
+        // Auto-update club president if this is a PRESIDENT election
+        autoUpdateClubPositionFromElection(election);
 
         log.info("Admin force published results for election: {}", electionId);
         return enrichElectionResponse(votingMapper.toResponse(election), election);
@@ -1343,11 +1401,20 @@ public class ElectionServiceImpl implements ElectionService {
     }
 
     private ElectionResponse enrichElectionResponse(ElectionResponse response, Election election) {
+        // Use count queries instead of loading entire collections (avoids N+1 and OOM)
+        long totalCandidates = candidateRepository.countByElectionIdAndIsDeletedFalse(election.getId());
+        long approvedCandidates = candidateRepository.countByElectionIdAndStatusAndIsDeletedFalse(
+                election.getId(), CandidateStatus.APPROVED);
+        long totalVotes = voteRepository.countByElectionIdAndIsDeletedFalse(election.getId());
         long eligibleVoters = membershipRepository.countActiveMembers(election.getClub().getId(), LocalDate.now());
+
+        response.setTotalCandidates((int) totalCandidates);
+        response.setApprovedCandidates((int) approvedCandidates);
+        response.setTotalVotes((int) totalVotes);
         response.setEligibleVoters((int) eligibleVoters);
 
-        if (response.getTotalVotes() != null && eligibleVoters > 0) {
-            response.setParticipationRate((double) response.getTotalVotes() / eligibleVoters * 100);
+        if (totalVotes > 0 && eligibleVoters > 0) {
+            response.setParticipationRate((double) totalVotes / eligibleVoters * 100);
         }
 
         return response;
@@ -1379,5 +1446,110 @@ public class ElectionServiceImpl implements ElectionService {
                 .last(page.isLast())
                 .empty(page.isEmpty())
                 .build();
+    }
+
+    /**
+     * Auto-update club position (president, VP, secretary, treasurer) when election results are published.
+     * Determines the winner (candidate with highest vote count), updates the Club entity,
+     * and changes the winner's membership position within the club.
+     */
+    private void autoUpdateClubPositionFromElection(Election election) {
+        ElectionType type = election.getElectionType();
+
+        // Only process position-based elections
+        ClubPositionsType targetPosition = mapElectionTypeToPosition(type);
+        if (targetPosition == null) {
+            return; // GENERAL, POLL, REFERENDUM don't map to a position
+        }
+
+        try {
+            // Get the winner: approved candidate with highest vote count
+            List<Candidate> approvedCandidates = candidateRepository
+                    .findByElectionIdAndStatusAndIsDeletedFalseOrderByDisplayOrderAsc(
+                            election.getId(), CandidateStatus.APPROVED);
+
+            if (approvedCandidates.isEmpty()) {
+                log.warn("No approved candidates found for election {} — skipping auto-update", election.getId());
+                return;
+            }
+
+            // Sort by vote count descending and pick the winner
+            Candidate winner = approvedCandidates.stream()
+                    .max(Comparator.comparingInt(Candidate::getVoteCount))
+                    .orElse(null);
+
+            if (winner == null || winner.getVoteCount() == 0) {
+                log.warn("No votes cast in election {} — skipping auto-update", election.getId());
+                return;
+            }
+
+            Student winnerStudent = winner.getStudent();
+            Club club = election.getClub();
+
+            // Update club entity for PRESIDENT position
+            if (targetPosition == ClubPositionsType.PRESIDENT) {
+                Student previousPresident = club.getPresident();
+                club.setPresident(winnerStudent);
+                clubRepository.save(club);
+
+                log.info("Auto-updated club {} president to {} (from election {})",
+                        club.getName(), winnerStudent.getFullName(), election.getId());
+
+                // Demote previous president to GENERAL_MEMBER if they exist and differ from winner
+                if (previousPresident != null && !previousPresident.getId().equals(winnerStudent.getId())) {
+                    try {
+                        clubService.changeMemberPosition(
+                                findMembershipIdForMember(club.getId(), previousPresident.getId()),
+                                ClubPositionsType.GENERAL_MEMBER,
+                                "Demoted from President — new president elected in election: " + election.getTitle());
+                    } catch (Exception e) {
+                        log.warn("Could not demote previous president {}: {}", previousPresident.getId(), e.getMessage());
+                    }
+                }
+            }
+
+            // Promote winner to the target position
+            try {
+                Long winnerMembershipId = findMembershipIdForMember(club.getId(), winnerStudent.getId());
+                clubService.changeMemberPosition(winnerMembershipId, targetPosition,
+                        "Elected as " + targetPosition.name() + " in election: " + election.getTitle());
+            } catch (Exception e) {
+                log.warn("Could not promote winner {} to {}: {}", winnerStudent.getId(), targetPosition, e.getMessage());
+            }
+
+            // Log the auto-update
+            activityLogService.log(club, ClubActivityLog.ActivityType.ELECTION_PRESIDENT_AUTO_UPDATED,
+                    winnerStudent.getFullName() + " elected as " + targetPosition.name() +
+                            " in election: " + election.getTitle() + " (votes: " + winner.getVoteCount() + ")",
+                    securityService.getCurrentUserId(), securityService.getCurrentUserEmail(),
+                    winnerStudent.getId(), winnerStudent.getFullName(),
+                    election.getId(), "Election", null);
+
+        } catch (Exception e) {
+            log.error("Failed to auto-update club position from election {}: {}", election.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Map election type to the corresponding club position.
+     * Returns null for election types that don't map to a specific position.
+     */
+    private ClubPositionsType mapElectionTypeToPosition(ElectionType type) {
+        return switch (type) {
+            case PRESIDENT -> ClubPositionsType.PRESIDENT;
+            case VICE_PRESIDENT -> ClubPositionsType.VICE_PRESIDENT;
+            case SECRETARY -> ClubPositionsType.SECRETARY;
+            case TREASURER -> ClubPositionsType.TREASURER;
+            default -> null;
+        };
+    }
+
+    /**
+     * Find the membership ID for a specific member in a club.
+     */
+    private Long findMembershipIdForMember(Long clubId, Long memberId) {
+        return membershipRepository.findByClubIdAndMemberIdAndIsDeletedFalse(clubId, memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("ClubMembership", "clubId and memberId", clubId + ", " + memberId))
+                .getId();
     }
 }

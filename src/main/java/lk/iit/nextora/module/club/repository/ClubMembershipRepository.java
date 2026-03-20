@@ -1,6 +1,7 @@
 package lk.iit.nextora.module.club.repository;
 
 import lk.iit.nextora.common.enums.ClubMembershipStatus;
+import lk.iit.nextora.common.enums.ClubPositionsType;
 import lk.iit.nextora.module.club.entity.ClubMembership;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,8 @@ import java.util.Optional;
 public interface ClubMembershipRepository extends JpaRepository<ClubMembership, Long> {
 
     Optional<ClubMembership> findByClubIdAndMemberIdAndIsDeletedFalse(Long clubId, Long memberId);
+
+    Optional<ClubMembership> findByClubIdAndMemberId(Long clubId, Long memberId);
 
     Optional<ClubMembership> findByMembershipNumberAndIsDeletedFalse(String membershipNumber);
 
@@ -83,4 +86,31 @@ public interface ClubMembershipRepository extends JpaRepository<ClubMembership, 
                               @Param("memberId") Long memberId,
                               @Param("currentDate") LocalDate currentDate,
                               @Param("eligibilityDate") LocalDate eligibilityDate);
+
+    // Dashboard queries
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.member.id = :memberId AND cm.isDeleted = false")
+    long countByMemberId(@Param("memberId") Long memberId);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.member.id = :memberId AND cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countPendingByMemberId(@Param("memberId") Long memberId);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countAllPending();
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.status = 'ACTIVE' AND cm.isDeleted = false " +
+           "AND (cm.expiryDate IS NULL OR cm.expiryDate > :currentDate)")
+    long countAllActiveMembers(@Param("currentDate") LocalDate currentDate);
+
+    @Query("SELECT COUNT(cm) FROM ClubMembership cm WHERE cm.club.id = :clubId AND cm.status = 'PENDING' AND cm.isDeleted = false")
+    long countPendingByClubId(@Param("clubId") Long clubId);
+
+    /**
+     * Find an active club member by their position (e.g., VICE_PRESIDENT, SECRETARY, TREASURER)
+     */
+    @Query("SELECT cm FROM ClubMembership cm JOIN FETCH cm.member WHERE cm.club.id = :clubId AND cm.position = :position " +
+           "AND cm.status = 'ACTIVE' AND cm.isDeleted = false")
+    Optional<ClubMembership> findByClubIdAndPositionAndStatusActive(@Param("clubId") Long clubId,
+                                                                     @Param("position") ClubPositionsType position);
+
+    void deleteByClubId(Long clubId);
 }

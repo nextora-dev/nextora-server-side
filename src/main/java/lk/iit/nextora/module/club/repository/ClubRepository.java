@@ -22,7 +22,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     Optional<Club> findByClubCodeAndIsDeletedFalse(String clubCode);
 
+    @Query("SELECT c FROM Club c LEFT JOIN FETCH c.president LEFT JOIN FETCH c.advisor WHERE c.clubCode = :clubCode AND c.isDeleted = false")
+    Optional<Club> findByClubCodeWithOfficers(@Param("clubCode") String clubCode);
+
     Optional<Club> findByIdAndIsDeletedFalse(Long id);
+
+    @Query("SELECT c FROM Club c LEFT JOIN FETCH c.president LEFT JOIN FETCH c.advisor WHERE c.id = :id AND c.isDeleted = false")
+    Optional<Club> findByIdWithOfficers(@Param("id") Long id);
 
     boolean existsByClubCodeAndIsDeletedFalse(String clubCode);
 
@@ -46,4 +52,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
 
     @Query("SELECT c FROM Club c WHERE c.isRegistrationOpen = true AND c.isDeleted = false AND c.isActive = true")
     Page<Club> findOpenForRegistration(Pageable pageable);
+
+    @Query("SELECT COUNT(c) FROM Club c WHERE c.isRegistrationOpen = true AND c.isDeleted = false AND c.isActive = true")
+    long countOpenForRegistration();
+
+    @Query("SELECT c FROM Club c WHERE c.isDeleted = false AND c.isActive = true ORDER BY c.createdAt DESC")
+    List<Club> findRecentClubs(Pageable pageable);
+
+    @Query("SELECT c FROM Club c WHERE c.advisor.id = :advisorId AND c.isDeleted = false AND c.isActive = true")
+    List<Club> findByAdvisorId(@Param("advisorId") Long advisorId);
 }

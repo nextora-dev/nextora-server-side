@@ -3,17 +3,15 @@ package lk.iit.nextora.infrastructure.notification.push.scheduler;
 import lk.iit.nextora.infrastructure.notification.push.service.FcmTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Scheduled Jobs for Push Notification Maintenance
- *
- * Design Decisions:
- * 1. Weekly cleanup of inactive tokens
- * 2. Runs at 3 AM on Sundays to minimize impact
- * 3. Configurable retention period
+ * @deprecated Use {@link CleanupScheduler} instead.
+ * Token cleanup is already handled by CleanupScheduler.cleanupInactiveFcmTokens()
+ * which runs daily at 2:00 AM UTC. This class is kept for backward compatibility
+ * but the scheduled method has been removed to prevent duplicate cleanup.
  */
+@Deprecated
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -22,18 +20,16 @@ public class PushNotificationScheduler {
     private final FcmTokenService fcmTokenService;
 
     /**
-     * Cleanup inactive tokens older than 30 days.
-     * Runs every Sunday at 3:00 AM.
+     * Manual cleanup method - can be called from admin endpoints if needed.
+     * The scheduled cleanup is now handled by CleanupScheduler.
      */
-    @Scheduled(cron = "0 0 3 * * SUN")
-    public void cleanupInactiveTokens() {
-        log.info("Starting scheduled cleanup of inactive FCM tokens");
-
+    public void manualCleanup() {
+        log.info("Manual cleanup of inactive FCM tokens triggered");
         try {
             int deletedCount = fcmTokenService.cleanupInactiveTokens(30);
-            log.info("Scheduled cleanup completed. Deleted {} inactive tokens", deletedCount);
+            log.info("Manual cleanup completed. Deleted {} inactive tokens", deletedCount);
         } catch (Exception e) {
-            log.error("Error during scheduled token cleanup", e);
+            log.error("Error during manual token cleanup", e);
         }
     }
 }

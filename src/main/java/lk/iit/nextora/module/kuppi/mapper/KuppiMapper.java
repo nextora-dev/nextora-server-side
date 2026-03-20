@@ -5,8 +5,10 @@ import lk.iit.nextora.module.kuppi.dto.request.CreateKuppiNoteRequest;
 import lk.iit.nextora.module.kuppi.dto.request.CreateKuppiSessionRequest;
 import lk.iit.nextora.module.kuppi.dto.response.KuppiNoteResponse;
 import lk.iit.nextora.module.kuppi.dto.response.KuppiSessionResponse;
+import lk.iit.nextora.module.kuppi.dto.response.KuppiStudentResponse;
 import lk.iit.nextora.module.kuppi.entity.KuppiNote;
 import lk.iit.nextora.module.kuppi.entity.KuppiSession;
+import lk.iit.nextora.module.auth.entity.Student;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -35,12 +37,20 @@ public interface KuppiMapper {
     @Mapping(target = "deletedAt", ignore = true)
     KuppiSession toEntity(CreateKuppiSessionRequest request);
 
-    @Mapping(target = "hostId", source = "host.id")
-    @Mapping(target = "hostName", expression = "java(session.getHost().getFullName())")
-    @Mapping(target = "hostEmail", source = "host.email")
+    @Mapping(target = "host", source = "host")
     @Mapping(target = "canJoin", expression = "java(session.isJoinable())")
     @Mapping(target = "notes", source = "notes", qualifiedByName = "mapNotesToResponse")
     KuppiSessionResponse toResponse(KuppiSession session);
+
+    // Map Student entity to a compact KuppiStudentResponse used as host info
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "studentId", source = "studentId")
+    @Mapping(target = "firstName", source = "firstName")
+    @Mapping(target = "lastName", source = "lastName")
+    @Mapping(target = "fullName", expression = "java(student.getFirstName() + \" \" + student.getLastName())")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "profilePictureUrl", source = "profilePictureUrl")
+    KuppiStudentResponse toStudentResponse(Student student);
 
     @Named("mapNotesToResponse")
     default List<KuppiNoteResponse> mapNotesToResponse(java.util.Set<KuppiNote> notes) {
@@ -72,8 +82,7 @@ public interface KuppiMapper {
 
     @Mapping(target = "sessionId", source = "session.id")
     @Mapping(target = "sessionTitle", source = "session.title")
-    @Mapping(target = "uploadedById", source = "uploadedBy.id")
-    @Mapping(target = "uploaderName", expression = "java(note.getUploadedBy().getFullName())")
+    @Mapping(target = "uploader", source = "uploadedBy")
     @Mapping(target = "formattedFileSize", expression = "java(note.getFileSize() != null ? lk.iit.nextora.common.util.FileUtils.formatFileSize(note.getFileSize()) : null)")
     KuppiNoteResponse toResponse(KuppiNote note);
 
@@ -104,4 +113,3 @@ public interface KuppiMapper {
     @Mapping(target = "viewCount", ignore = true)
     void updateNoteFromRequest(lk.iit.nextora.module.kuppi.dto.request.UpdateKuppiNoteRequest request, @MappingTarget KuppiNote note);
 }
-

@@ -145,10 +145,10 @@ public class KuppiNoteController {
     }
 
     @DeleteMapping(ApiConstants.KUPPI_NOTE_BY_ID)
-    @Operation(summary = "Delete note", description = "Delete own note")
+    @Operation(summary = "Soft Delete note", description = "Delete own note")
     @PreAuthorize("hasAuthority('KUPPI_NOTE:DELETE')")
-    public ApiResponse<Void> deleteNote(@PathVariable Long noteId) {
-        noteService.deleteNote(noteId);
+    public ApiResponse<Void> softDeleteNote(@PathVariable Long noteId) {
+        noteService.softDeleteNote(noteId);
         return ApiResponse.success("Note deleted successfully");
     }
 

@@ -30,9 +30,14 @@ public enum StudentRoleType {
                     Permission.KUPPI_JOIN,
                     Permission.KUPPI_LEAVE,
                     Permission.KUPPI_FEEDBACK,
+
                     Permission.KUPPI_NOTE_READ,
                     Permission.KUPPI_NOTE_DOWNLOAD,
-                    Permission.KUPPI_NOTE_SEARCH
+                    Permission.KUPPI_NOTE_SEARCH,
+                    // Kuppi Application - students can apply to become Kuppi Students
+                    Permission.KUPPI_APPLICATION_SUBMIT,
+                    Permission.KUPPI_APPLICATION_VIEW_OWN,
+                    Permission.KUPPI_APPLICATION_CANCEL
             )),
 
     // ==================== CLUB MEMBER ====================
@@ -59,7 +64,20 @@ public enum StudentRoleType {
                     Permission.CLUB_MEMBERSHIP_VIEW,
                     Permission.CLUB_UPDATE,
 
-                    Permission.ELECTION_READ
+                    Permission.ELECTION_READ,
+
+                    // Club announcement permissions
+                    Permission.CLUB_ANNOUNCEMENT_CREATE,
+                    Permission.CLUB_ANNOUNCEMENT_READ,
+                    Permission.CLUB_ANNOUNCEMENT_UPDATE,
+                    Permission.CLUB_ANNOUNCEMENT_DELETE,
+
+                    // Club stats & activity
+                    Permission.CLUB_VIEW_STATS,
+                    Permission.CLUB_VIEW_ACTIVITY_LOG,
+
+                    // Event permissions
+                    Permission.EVENT_CREATE
             )),
 
     // ==================== BATCH REPRESENTATIVE ====================

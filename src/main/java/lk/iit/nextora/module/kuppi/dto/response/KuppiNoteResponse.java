@@ -32,13 +32,11 @@ public class KuppiNoteResponse {
     private Long sessionId;
     private String sessionTitle;
 
-    // Uploader details
-    private Long uploadedById;
-    private String uploaderName;
+    // Uploader details (object first for richer info)
+    private KuppiStudentResponse uploader;
 
     // Metadata
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Boolean isActive;
 }
-

@@ -37,8 +37,7 @@ import java.time.ZonedDateTime;
 public class FcmToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fcm_token_seq")
-    @SequenceGenerator(name = "fcm_token_seq", sequenceName = "fcm_token_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**

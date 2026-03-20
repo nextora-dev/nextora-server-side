@@ -260,11 +260,14 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
 
     @Override
     @Transactional
-    public void deleteNote(Long noteId) {
+    public void softDeleteNote(Long noteId) {
         Long currentUserId = securityService.getCurrentUserId();
         KuppiNote note = findNoteById(noteId);
 
         validateNoteOwnership(note, currentUserId);
+
+        // delete associated file from S3 (best-effort)
+        deleteFileIfExists(note);
 
         note.softDelete();
         noteRepository.save(note);
@@ -273,50 +276,24 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
     }
 
     @Override
-    public PagedResponse<KuppiNoteResponse> getMyNotes(Pageable pageable) {
-        Long currentUserId = securityService.getCurrentUserId();
-        Page<KuppiNote> notes = noteRepository.findByUploadedByIdAndIsDeletedFalse(currentUserId, pageable);
-        return toPagedResponse(notes);
-    }
-
-    // ==================== Admin Operations ====================
-
-    @Override
-    @Transactional
-    public KuppiNoteResponse adminUpdateNote(Long noteId, UpdateKuppiNoteRequest request) {
-        Long currentUserId = securityService.getCurrentUserId();
-        KuppiNote note = findNoteById(noteId);
-
-        kuppiMapper.updateNoteFromRequest(request, note);
-        note = noteRepository.save(note);
-
-        log.info("Note {} updated by admin {}", noteId, currentUserId);
-        return kuppiMapper.toResponse(note);
-    }
-
-    @Override
-    @Transactional
-    public void adminDeleteNote(Long noteId) {
-        Long currentUserId = securityService.getCurrentUserId();
-        KuppiNote note = findNoteById(noteId);
-
-        note.softDelete();
-        noteRepository.save(note);
-
-        log.info("Note {} soft deleted by admin {}", noteId, currentUserId);
-    }
-
-    // ==================== Super Admin Operations ====================
-
-    @Override
     @Transactional
     public void permanentlyDeleteNote(Long noteId) {
         Long currentUserId = securityService.getCurrentUserId();
         KuppiNote note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("KuppiNote", "id", noteId));
 
+        // remove file from S3 if present (best-effort) before DB delete
+        deleteFileIfExists(note);
+
         noteRepository.delete(note);
         log.info("Note {} permanently deleted by super admin {}", noteId, currentUserId);
+    }
+
+    @Override
+    public PagedResponse<KuppiNoteResponse> getMyNotes(Pageable pageable) {
+        Long currentUserId = securityService.getCurrentUserId();
+        Page<KuppiNote> notes = noteRepository.findByUploadedByIdAndIsDeletedFalse(currentUserId, pageable);
+        return toPagedResponse(notes);
     }
 
     // ==================== Helper Methods ====================
@@ -341,6 +318,27 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
     private void validateNoteOwnership(KuppiNote note, Long userId) {
         if (!note.getUploadedBy().getId().equals(userId)) {
             throw new UnauthorizedException("You can only modify your own notes");
+        }
+    }
+
+    /**
+     * Delete S3 file for the given note if it exists. This is a best-effort
+     * operation — failures won't block the soft-delete flow but will be logged.
+     */
+    private void deleteFileIfExists(KuppiNote note) {
+        if (note == null || note.getFileUrl() == null || note.getFileUrl().isEmpty()) {
+            return;
+        }
+
+        try {
+            String s3Key = extractS3KeyFromUrl(note.getFileUrl());
+            if (s3Service.fileExists(s3Key)) {
+                s3Service.deleteFile(s3Key);
+                log.info("Deleted note file from S3 for note {}: {}", note.getId(), s3Key);
+            }
+        } catch (Exception e) {
+            // don't fail the operation — just log for investigation
+            log.warn("Failed to delete S3 file for note {}: {}", note.getId(), e.getMessage());
         }
     }
 
@@ -396,3 +394,4 @@ public class KuppiNoteServiceImpl implements KuppiNoteService {
         };
     }
 }
+

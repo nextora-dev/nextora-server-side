@@ -40,7 +40,6 @@ public class CreateAdminRequest {
     @Size(max = 15, message = "Phone number must be at most 15 characters")
     private String phone;
 
-
     @NotBlank(message = "Admin ID is required")
     @Size(max = 20, message = "Admin ID must be at most 20 characters")
     private String adminId;
@@ -48,9 +47,4 @@ public class CreateAdminRequest {
     @NotBlank(message = "Department is required")
     @Size(max = 100, message = "Department must be at most 100 characters")
     private String department;
-
-    /**
-     * Permissions for Admin user (e.g., USER_MANAGEMENT, CONTENT_MANAGEMENT, REPORTS)
-     */
-    private Set<String> permissions;
 }

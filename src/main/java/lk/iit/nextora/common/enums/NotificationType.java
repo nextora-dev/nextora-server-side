@@ -12,7 +12,10 @@ public enum NotificationType {
     ASSIGNMENT("Assignment"),
     GRADE("Grade"),
     ATTENDANCE("Attendance"),
-    MESSAGE("Message");
+    MESSAGE("Message"),
+    KUPPI_SESSION("Kuppi Session"),
+    KUPPI_REMINDER("Kuppi Reminder"),
+    EVENT_REMINDER("Event Reminder");
 
     private final String displayName;
 

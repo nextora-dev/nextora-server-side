@@ -31,6 +31,7 @@ public class ClubMembershipResponse {
     private Long memberId;
     private String memberName;
     private String memberEmail;
+    private String memberProfilePictureUrl;
     private String memberStudentId;
     private String memberBatch;
 

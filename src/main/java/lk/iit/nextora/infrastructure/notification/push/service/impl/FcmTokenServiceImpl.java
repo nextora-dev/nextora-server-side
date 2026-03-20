@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 /**
@@ -76,14 +76,14 @@ public class FcmTokenServiceImpl implements FcmTokenService {
     @Transactional
     public void deactivateToken(String token) {
         log.debug("Deactivating FCM token");
-        fcmTokenRepository.deactivateToken(token, LocalDateTime.now());
+        fcmTokenRepository.deactivateToken(token, ZonedDateTime.now());
     }
 
     @Override
     @Transactional
     public void deactivateAllTokensForUser(Long userId) {
         log.debug("Deactivating all FCM tokens for user: {}", userId);
-        int count = fcmTokenRepository.deactivateAllTokensForUser(userId, LocalDateTime.now());
+        int count = fcmTokenRepository.deactivateAllTokensForUser(userId, ZonedDateTime.now());
         log.info("Deactivated {} tokens for user: {}", count, userId);
     }
 
@@ -96,7 +96,7 @@ public class FcmTokenServiceImpl implements FcmTokenService {
     @Override
     @Transactional
     public int cleanupInactiveTokens(int daysOld) {
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
+        ZonedDateTime cutoffDate = ZonedDateTime.now().minusDays(daysOld);
         int deleted = fcmTokenRepository.deleteStaleTokens(cutoffDate);
         log.info("Cleaned up {} inactive tokens older than {} days", deleted, daysOld);
         return deleted;

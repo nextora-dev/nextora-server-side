@@ -5,9 +5,17 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://ep-delicate-water-ahwvsfhl-pooler.c-3.us-east-1.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require
-    username: neondb_owner
-    password: npg_3UeVGMk6lDEF
+    # AWS RDS PostgreSQL Configuration
+    # Replace the following with your actual RDS endpoint and credentials
+    url: jdbc:postgresql://${RDS_ENDPOINT:database-2.cchqm8mywb1x.us-east-1.rds.amazonaws.com}:5432/${RDS_DB_NAME:postgres}?sslmode=verify-full&sslrootcert=${RDS_SSL_CERT_PATH:./global-bundle.pem}
+    username: ${RDS_USERNAME:postgres}
+    password: ${RDS_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:

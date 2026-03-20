@@ -9,7 +9,7 @@ import org.mapstruct.*;
 import java.util.List;
 
 /**
- * MapStruct mapper for Voting module entities and DTOs
+ * MapStruct mapper for Club module entities and DTOs
  */
 @Mapper(config = MapperConfiguration.class)
 public interface ClubMapper {
@@ -28,17 +28,15 @@ public interface ClubMapper {
     @Mapping(target = "deletedAt", ignore = true)
     Club toEntity(CreateClubRequest request);
 
-    @Mapping(target = "presidentId", source = "president.id")
-    @Mapping(target = "presidentName", expression = "java(club.getPresident() != null ? club.getPresident().getFullName() : null)")
-    @Mapping(target = "presidentEmail", source = "president.email")
-    @Mapping(target = "advisorId", source = "advisor.id")
-    @Mapping(target = "advisorName", expression = "java(club.getAdvisor() != null ? club.getAdvisor().getFullName() : null)")
-    @Mapping(target = "advisorEmail", source = "advisor.email")
-    @Mapping(target = "advisorDepartment", source = "advisor.department")
+    @Mapping(target = "president", ignore = true)
+    @Mapping(target = "advisor", ignore = true)
     @Mapping(target = "totalMembers", ignore = true)
     @Mapping(target = "activeMembers", ignore = true)
     @Mapping(target = "totalElections", ignore = true)
     @Mapping(target = "activeElections", ignore = true)
+    @Mapping(target = "vicePresident", ignore = true)
+    @Mapping(target = "secretary", ignore = true)
+    @Mapping(target = "treasurer", ignore = true)
     ClubResponse toResponse(Club club);
 
     List<ClubResponse> toClubResponseList(List<Club> clubs);
@@ -51,6 +49,7 @@ public interface ClubMapper {
     @Mapping(target = "memberId", source = "member.id")
     @Mapping(target = "memberName", expression = "java(membership.getMember().getFullName())")
     @Mapping(target = "memberEmail", source = "member.email")
+    @Mapping(target = "memberProfilePictureUrl", source = "member.profilePictureUrl")
     @Mapping(target = "memberStudentId", source = "member.studentId")
     @Mapping(target = "memberBatch", source = "member.batch")
     @Mapping(target = "approvedById", source = "approvedBy.id")
@@ -60,4 +59,25 @@ public interface ClubMapper {
     ClubMembershipResponse toResponse(ClubMembership membership);
 
     List<ClubMembershipResponse> toMembershipResponseList(List<ClubMembership> memberships);
+
+
+    // ==================== Club Announcement Mappings ====================
+
+    @Mapping(target = "clubId", source = "club.id")
+    @Mapping(target = "clubCode", source = "club.clubCode")
+    @Mapping(target = "clubName", source = "club.name")
+    @Mapping(target = "authorId", source = "author.id")
+    @Mapping(target = "authorName", expression = "java(announcement.getAuthor() != null ? announcement.getAuthor().getFullName() : null)")
+    @Mapping(target = "authorEmail", source = "author.email")
+    ClubAnnouncementResponse toResponse(ClubAnnouncement announcement);
+
+    List<ClubAnnouncementResponse> toAnnouncementResponseList(List<ClubAnnouncement> announcements);
+
+    // ==================== Club Activity Log Mappings ====================
+
+    @Mapping(target = "clubId", source = "club.id")
+    @Mapping(target = "clubName", source = "club.name")
+    ClubActivityLogResponse toResponse(ClubActivityLog activityLog);
+
+    List<ClubActivityLogResponse> toActivityLogResponseList(List<ClubActivityLog> activityLogs);
 }

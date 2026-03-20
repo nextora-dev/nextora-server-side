@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lk.iit.nextora.common.entity.BaseEntity;
 import lk.iit.nextora.common.enums.ElectionStatus;
 import lk.iit.nextora.common.enums.ElectionType;
-import lk.iit.nextora.module.auth.entity.NonAcademicStaff;
+import lk.iit.nextora.module.auth.entity.BaseUser;
 import lk.iit.nextora.module.club.entity.Club;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -69,7 +69,7 @@ public class Election extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_id", nullable = false)
-    private NonAcademicStaff createdBy;
+    private BaseUser createdBy;
 
     @Column(nullable = false)
     @Builder.Default

@@ -15,6 +15,7 @@ public enum ClubMembershipStatus {
     INACTIVE("Inactive", "Member is inactive"),
     SUSPENDED("Suspended", "Membership is suspended"),
     EXPIRED("Expired", "Membership has expired"),
+    REJECTED("Rejected", "Membership application was rejected"),
     REVOKED("Revoked", "Membership has been revoked");
 
     private final String displayName;

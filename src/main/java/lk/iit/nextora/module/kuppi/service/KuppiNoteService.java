@@ -62,24 +62,12 @@ public interface KuppiNoteService {
     /**
      * Delete own note (soft delete)
      */
-    void deleteNote(Long noteId);
+    void softDeleteNote(Long noteId);
 
     /**
      * Get own uploaded notes
      */
     PagedResponse<KuppiNoteResponse> getMyNotes(Pageable pageable);
-
-    // ==================== Admin Operations ====================
-
-    /**
-     * Edit any note (admin override)
-     */
-    KuppiNoteResponse adminUpdateNote(Long noteId, UpdateKuppiNoteRequest request);
-
-    /**
-     * Remove/delete any note
-     */
-    void adminDeleteNote(Long noteId);
 
     // ==================== Super Admin Operations ====================
 

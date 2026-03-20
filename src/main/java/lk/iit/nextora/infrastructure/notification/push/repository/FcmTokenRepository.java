@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +57,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Query("UPDATE FcmToken f SET f.isActive = false, f.updatedAt = :now WHERE f.userId = :userId")
-    int deactivateAllTokensForUser(@Param("userId") Long userId, @Param("now") LocalDateTime now);
+    int deactivateAllTokensForUser(@Param("userId") Long userId, @Param("now") ZonedDateTime now);
 
     /**
      * Deactivate a specific token.
@@ -66,7 +65,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Query("UPDATE FcmToken f SET f.isActive = false, f.updatedAt = :now WHERE f.token = :token")
-    int deactivateToken(@Param("token") String token, @Param("now") LocalDateTime now);
+    int deactivateToken(@Param("token") String token, @Param("now") ZonedDateTime now);
 
     /**
      * Update last used timestamp for tokens by token strings.
@@ -74,7 +73,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Query("UPDATE FcmToken f SET f.lastUsedAt = :now WHERE f.token IN :tokens")
-    int updateLastUsedAt(@Param("tokens") List<String> tokens, @Param("now") LocalDateTime now);
+    int updateLastUsedAt(@Param("tokens") List<String> tokens, @Param("now") ZonedDateTime now);
 
     /**
      * Delete stale tokens older than cutoff date.
@@ -82,7 +81,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Query("DELETE FROM FcmToken f WHERE f.isActive = false AND f.updatedAt < :cutoffDate")
-    int deleteStaleTokens(@Param("cutoffDate") LocalDateTime cutoffDate);
+    int deleteStaleTokens(@Param("cutoffDate") ZonedDateTime cutoffDate);
 
     /**
      * Delete a token by its value.
@@ -94,4 +93,11 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
      */
     @Query("SELECT COUNT(f) FROM FcmToken f WHERE f.role = :role AND f.isActive = true")
     long countActiveTokensByRole(@Param("role") UserRole role);
+
+    /**
+     * Find all user IDs that have active tokens for a specific role.
+     * Used for storing notification history for targeted role notifications.
+     */
+    @Query("SELECT DISTINCT f.userId FROM FcmToken f WHERE f.role = :role AND f.isActive = true")
+    List<Long> findDistinctUserIdsByRoleAndIsActiveTrue(@Param("role") UserRole role);
 }

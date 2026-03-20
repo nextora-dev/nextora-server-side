@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -113,7 +112,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     @Override
     public void removeToken(String token) {
-        int updated = fcmTokenRepository.deactivateToken(token, LocalDateTime.now());
+        int updated = fcmTokenRepository.deactivateToken(token, ZonedDateTime.now());
         if (updated > 0) {
             log.debug("Deactivated FCM token");
         }
@@ -121,21 +120,19 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     @Override
     public void removeAllTokensForUser(Long userId) {
-        int updated = fcmTokenRepository.deactivateAllTokensForUser(userId, LocalDateTime.now());
+        int updated = fcmTokenRepository.deactivateAllTokensForUser(userId, ZonedDateTime.now());
         log.info("Deactivated {} FCM tokens for user {}", updated, userId);
     }
 
     // ==================== NOTIFICATION SENDING - SYNC ====================
 
     @Override
-    @Transactional(readOnly = true)
     public NotificationResponse sendToUser(Long userId, String title, String body, Map<String, String> data) {
         List<FcmToken> tokens = fcmTokenRepository.findByUserIdAndIsActiveTrue(userId);
         return sendToTokens(tokens, title, body, null, data, null, null);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public NotificationResponse sendToUsers(List<Long> userIds, String title, String body, Map<String, String> data) {
         if (userIds == null || userIds.isEmpty()) {
             return NotificationResponse.noTargets();
@@ -145,21 +142,18 @@ public class PushNotificationServiceImpl implements PushNotificationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public NotificationResponse sendToRole(UserRole role, String title, String body, Map<String, String> data) {
         List<FcmToken> tokens = fcmTokenRepository.findByRoleAndIsActiveTrue(role);
         return sendToTokens(tokens, title, body, null, data, null, null);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public NotificationResponse sendToAll(String title, String body, Map<String, String> data) {
         List<FcmToken> tokens = fcmTokenRepository.findByIsActiveTrue();
         return sendToTokens(tokens, title, body, null, data, null, null);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public NotificationResponse send(SendNotificationRequest request) {
         List<FcmToken> tokens;
 
@@ -227,7 +221,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     @Override
     public int cleanupStaleTokens(int daysOld) {
-        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
+        ZonedDateTime cutoffDate = ZonedDateTime.now().minusDays(daysOld);
         int deleted = fcmTokenRepository.deleteStaleTokens(cutoffDate);
         log.info("Cleaned up {} stale FCM tokens older than {} days", deleted, daysOld);
         return deleted;
@@ -319,7 +313,7 @@ public class PushNotificationServiceImpl implements PushNotificationService {
                 .filter(t -> !invalidTokens.contains(t))
                 .collect(Collectors.toList());
         if (!validTokens.isEmpty()) {
-            fcmTokenRepository.updateLastUsedAt(validTokens, LocalDateTime.now());
+            fcmTokenRepository.updateLastUsedAt(validTokens, ZonedDateTime.now());
         }
 
         if (failureCount == 0) {
@@ -376,18 +370,18 @@ public class PushNotificationServiceImpl implements PushNotificationService {
         messageBuilder.setAndroidConfig(androidConfigBuilder.build());
 
         // Configure web push options
-        WebpushConfig webpushConfig = WebpushConfig.builder()
+        // NOTE: We intentionally omit WebpushFcmOptions.setLink() because:
+        // 1. It requires an absolute URL (https://) and we use relative paths
+        // 2. It conflicts with the service worker's notificationclick handler
+        // Instead, the click_action is passed via data payload and handled by the service worker
+        WebpushConfig.Builder webpushBuilder = WebpushConfig.builder()
                 .setNotification(WebpushNotification.builder()
                         .setTitle(title)
                         .setBody(body)
                         .setIcon("/icons/icon-192x192.png")
-                        .build())
-                .setFcmOptions(WebpushFcmOptions.builder()
-                        .setLink(clickAction != null ? clickAction : "/")
-                        .build())
-                .build();
+                        .build());
 
-        messageBuilder.setWebpushConfig(webpushConfig);
+        messageBuilder.setWebpushConfig(webpushBuilder.build());
 
         // Configure APNs (iOS) options
         ApnsConfig apnsConfig = ApnsConfig.builder()
@@ -420,9 +414,10 @@ public class PushNotificationServiceImpl implements PushNotificationService {
 
     /**
      * Remove invalid tokens from the database.
+     * Note: Runs within the class-level @Transactional context.
+     * The repository's deleteByToken uses REQUIRES_NEW propagation where needed.
      */
-    @Transactional
-    protected void removeInvalidTokens(List<String> invalidTokens) {
+    private void removeInvalidTokens(List<String> invalidTokens) {
         for (String token : invalidTokens) {
             fcmTokenRepository.deleteByToken(token);
         }

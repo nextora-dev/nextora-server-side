@@ -10,13 +10,16 @@ import lk.iit.nextora.module.kuppi.dto.request.*;
 import lk.iit.nextora.module.kuppi.dto.response.*;
 import lk.iit.nextora.module.kuppi.service.KuppiSessionService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +27,7 @@ import java.time.LocalDateTime;
  * Controller for Kuppi session operations
  * Handles endpoints for Normal Students and Kuppi Students
  */
+@Slf4j
 @RestController
 @RequestMapping(ApiConstants.KUPPI_SESSIONS)
 @RequiredArgsConstructor
@@ -32,7 +36,7 @@ public class KuppiSessionController {
 
     private final KuppiSessionService sessionService;
 
-    // ==================== Public/Normal Student Endpoints ====================
+    // ==================== Normal Student Endpoints ====================
 
     @GetMapping
     @Operation(summary = "Get all sessions", description = "View all approved Kuppi sessions")
@@ -122,25 +126,89 @@ public class KuppiSessionController {
         return ApiResponse.success("Upcoming sessions retrieved successfully", response);
     }
 
-
     // ==================== Kuppi Student Endpoints ====================
 
-    @PostMapping
-    @Operation(summary = "Create session", description = "Create a new Kuppi session (Kuppi Students only)")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create session with file(s)", description = "Create a new Kuppi session with one or more uploaded files (Kuppi Students only)")
     @PreAuthorize("hasAuthority('KUPPI:CREATE')")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<KuppiSessionResponse> createSession(@Valid @RequestBody CreateKuppiSessionRequest request) {
-        KuppiSessionResponse response = sessionService.createSession(request);
+    public ApiResponse<KuppiSessionResponse> createSession(
+            @RequestParam("title") String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "subject") String subject,
+            @RequestParam(value = "scheduledStartTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime scheduledStartTime,
+            @RequestParam(value = "scheduledEndTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime scheduledEndTime,
+            @RequestParam(value = "liveLink") String liveLink,
+            @RequestParam(value = "meetingPlatform", required = false) String meetingPlatform,
+            @RequestParam(value = "files", required = false) MultipartFile[] files,
+            @RequestParam(value = "files[]", required = false) MultipartFile[] filesArray,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        // Normalize files when client uses files[] naming
+        int filesCount = (files != null) ? files.length : 0;
+        int filesArrayCount = (filesArray != null) ? filesArray.length : 0;
+        log.info("createSessionwithFile called: files.length={}, files[][].length={}, singleFilePresent={}", filesCount, filesArrayCount, (file != null && !file.isEmpty()));
+        if ((files == null || files.length == 0) && filesArray != null && filesArray.length > 0) {
+            files = filesArray;
+        }
+        // normalize single file to files array if needed
+        if ((files == null || files.length == 0) && file != null && !file.isEmpty()) {
+            files = new MultipartFile[]{file};
+        }
+
+        CreateKuppiSessionRequest request = CreateKuppiSessionRequest.builder()
+                .title(title)
+                .description(description)
+                .subject(subject)
+                .scheduledStartTime(scheduledStartTime)
+                .scheduledEndTime(scheduledEndTime)
+                .liveLink(liveLink)
+                .meetingPlatform(meetingPlatform)
+                .build();
+
+        KuppiSessionResponse response = sessionService.createSession(request, files);
         return ApiResponse.success("Session created successfully", response);
     }
 
-    @PutMapping(ApiConstants.KUPPI_SESSION_BY_ID)
-    @Operation(summary = "Update session", description = "Update own Kuppi session")
+    @PutMapping(path = ApiConstants.KUPPI_SESSION_BY_ID, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Update session with file(s)", description = "Update an existing Kuppi session and optionally replace/upload one or more files")
     @PreAuthorize("hasAuthority('KUPPI:UPDATE')")
     public ApiResponse<KuppiSessionResponse> updateSession(
             @PathVariable Long sessionId,
-            @Valid @RequestBody UpdateKuppiSessionRequest request) {
-        KuppiSessionResponse response = sessionService.updateSession(sessionId, request);
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "subject", required = false) String subject,
+            @RequestParam(value = "scheduledStartTime", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime scheduledStartTime,
+            @RequestParam(value = "scheduledEndTime", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime scheduledEndTime,
+            @RequestParam(value = "liveLink", required = false) String liveLink,
+            @RequestParam(value = "meetingPlatform", required = false) String meetingPlatform,
+            @RequestParam(value = "files", required = false) MultipartFile[] files,
+            @RequestParam(value = "files[]", required = false) MultipartFile[] filesArray,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "removeNoteIds", required = false) java.util.List<Long> removeNoteIds) {
+
+        int filesCountUp = (files != null) ? files.length : 0;
+        int filesArrayCountUp = (filesArray != null) ? filesArray.length : 0;
+        log.info("updateSessionWithFile called for session {}: files.length={}, files[][].length={}, singleFilePresent={}, removeNoteIds={}", sessionId, filesCountUp, filesArrayCountUp, (file != null && !file.isEmpty()), removeNoteIds);
+        // Normalize files when client uses files[] naming
+        if ((files == null || files.length == 0) && filesArray != null && filesArray.length > 0) {
+            files = filesArray;
+        }
+        if ((files == null || files.length == 0) && file != null && !file.isEmpty()) {
+            files = new MultipartFile[]{file};
+        }
+
+        UpdateKuppiSessionRequest request = UpdateKuppiSessionRequest.builder()
+                .title(title)
+                .description(description)
+                .subject(subject)
+                .scheduledStartTime(scheduledStartTime)
+                .scheduledEndTime(scheduledEndTime)
+                .liveLink(liveLink)
+                .meetingPlatform(meetingPlatform)
+                .build();
+
+        KuppiSessionResponse response = sessionService.updateSession(sessionId, request, files, removeNoteIds);
         return ApiResponse.success("Session updated successfully", response);
     }
 
@@ -166,12 +234,12 @@ public class KuppiSessionController {
     }
 
     @DeleteMapping(ApiConstants.KUPPI_SESSION_BY_ID)
-    @Operation(summary = "Delete session", description = "Delete own Kuppi session (soft delete)")
+    @Operation(summary = "Soft delete session", description = "Soft-delete the session and remove associated note files from storage (owner only)")
     @PreAuthorize("hasAuthority('KUPPI:DELETE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<Void> deleteSession(@PathVariable Long sessionId) {
-        sessionService.deleteSession(sessionId);
-        return ApiResponse.success("Session deleted successfully");
+    public ApiResponse<Void> softDeleteSession(@PathVariable Long sessionId) {
+        sessionService.softDeleteSession(sessionId);
+        return ApiResponse.success("Session soft-deleted and files removed successfully");
     }
 
     @GetMapping(ApiConstants.KUPPI_MY)
@@ -186,7 +254,7 @@ public class KuppiSessionController {
         return ApiResponse.success("Your sessions retrieved successfully", response);
     }
 
-    @GetMapping( ApiConstants.KUPPI_ANALYTICS)
+    @GetMapping(ApiConstants.KUPPI_ANALYTICS)
     @Operation(summary = "Get my analytics", description = "Get analytics for own sessions and notes")
     @PreAuthorize("hasAuthority('KUPPI:VIEW_ANALYTICS')")
     public ApiResponse<KuppiAnalyticsResponse> getMyAnalytics() {

@@ -105,4 +105,12 @@ public interface ElectionRepository extends JpaRepository<Election, Long> {
 
     // Find elections by club and status
     List<Election> findByClubIdAndStatusAndIsDeletedFalse(Long clubId, ElectionStatus status);
+
+    // Count all non-deleted elections
+    @Query("SELECT COUNT(e) FROM Election e WHERE e.isDeleted = false")
+    long countAllActive();
+
+    // Count active elections across all clubs (nominations open OR voting open)
+    @Query("SELECT COUNT(e) FROM Election e WHERE e.status IN ('NOMINATION_OPEN', 'VOTING_OPEN') AND e.isDeleted = false")
+    long countActiveElections();
 }
