@@ -9,6 +9,8 @@ import lk.iit.nextora.module.club.repository.ClubMembershipRepository;
 import lk.iit.nextora.module.club.repository.ClubRepository;
 import lk.iit.nextora.module.election.entity.*;
 import lk.iit.nextora.module.election.repository.*;
+import lk.iit.nextora.module.lostandfound.entity.*;
+import lk.iit.nextora.module.lostandfound.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -33,6 +35,10 @@ public class DataInitializer implements CommandLineRunner {
     private final ClubMembershipRepository clubMembershipRepository;
     private final ElectionRepository electionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ItemCategoryRepository itemCategoryRepository;
+    private final LostItemRepository lostItemRepository;
+    private final FoundItemRepository foundItemRepository;
+    private final ClaimRepository claimRepository;
 
     @Override
     @Transactional
@@ -47,6 +53,7 @@ public class DataInitializer implements CommandLineRunner {
         createClubs();
         createClubMemberships();
         createElections();
+        createLostAndFoundData();
 
         log.info("Data initialization completed successfully!");
     }
@@ -839,6 +846,219 @@ public class DataInitializer implements CommandLineRunner {
                 electionRepository.save(csPoll);
                 log.info("Created Election: {}", csPoll.getTitle());
             }
+        }
+    }
+
+    private void createLostAndFoundData() {
+        if (itemCategoryRepository.count() == 0) {
+            String[] categories = {
+                    "Electronics", "Clothing", "Documents", "Keys",
+                    "Accessories", "Books", "Bags", "Water Bottles",
+                    "ID Cards", "Stationery", "Sports Equipment", "Other"
+            };
+            for (String name : categories) {
+                ItemCategory cat = ItemCategory.builder().name(name).build();
+                itemCategoryRepository.save(cat);
+            }
+            log.info("Created {} item categories", categories.length);
+        }
+
+        if (lostItemRepository.count() == 0) {
+            Student reporter1 = studentRepository.findByEmail("normal.student@iit.ac.lk").orElse(null);
+            Student reporter2 = studentRepository.findByEmail("club.president@iit.ac.lk").orElse(null);
+            Student reporter3 = studentRepository.findByEmail("batch.rep@iit.ac.lk").orElse(null);
+            Student reporter4 = studentRepository.findByEmail("club.member@iit.ac.lk").orElse(null);
+
+            ItemCategory electronics = itemCategoryRepository.findByNameIgnoreCase("Electronics").orElse(null);
+            ItemCategory keys = itemCategoryRepository.findByNameIgnoreCase("Keys").orElse(null);
+            ItemCategory documents = itemCategoryRepository.findByNameIgnoreCase("Documents").orElse(null);
+            ItemCategory bags = itemCategoryRepository.findByNameIgnoreCase("Bags").orElse(null);
+            ItemCategory idCards = itemCategoryRepository.findByNameIgnoreCase("ID Cards").orElse(null);
+            ItemCategory books = itemCategoryRepository.findByNameIgnoreCase("Books").orElse(null);
+            ItemCategory accessories = itemCategoryRepository.findByNameIgnoreCase("Accessories").orElse(null);
+            ItemCategory waterBottles = itemCategoryRepository.findByNameIgnoreCase("Water Bottles").orElse(null);
+
+            // Lost Items
+            if (reporter1 != null && electronics != null) {
+                LostItem item1 = LostItem.builder()
+                        .title("Black iPhone 14 Pro")
+                        .description("Black iPhone 14 Pro with a cracked screen protector. Has a dark blue silicone case with initials 'JD' engraved on the back.")
+                        .location("Block A - Lecture Hall 3, Row B seat 5")
+                        .contactNumber("+94771234567")
+                        .category(electronics)
+                        .reportedBy(reporter1.getId())
+                        .reporterName(reporter1.getFirstName() + " " + reporter1.getLastName())
+                        .dateLost(LocalDateTime.now().minusDays(3))
+                        .build();
+                lostItemRepository.save(item1);
+                log.info("Created Lost Item: {}", item1.getTitle());
+            }
+
+            if (reporter2 != null && keys != null) {
+                LostItem item2 = LostItem.builder()
+                        .title("Honda Bike Key with Blue Keychain")
+                        .description("Honda motorcycle key with a blue rubber keychain shaped like a helmet. Also has a small USB drive attached to the ring.")
+                        .location("Parking Lot B - near the motorcycle section")
+                        .contactNumber("+94771234568")
+                        .category(keys)
+                        .reportedBy(reporter2.getId())
+                        .reporterName(reporter2.getFirstName() + " " + reporter2.getLastName())
+                        .dateLost(LocalDateTime.now().minusDays(1))
+                        .build();
+                lostItemRepository.save(item2);
+                log.info("Created Lost Item: {}", item2.getTitle());
+            }
+
+            if (reporter3 != null && documents != null) {
+                LostItem item3 = LostItem.builder()
+                        .title("NIC and Driving License Bundle")
+                        .description("National Identity Card and Driving License in a transparent plastic sleeve. Name on NIC: Isabella Garcia.")
+                        .location("Library - 2nd Floor Study Area, near the printer")
+                        .contactNumber("+94771234576")
+                        .category(documents)
+                        .reportedBy(reporter3.getId())
+                        .reporterName(reporter3.getFirstName() + " " + reporter3.getLastName())
+                        .dateLost(LocalDateTime.now().minusDays(5))
+                        .build();
+                lostItemRepository.save(item3);
+                log.info("Created Lost Item: {}", item3.getTitle());
+            }
+
+            if (reporter4 != null && bags != null) {
+                LostItem item4 = LostItem.builder()
+                        .title("Navy Blue Jansport Backpack")
+                        .description("Navy blue Jansport backpack with a small IIT sticker on the front pocket. Contains a laptop charger and some notebooks inside.")
+                        .location("Cafeteria - left near the counter area")
+                        .contactNumber("+94771234574")
+                        .category(bags)
+                        .reportedBy(reporter4.getId())
+                        .reporterName(reporter4.getFirstName() + " " + reporter4.getLastName())
+                        .dateLost(LocalDateTime.now().minusDays(2))
+                        .build();
+                lostItemRepository.save(item4);
+                log.info("Created Lost Item: {}", item4.getTitle());
+            }
+
+            if (reporter1 != null && idCards != null) {
+                LostItem item5 = LostItem.builder()
+                        .title("IIT Student ID Card")
+                        .description("IIT Student ID card for student ID IIT2024001. Name: John Doe. Has a lanyard with blue IIT branding.")
+                        .location("Computer Lab 2 - Block C")
+                        .contactNumber("+94771234567")
+                        .category(idCards)
+                        .reportedBy(reporter1.getId())
+                        .reporterName(reporter1.getFirstName() + " " + reporter1.getLastName())
+                        .dateLost(LocalDateTime.now().minusHours(6))
+                        .build();
+                lostItemRepository.save(item5);
+                log.info("Created Lost Item: {}", item5.getTitle());
+            }
+
+            // Found Items
+            if (reporter2 != null && electronics != null) {
+                FoundItem found1 = FoundItem.builder()
+                        .title("Black iPhone with Blue Case")
+                        .description("Found a black iPhone (looks like iPhone 14) with a dark blue silicone case. Screen protector has a crack. Found under a chair.")
+                        .location("Block A - Lecture Hall 3")
+                        .contactNumber("+94771234568")
+                        .category(electronics)
+                        .reportedBy(reporter2.getId())
+                        .reporterName(reporter2.getFirstName() + " " + reporter2.getLastName())
+                        .dateFound(LocalDateTime.now().minusDays(2))
+                        .pickupLocation("Student Services Office - Block A Ground Floor")
+                        .build();
+                foundItemRepository.save(found1);
+                log.info("Created Found Item: {}", found1.getTitle());
+            }
+
+            if (reporter3 != null && accessories != null) {
+                FoundItem found2 = FoundItem.builder()
+                        .title("Silver Casio Watch")
+                        .description("Silver Casio digital watch found near the water fountain. Model appears to be A168WA. Working condition, shows correct time.")
+                        .location("Block B - Ground Floor near Water Fountain")
+                        .contactNumber("+94771234576")
+                        .category(accessories)
+                        .reportedBy(reporter3.getId())
+                        .reporterName(reporter3.getFirstName() + " " + reporter3.getLastName())
+                        .dateFound(LocalDateTime.now().minusDays(4))
+                        .pickupLocation("Security Office - Main Gate")
+                        .build();
+                foundItemRepository.save(found2);
+                log.info("Created Found Item: {}", found2.getTitle());
+            }
+
+            if (reporter4 != null && waterBottles != null) {
+                FoundItem found3 = FoundItem.builder()
+                        .title("Green Nalgene Water Bottle")
+                        .description("Green Nalgene 1L water bottle with stickers - one IIT sticker and one 'Save the Turtles' sticker. Half full.")
+                        .location("Gymnasium - Changing Room")
+                        .contactNumber("+94771234574")
+                        .category(waterBottles)
+                        .reportedBy(reporter4.getId())
+                        .reporterName(reporter4.getFirstName() + " " + reporter4.getLastName())
+                        .dateFound(LocalDateTime.now().minusDays(1))
+                        .pickupLocation("Gymnasium Reception Desk")
+                        .build();
+                foundItemRepository.save(found3);
+                log.info("Created Found Item: {}", found3.getTitle());
+            }
+
+            if (reporter1 != null && books != null) {
+                FoundItem found4 = FoundItem.builder()
+                        .title("Data Structures and Algorithms Textbook")
+                        .description("'Introduction to Algorithms' by Cormen (CLRS), 3rd Edition. Has highlighted sections in Chapter 12 and sticky notes. Name 'Lucas M.' written inside front cover.")
+                        .location("Library - Return Counter")
+                        .contactNumber("+94771234567")
+                        .category(books)
+                        .reportedBy(reporter1.getId())
+                        .reporterName(reporter1.getFirstName() + " " + reporter1.getLastName())
+                        .dateFound(LocalDateTime.now().minusDays(3))
+                        .pickupLocation("Library Lost & Found Box")
+                        .build();
+                foundItemRepository.save(found4);
+                log.info("Created Found Item: {}", found4.getTitle());
+            }
+
+            if (reporter2 != null && keys != null) {
+                FoundItem found5 = FoundItem.builder()
+                        .title("Motorcycle Key with Blue Keychain")
+                        .description("Found a motorcycle key (Honda logo) with a blue rubber keychain shaped like a helmet. Has a small USB attached.")
+                        .location("Parking Lot B - found on the ground near bike stands")
+                        .contactNumber("+94771234568")
+                        .category(keys)
+                        .reportedBy(reporter2.getId())
+                        .reporterName(reporter2.getFirstName() + " " + reporter2.getLastName())
+                        .dateFound(LocalDateTime.now().minusHours(12))
+                        .pickupLocation("Security Office - Main Gate")
+                        .build();
+                foundItemRepository.save(found5);
+                log.info("Created Found Item: {}", found5.getTitle());
+            }
+
+            // Create a sample claim (student claims the found iPhone matches their lost iPhone)
+            if (reporter1 != null) {
+                LostItem lostPhone = lostItemRepository.findAll().stream()
+                        .filter(l -> l.getTitle().contains("iPhone 14 Pro"))
+                        .findFirst().orElse(null);
+                FoundItem foundPhone = foundItemRepository.findAll().stream()
+                        .filter(f -> f.getTitle().contains("iPhone with Blue Case"))
+                        .findFirst().orElse(null);
+
+                if (lostPhone != null && foundPhone != null) {
+                    Claim claim = Claim.builder()
+                            .lostItem(lostPhone)
+                            .foundItem(foundPhone)
+                            .claimantId(reporter1.getId())
+                            .claimantName(reporter1.getFirstName() + " " + reporter1.getLastName())
+                            .proofDescription("This is my iPhone 14 Pro. The case has my initials 'JD' engraved. I can show my purchase receipt from Dialog and the IMEI number matches my box.")
+                            .status("PENDING")
+                            .build();
+                    claimRepository.save(claim);
+                    log.info("Created Claim: {} claiming {} matches {}", reporter1.getEmail(), foundPhone.getTitle(), lostPhone.getTitle());
+                }
+            }
+
+            log.info("Lost & Found data initialization completed");
         }
     }
 }
