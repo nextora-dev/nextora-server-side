@@ -1097,7 +1097,7 @@ public class DataInitializer implements CommandLineRunner {
             log.info("Lost & Found data initialization completed");
         }
     }
-}
+
     private void createBoardingHouses() {
         if (boardingHouseRepository.count() == 0) {
             Admin admin = adminRepository.findAll().stream().findFirst().orElse(null);

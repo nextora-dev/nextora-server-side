@@ -82,7 +82,7 @@ public enum UserRole {
                     Permission.LOST_FOUND_DELETE,
                     Permission.LOST_FOUND_CLAIM,
                     Permission.LOST_FOUND_ADMIN_VIEW,
-                    Permission.LOST_FOUND_ADMIN_UPDATE
+                    Permission.LOST_FOUND_ADMIN_UPDATE,
                     // Boarding House - non-academic staff can manage listings
                     Permission.BOARDING_HOUSE_CREATE,
                     Permission.BOARDING_HOUSE_READ,

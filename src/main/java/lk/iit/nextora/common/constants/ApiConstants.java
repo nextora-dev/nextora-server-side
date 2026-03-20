@@ -137,9 +137,6 @@ public final class ApiConstants {
     public static final String EVENT_ADMIN = API_V1 + "/admin/events";
     public static final String EVENT_ADMIN_BY_ID = EVENT_ADMIN + "/{eventId}";
 
-    public static final String KUPPI_DOWNLOAD = KUPPI_NOTE_BY_ID + "/download";
-
-
     // ==================== Lost & Found Endpoints ====================
 
     // Base path for the Lost & Found module — same level as KUPPI = API_V1 + "/kuppi"
@@ -157,7 +154,7 @@ public final class ApiConstants {
     public static final String LOST_AND_FOUND_REJECT  = "/reject";
 
     // Admin endpoint — mirrors KUPPI_ADMIN = ADMIN + "/kuppi"
-    public static final String LOST_AND_FOUND_ADMIN   = ADMIN + "/lost-and-found";
+    public static final String LOST_AND_FOUND_ADMIN   = API_V1 + "/admin/lost-and-found";
 
 
     // ==================== Club & Voting Endpoints ====================
