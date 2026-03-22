@@ -28,7 +28,6 @@ class ElectionTest {
             // When
             Election election = Election.builder()
                     .id(1L)
-                    .clubId(1L)
                     .club(club)
                     .title("President Election 2026")
                     .description("Annual election for president")
@@ -54,9 +53,10 @@ class ElectionTest {
         @DisplayName("Should create election with defaults")
         void buildElection_withDefaults_success() {
             // When
+            Club club = Club.builder().id(1L).clubCode("TEST001").name("Test Club").build();
             Election election = Election.builder()
                     .id(1L)
-                    .clubId(1L)
+                    .club(club)
                     .title("Secretary Election")
                     .nominationStartTime(LocalDateTime.now())
                     .nominationEndTime(LocalDateTime.now().plusDays(1))
@@ -124,18 +124,18 @@ class ElectionTest {
 
             assertThat(generalElection.getElectionType()).isEqualTo(ElectionType.GENERAL);
 
-            // Test SPECIAL election type
-            Election specialElection = Election.builder()
+            // Test REFERENDUM election type
+            Election referendumElection = Election.builder()
                     .id(2L)
-                    .title("Special Election")
-                    .electionType(ElectionType.SPECIAL)
+                    .title("Club Policy Referendum")
+                    .electionType(ElectionType.REFERENDUM)
                     .nominationStartTime(LocalDateTime.now())
                     .nominationEndTime(LocalDateTime.now().plusDays(1))
                     .votingStartTime(LocalDateTime.now().plusDays(2))
                     .votingEndTime(LocalDateTime.now().plusDays(3))
                     .build();
 
-            assertThat(specialElection.getElectionType()).isEqualTo(ElectionType.SPECIAL);
+            assertThat(referendumElection.getElectionType()).isEqualTo(ElectionType.REFERENDUM);
         }
     }
 
@@ -147,9 +147,10 @@ class ElectionTest {
         @DisplayName("Should validate required fields")
         void validateRequiredFields() {
             // When
+            Club club = Club.builder().id(1L).clubCode("TEST001").name("Test Club").build();
             Election election = Election.builder()
                     .id(1L)
-                    .clubId(1L)
+                    .club(club)
                     .title("President Election")
                     .nominationStartTime(LocalDateTime.now())
                     .nominationEndTime(LocalDateTime.now().plusDays(1))
