@@ -1,0 +1,13 @@
+target
+.git
+.github
+*.md
+.env*
+.idea
+*.iml
+.vscode
+.DS_Store
+logs
+*.log
+node_modules
+docker-compose*.yml
