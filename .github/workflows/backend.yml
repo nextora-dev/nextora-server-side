@@ -21,13 +21,13 @@ jobs:
       - name: Build JAR
         run: mvn clean package -DskipTests
 
-      - name: Copy JAR to EC2
+      - name: Copy JAR and start script to EC2
         uses: appleboy/scp-action@v0.1.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
-          source: "target/*.jar"
+          source: "target/*.jar,start.sh"
           target: "/home/ubuntu/app"
 
       - name: Run App on EC2
@@ -37,5 +37,18 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           script: |
-            pkill java || true
-            nohup java -jar /home/ubuntu/app/*.jar > app.log 2>&1 &
+            cd /home/ubuntu/app
+            chmod +x start.sh
+            # Source .env file from GitHub secrets or create it
+            if [ -z "${{ secrets.ENV_FILE }}" ]; then
+              echo "Warning: ENV_FILE secret not set. Using environment variables from GitHub secrets."
+              export RDS_HOST=${{ secrets.RDS_HOST }}
+              export RDS_DB_NAME=${{ secrets.RDS_DB_NAME }}
+              export RDS_USERNAME=${{ secrets.RDS_USERNAME }}
+              export RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+              export RDS_SSL_CERT=${{ secrets.RDS_SSL_CERT }}
+              export REDIS_HOST=${{ secrets.REDIS_HOST }}
+              export REDIS_PORT=${{ secrets.REDIS_PORT }}
+              export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            fi
+            ./start.sh
