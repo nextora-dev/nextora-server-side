@@ -37,4 +37,7 @@ public class AuthResponse {
     // Status fields
     private String message;
     private Boolean passwordChangeRequired;
+
+    // Dashboard URL for frontend navigation
+    private String dashboardUrl;
 }

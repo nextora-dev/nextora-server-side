@@ -1,5 +1,6 @@
 package lk.iit.nextora.module.auth.mapper;
 
+import lk.iit.nextora.common.enums.UserRole;
 import lk.iit.nextora.common.mapper.MapperConfiguration;
 import lk.iit.nextora.common.util.StringUtils;
 import lk.iit.nextora.module.auth.dto.response.AuthResponse;
@@ -58,6 +59,7 @@ public interface AuthMapper {
 
         AuthResponse response = toAuthResponse(user, accessToken, refreshToken, expiresIn);
         response.setRoleSpecificData(roleSpecificData);
+        response.setDashboardUrl(generateDashboardUrl(user.getRole()));
         return response;
     }
 
@@ -101,6 +103,30 @@ public interface AuthMapper {
                 .maskedEmail(StringUtils.maskEmail(user.getEmail()))
                 .expiryMinutes(expiryMinutes)
                 .build();
+    }
+
+    // ==================== DASHBOARD URL GENERATION ====================
+
+    /**
+     * Generate dashboard URL based on user role
+     * This URL helps frontend redirect users to the correct dashboard after login
+     *
+     * @param role the user's role
+     * @return dashboard URL for the user's role
+     */
+    default String generateDashboardUrl(UserRole role) {
+        if (role == null) {
+            return null;
+        }
+
+        return switch (role) {
+            case ROLE_ADMIN -> "/admin/dashboard";
+            case ROLE_SUPER_ADMIN -> "/super-admin/dashboard";
+            case ROLE_STUDENT -> "/student/dashboard";
+            case ROLE_ACADEMIC_STAFF -> "/lecturer/dashboard";
+            case ROLE_NON_ACADEMIC_STAFF -> "/staff/dashboard";
+            default -> null;
+        };
     }
 }
 

@@ -37,7 +37,7 @@ public class ClubController {
     private final ClubService clubService;
     private final ElectionService electionService;
 
-    // ==================== Club Endpoints ====================
+    // ==================== Club Endpoints ===================   =
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)

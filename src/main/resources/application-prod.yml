@@ -5,9 +5,16 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${RDS_HOST}:5432/${RDS_DB_NAME}?sslmode=require&sslrootcert=${RDS_SSL_CERT}
-    username: ${RDS_USERNAME}
-    password: ${RDS_PASSWORD}
+    #    #    url: jdbc:postgresql://${RDS_HOST}:${RDS_PORT:5432}/${RDS_DB_NAME}?sslmode=verify-full&sslrootcert=${RDS_SSL_CERT}
+    #    #    url: jdbc:postgresql://nextoradb.cp26y6cww96e.eu-north-1.rds.amazonaws.com
+    #    url: jdbc:postgresql://nextoradb.cp26y6cww96e.eu-north-1.rds.amazonaws.com:5432/nextoraDB
+    #    #    username: ${RDS_USERNAME}
+    #    username: nextoradb
+    #    #    password: ${RDS_PASSWORD}
+    #    password: 12345678
+    url: jdbc:postgresql://${RDS_HOST:nextoradb.cp26y6cww96e.eu-north-1.rds.amazonaws.com}:${RDS_PORT:5432}/${RDS_DB_NAME:postgres}
+    username: postgres
+    password: 12345678
 
     hikari:
       maximum-pool-size: 20

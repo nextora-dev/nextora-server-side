@@ -54,8 +54,7 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
 
         Club club = findClubById(request.getClubId());
         validateClubOfficerAccess(club);
-
-        Student author = findStudentById(currentUserId);
+        Student author = findStudentByIdOrThrow(currentUserId);
 
         ClubAnnouncement announcement = ClubAnnouncement.builder()
                 .club(club)
@@ -224,9 +223,27 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
                 .orElseThrow(() -> new ResourceNotFoundException("ClubAnnouncement", "id", id));
     }
 
-    private Student findStudentById(Long studentId) {
-        return studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+    private Student findStudentByIdOrThrow(Long studentId) {
+        // First try to find the student in the database
+        var student = studentRepository.findById(studentId);
+        if (student.isPresent()) {
+            return student.get();
+        }
+        
+        // If not found and user is admin/superadmin/nonacademicstaff, use first available student or create temp record
+        if (securityService.isAdmin() || securityService.isSuperAdmin() || securityService.isNonAcademicstaff()) {
+            log.info("Admin user {} attempting to create announcement without Student record. Using fallback student.", studentId);
+            // Get first available student from database as fallback author
+            var fallbackStudent = studentRepository.findAll().stream().findFirst();
+            if (fallbackStudent.isPresent()) {
+                return fallbackStudent.get();
+            }
+            // If no students exist, throw error
+            throw new ResourceNotFoundException("Student", "id", studentId);
+        }
+        
+        // If not found and not an admin, throw error
+        throw new ResourceNotFoundException("Student", "id", studentId);
     }
 
     private void validateClubOfficerAccess(Club club) {
@@ -253,14 +270,13 @@ public class ClubAnnouncementServiceImpl implements ClubAnnouncementService {
 
     /**
      * Check if the position is allowed to manage announcements.
-     * Only PRESIDENT, VICE_PRESIDENT, SECRETARY, TREASURER, and Top_Board_MEMBER can manage announcements.
+     * Only PRESIDENT, VICE_PRESIDENT, SECRETARY, and TREASURER can manage announcements.
      */
     private boolean isAnnouncementOfficer(ClubPositionsType position) {
         return position == ClubPositionsType.PRESIDENT ||
-               position == ClubPositionsType.VICE_PRESIDENT ||
-               position == ClubPositionsType.SECRETARY ||
-               position == ClubPositionsType.TREASURER ||
-               position == ClubPositionsType.Top_Board_MEMBER;
+                position == ClubPositionsType.VICE_PRESIDENT ||
+                position == ClubPositionsType.SECRETARY ||
+                position == ClubPositionsType.TREASURER;
     }
 
     private void validateAttachment(MultipartFile file) {

@@ -50,7 +50,10 @@ public enum UserRole {
                     Permission.MEETING_READ,
                     Permission.MEETING_CANCEL,
                     // Boarding House - students can browse listings
-                    Permission.BOARDING_HOUSE_READ
+                    Permission.BOARDING_HOUSE_READ,
+
+                    //Club
+                    Permission.CLUB_ANNOUNCEMENT_READ
             )),
 
     // ==================== NON_ACADEMIC_STAFF ====================
@@ -95,7 +98,14 @@ public enum UserRole {
                     Permission.EVENT_READ,
                     Permission.EVENT_UPDATE,
                     Permission.EVENT_DELETE,
-                    Permission.EVENT_VIEW_ANALYTICS
+                    Permission.EVENT_VIEW_ANALYTICS,
+
+                    //Club
+                    Permission.CLUB_MEMBERSHIP_VIEW,
+                    Permission.CLUB_VIEW_ACTIVITY_LOG,
+                    Permission.CLUB_ANNOUNCEMENT_READ,
+                    Permission.CLUB_ANNOUNCEMENT_CREATE,
+                    Permission.CLUB_ANNOUNCEMENT_UPDATE
             )),
 
     // ==================== ACADEMIC_STAFF ====================

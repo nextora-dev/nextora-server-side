@@ -164,9 +164,9 @@ public final class ApiConstants {
     public static final String CLUB_MODULE = API_V1 + "/club-management";
 
     // Club Admin endpoints
-    public static final String CLUB_ADMIN = API_V1 + "/admin/clubs";
+    public static final String CLUB_ADMIN = API_V1 + "/admin/club";
     public static final String CLUB_ADMIN_STATS = "/stats";
-    public static final String CLUB_ADMIN_ACTIVITY_LOG = "/activity-log";
+    public static final String CLUB_ADMIN_ACTIVITY_LOG = "/{clubId}/activity-log";
     public static final String MEMBERSHIP_CHANGE_POSITION = "/memberships/{membershipId}/change-position";
     public static final String MEMBERSHIP_BULK_APPROVE = "/memberships/bulk-approve";
     public static final String CLUB_TOGGLE_REGISTRATION = "/{clubId}/toggle-registration";
@@ -175,7 +175,7 @@ public final class ApiConstants {
     public static final String CLUB_ADMIN_ANNOUNCEMENT_PERMANENT_DELETE = "/announcements/{announcementId}/permanent";
 
     // Club Announcement endpoints
-    public static final String CLUB_ANNOUNCEMENTS = API_V1 + "/club-announcements";
+    public static final String CLUB_ANNOUNCEMENTS = API_V1 + "/club/announcements";
     public static final String CLUB_ANNOUNCEMENT_BY_ID = "/{announcementId}";
     public static final String CLUB_ANNOUNCEMENTS_BY_CLUB = "/club/{clubId}";
     public static final String CLUB_ANNOUNCEMENTS_PUBLIC = "/public";
@@ -185,7 +185,7 @@ public final class ApiConstants {
     public static final String CLUB_ANNOUNCEMENT_UNPIN = "/{announcementId}/unpin";
 
     // Clubs (voting module - for elections)
-    public static final String CLUBS = API_V1 + "/clubs";
+    public static final String CLUBS = API_V1 + "/club";
     public static final String CLUB_BY_ID = "/{clubId}";
     public static final String CLUB_BY_CODE = "/code/{clubCode}";
     public static final String CLUB_SEARCH = "/search";

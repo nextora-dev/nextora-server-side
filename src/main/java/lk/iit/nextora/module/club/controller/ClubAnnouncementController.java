@@ -36,19 +36,20 @@ public class ClubAnnouncementController {
     @Operation(summary = "Create announcement", description = "Create a new club announcement with optional attachment (Club officers only)")
     @PreAuthorize("hasAuthority('CLUB_ANNOUNCEMENT:CREATE')")
     public ApiResponse<ClubAnnouncementResponse> createAnnouncement(
-            @RequestParam("clubId") Long clubId,
-            @RequestParam("title") String title,
-            @RequestParam("content") String content,
+            @RequestParam Long clubId,
+            @RequestParam String title,
+            @RequestParam String content,
             @RequestParam(value = "priority", defaultValue = "NORMAL") String priority,
             @RequestParam(value = "isPinned", defaultValue = "false") Boolean isPinned,
             @RequestParam(value = "isMembersOnly", defaultValue = "false") Boolean isMembersOnly,
             @RequestPart(value = "attachment", required = false) MultipartFile attachment) {
 
+        // Build request from parameters
         CreateAnnouncementRequest request = CreateAnnouncementRequest.builder()
                 .clubId(clubId)
                 .title(title)
                 .content(content)
-                .priority(ClubAnnouncement.AnnouncementPriority.valueOf(priority))
+                .priority(ClubAnnouncement.AnnouncementPriority.valueOf(priority.toUpperCase()))
                 .isPinned(isPinned)
                 .isMembersOnly(isMembersOnly)
                 .build();
@@ -72,7 +73,7 @@ public class ClubAnnouncementController {
         UpdateAnnouncementRequest request = UpdateAnnouncementRequest.builder()
                 .title(title)
                 .content(content)
-                .priority(priority != null ? ClubAnnouncement.AnnouncementPriority.valueOf(priority) : null)
+                .priority(priority != null ? ClubAnnouncement.AnnouncementPriority.valueOf(priority.toUpperCase()) : null)
                 .isPinned(isPinned)
                 .isMembersOnly(isMembersOnly)
                 .build();
@@ -111,8 +112,8 @@ public class ClubAnnouncementController {
         return ApiResponse.success("Announcements retrieved successfully", response);
     }
 
-    @GetMapping(ApiConstants.CLUB_ANNOUNCEMENTS_PUBLIC)
-    @Operation(summary = "Get public announcements", description = "Get only public announcements for a club")
+    @GetMapping(ApiConstants.CLUB_ANNOUNCEMENTS_BY_CLUB + ApiConstants.CLUB_ANNOUNCEMENTS_PUBLIC)
+    @Operation(summary = "Get public announcements for a club", description = "Get only public announcements for a club")
     @PreAuthorize("hasAuthority('CLUB_ANNOUNCEMENT:READ')")
     public ApiResponse<PagedResponse<ClubAnnouncementResponse>> getPublicAnnouncements(
             @PathVariable Long clubId,
@@ -124,7 +125,7 @@ public class ClubAnnouncementController {
         return ApiResponse.success("Public announcements retrieved successfully", response);
     }
 
-    @GetMapping(ApiConstants.CLUB_ANNOUNCEMENTS_PINNED)
+    @GetMapping(ApiConstants.CLUB_ANNOUNCEMENTS_BY_CLUB + ApiConstants.CLUB_ANNOUNCEMENTS_PINNED)
     @Operation(summary = "Get pinned announcements", description = "Get pinned announcements for a club")
     @PreAuthorize("hasAuthority('CLUB_ANNOUNCEMENT:READ')")
     public ApiResponse<PagedResponse<ClubAnnouncementResponse>> getPinnedAnnouncements(

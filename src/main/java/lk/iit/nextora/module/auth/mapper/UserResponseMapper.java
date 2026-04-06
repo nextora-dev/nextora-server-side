@@ -56,6 +56,7 @@ public interface UserResponseMapper {
         data.put("address", student.getAddress());
         data.put("guardianName", student.getGuardianName());
         data.put("guardianPhone", student.getGuardianPhone());
+        data.put("dashboardUrl", "/student/dashboard");
 
         // Add role-specific data based on all studentRoleTypes
         if (student.getStudentRoleTypes() != null) {
@@ -109,6 +110,7 @@ public interface UserResponseMapper {
         var permissions = admin.getPermissions();
         data.put("permissions", permissions != null ? new HashSet<>(permissions) : new HashSet<>());
         data.put("assignedDate", admin.getAssignedDate());
+        data.put("dashboardUrl", "/admin/dashboard");
         return data;
     }
 
@@ -133,6 +135,7 @@ public interface UserResponseMapper {
         data.put("qualifications", qualifications != null ? new HashSet<>(qualifications) : new HashSet<>());
         data.put("bio", staff.getBio());
         data.put("availableForMeetings", staff.getAvailableForMeetings());
+        data.put("dashboardUrl", "/lecturer/dashboard");
         return data;
     }
 
@@ -148,6 +151,7 @@ public interface UserResponseMapper {
         data.put("workLocation", staff.getWorkLocation());
         data.put("joinDate", staff.getJoinDate());
         data.put("shift", staff.getShift());
+        data.put("dashboardUrl", "/staff/dashboard");
         return data;
     }
 
@@ -160,6 +164,7 @@ public interface UserResponseMapper {
         data.put("superAdminId", superAdmin.getSuperAdminId());
         data.put("assignedDate", superAdmin.getAssignedDate());
         data.put("accessLevel", superAdmin.getAccessLevel());
+        data.put("dashboardUrl", "/super-admin/dashboard");
         return data;
     }
 }

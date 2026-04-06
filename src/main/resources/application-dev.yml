@@ -4,10 +4,14 @@ spring:
       on-profile: dev
 
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/nextoraDB_dev
-    username: postgres
-    password: 1234
+  #    driver-class-name: org.postgresql.Driver
+  #    url: jdbc:postgresql://localhost:5432/nextoraDB_dev
+  #    username: postgres
+  #    password: 1234
+  driver-class-name: org.postgresql.Driver
+  url: jdbc:postgresql://nextoradb.cp26y6cww96e.eu-north-1.rds.amazonaws.com:5432/nextoraDB
+  username: nextoradb
+  password: 12345678
 
   jpa:
     hibernate:
